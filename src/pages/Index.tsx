@@ -163,7 +163,7 @@ const Index = () => {
         {/* KPI Cards Grid - only show if has data */}
         {hasDataForPeriod && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <KPICard
                 title="Receita Total"
                 value={formatCurrency(calculatedSummary?.totalReceita ?? 0)}
@@ -191,13 +191,6 @@ const Index = () => {
                 valueDecimals={1}
                 subtitle="Comparado ao mesmo período do ano anterior"
                 icon={<Percent className="w-5 h-5" />}
-              />
-              <KPICard
-                title="Marketplaces Ativos"
-                value={formatNumber(filteredMarketplaces.length)}
-                rawValue={filteredMarketplaces.length}
-                subtitle={`${filteredMarketplaces.filter(mp => mp.metaPercentage >= 100).length} acima da meta`}
-                icon={<Users className="w-5 h-5" />}
               />
             </div>
 
