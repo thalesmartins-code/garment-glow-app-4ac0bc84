@@ -53,12 +53,12 @@ export function FilterBar({
         {/* Marketplace Filter */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Select value={selectedMarketplace} onValueChange={onMarketplaceChange}>
-            <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm">
+            <SelectTrigger className="w-full sm:w-[160px] h-9 text-sm">
               <SelectValue>
                 {selectedMarketplace === "all" ? (
                   <span className="flex items-center gap-1.5">
                     <span>📊</span>
-                    <span>Marketplaces (todos)</span>
+                    <span>Todos</span>
                   </span>
                 ) : (
                   (() => {
@@ -77,7 +77,7 @@ export function FilterBar({
               <SelectItem value="all">
                 <span className="flex items-center gap-1.5">
                   <span>📊</span>
-                  <span>Marketplaces (todos)</span>
+                  <span>Todos</span>
                 </span>
               </SelectItem>
               {marketplaceOptions.map((mp) => (
