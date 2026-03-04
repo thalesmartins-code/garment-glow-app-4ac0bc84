@@ -124,7 +124,7 @@ const Index = () => {
   return (
     <div className="space-y-6">
         {/* Year/Month Filters */}
-        <div className="flex flex-wrap items-center gap-3 bg-card rounded-xl p-4 border-0 shadow-md">
+        <div className="flex flex-wrap items-center gap-3 bg-card rounded-xl p-4 shadow-md">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Mês:</span>
             <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
