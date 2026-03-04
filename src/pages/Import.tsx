@@ -290,6 +290,13 @@ export default function Import() {
                             }
                           }
                           
+                          // Save to Supabase DB
+                          try {
+                            await saveSalesToDB(importedSales);
+                          } catch (e) {
+                            console.error("Erro ao persistir no banco:", e);
+                          }
+                          
                           toast({
                             title: "Dados sincronizados!",
                             description: `${totalImported} registros importados com PMT e Metas de ${Object.keys(bySeller).length} seller(s).`,
