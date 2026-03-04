@@ -226,7 +226,7 @@ export function SalesTable({
               <td className="px-4 py-4 text-right text-muted-foreground">
                 {formatCurrency(totals.meta)}
               </td>
-              <td className="px-4 py-4">
+              <td className={cn("px-4 py-4", totalMetaPercentage >= 100 ? "bg-success/10" : "bg-warning/10")}>
                 <ProgressBar value={totalMetaPercentage} showLabel size="sm" />
               </td>
               <td className="px-4 py-4 text-right">
