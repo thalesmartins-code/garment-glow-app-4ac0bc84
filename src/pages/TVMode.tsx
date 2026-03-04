@@ -118,14 +118,18 @@ const TVMode = () => {
   // Monthly metrics
   const monthlyMetrics = useMemo(() => {
     const data = dailySalesData;
-    if (data.length === 0) return { metaTotal: 0, vendaTotal: 0, metaPercentage: 0, yoy: 0, gapTotal: 0, totalAnoAnterior: 0 };
+    if (data.length === 0) return { metaTotal: 0, vendaTotal: 0, metaPercentage: 0, yoy: 0, gapTotal: 0, totalAnoAnterior: 0, mediaAtingimentoMeta: 0 };
     const metaTotal = data.reduce((s, d) => s + d.metaVendas, 0);
     const vendaTotal = data.reduce((s, d) => s + d.vendaTotal, 0);
     const totalAnoAnterior = data.reduce((s, d) => s + d.vendaAnoAnterior, 0);
     const gapTotal = data.reduce((s, d) => s + d.gap, 0);
     const metaPercentage = metaTotal > 0 ? (vendaTotal / metaTotal) * 100 : 0;
     const yoy = totalAnoAnterior > 0 ? ((vendaTotal - totalAnoAnterior) / totalAnoAnterior) * 100 : 0;
-    return { metaTotal, vendaTotal, metaPercentage, yoy, gapTotal, totalAnoAnterior };
+    const diasComVenda = data.filter((d) => d.vendaTotal > 0 && d.metaVendas > 0);
+    const mediaAtingimentoMeta = diasComVenda.length > 0
+      ? diasComVenda.reduce((s, d) => s + d.metaAtingida, 0) / diasComVenda.length
+      : 0;
+    return { metaTotal, vendaTotal, metaPercentage, yoy, gapTotal, totalAnoAnterior, mediaAtingimentoMeta };
   }, [dailySalesData]);
 
   // Daily metrics (yesterday / D-1)
