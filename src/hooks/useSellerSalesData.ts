@@ -341,6 +341,7 @@ export function useSellerSalesData(): UseSellerSalesDataReturn {
   return {
     getDailySalesData,
     getMarketplaceSummary,
+    getMarketplaceSummaryForDateRange,
     updateSaleValue,
     updateSaleAprovadaReal,
     updateMarketplaceQuantity,
