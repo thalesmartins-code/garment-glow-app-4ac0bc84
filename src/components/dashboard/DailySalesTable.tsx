@@ -319,7 +319,7 @@ export function DailySalesTable({
 
   if (loading) {
     return (
-      <Card className="dashboard-card">
+      <Card className="dashboard-card border-0 shadow-md">
         <CardHeader>
           <div className="h-6 bg-muted rounded animate-pulse w-48" />
         </CardHeader>
@@ -335,7 +335,7 @@ export function DailySalesTable({
   }
 
   return (
-    <Card className="dashboard-card">
+    <Card className="border-0 shadow-md">
       <CardHeader className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-2">

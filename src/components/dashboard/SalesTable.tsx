@@ -5,6 +5,7 @@ import { MarketplaceSales } from "@/data/mockData";
 import { ProgressBar } from "./ProgressBar";
 import { EditableQuantityCell } from "./EditableQuantityCell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SortField = "marketplace" | "vendas" | "vendaTotal" | "vendaAprovadaReal" | "pmt" | "meta" | "metaPercentage" | "yoyGrowth";
 type SortDirection = "asc" | "desc";
@@ -77,22 +78,23 @@ export function SalesTable({
     return sortDirection === "asc" ? <ChevronUp className="w-4 h-4 text-primary" /> : <ChevronDown className="w-4 h-4 text-primary" />;
   };
   if (loading) {
-    return <div className="dashboard-section animate-pulse">
-        <div className="dashboard-section-header">
+    return <Card className="border-0 shadow-md animate-pulse">
+        <CardHeader>
           <div className="h-6 bg-muted rounded w-48" />
-        </div>
-        <div className="p-4 space-y-3">
+        </CardHeader>
+        <CardContent className="space-y-3">
           {[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-muted rounded" />)}
-        </div>
-      </div>;
+        </CardContent>
+      </Card>;
   }
-  return <div className="dashboard-section animate-slide-up">
-      <div className="dashboard-section-header">
-        <h2 className="dashboard-section-title">Vendas por Marketplace</h2>
+  return <Card className="border-0 shadow-md">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-base">Vendas por Marketplace</CardTitle>
         <span className="text-sm text-muted-foreground">
           {data.length} marketplace{data.length !== 1 && "s"}
         </span>
-      </div>
+      </CardHeader>
+      <CardContent>
 
       <div className="overflow-x-auto">
         <Table className="data-table">
@@ -236,5 +238,6 @@ export function SalesTable({
           </tfoot>
         </Table>
       </div>
-    </div>;
+      </CardContent>
+    </Card>;
 }

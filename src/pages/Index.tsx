@@ -124,7 +124,7 @@ const Index = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
         {/* Year/Month Filters */}
-        <div className="flex flex-wrap items-center gap-3 bg-card rounded-xl p-4 shadow-card">
+        <div className="flex flex-wrap items-center gap-3 bg-card rounded-xl p-4 border-0 shadow-md">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Mês:</span>
             <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
@@ -171,7 +171,7 @@ const Index = () => {
 
         {/* Error State */}
         {error && (
-          <div className="bg-destructive/10 text-destructive rounded-xl p-4 flex items-center gap-3">
+          <div className="bg-destructive/10 text-destructive rounded-xl p-4 flex items-center gap-3 shadow-md">
             <span className="text-lg">⚠️</span>
             <div>
               <p className="font-medium">Erro ao carregar dados</p>
@@ -182,7 +182,7 @@ const Index = () => {
 
         {/* Empty State - No Data */}
         {!hasDataForPeriod && !isLoading && (
-          <div className="bg-card rounded-xl p-8 text-center shadow-card">
+          <div className="bg-card rounded-xl p-8 text-center border-0 shadow-md">
             <div className="text-6xl mb-4">📊</div>
             <h3 className="text-xl font-semibold mb-2">Nenhum dado disponível</h3>
             <p className="text-muted-foreground mb-6">
@@ -208,7 +208,7 @@ const Index = () => {
         {/* KPI Cards Grid - only show if has data */}
         {hasDataForPeriod && (
           <>
-            <div className="dashboard-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <KPICard
                 title="Receita Total"
                 value={isLoading ? "..." : formatCurrency(calculatedSummary?.totalReceita ?? 0)}

@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { DailySale } from "@/data/mockData";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronDown } from "lucide-react";
 
 interface DailySalesChartProps {
@@ -47,29 +48,29 @@ export function DailySalesChart({ data, loading = false, selectedMarketplace = "
 
   if (loading) {
     return (
-      <div className="dashboard-section">
-        <div className="dashboard-section-header">
+      <Card className="border-0 shadow-md">
+        <CardHeader>
           <div className="h-6 bg-muted rounded w-48 animate-pulse" />
-        </div>
-        <div className="p-6 h-80 flex items-center justify-center">
+        </CardHeader>
+        <CardContent className="h-80 flex items-center justify-center">
           <div className="w-full h-full bg-muted rounded animate-pulse" />
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className="dashboard-section">
+      <Card className="border-0 shadow-md">
         <CollapsibleTrigger className="w-full">
-          <div className="dashboard-section-header cursor-pointer hover:bg-muted/50 transition-colors flex items-center justify-between">
-            <h2 className="dashboard-section-title">Evolução de vendas diárias</h2>
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Evolução de vendas diárias</CardTitle>
             <ChevronDown 
               className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${
                 isOpen ? "rotate-180" : ""
               }`} 
             />
-          </div>
+          </CardHeader>
         </CollapsibleTrigger>
         <CollapsibleContent className="overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
           <div className="p-4 sm:p-6">
@@ -140,7 +141,7 @@ export function DailySalesChart({ data, loading = false, selectedMarketplace = "
             </ResponsiveContainer>
           </div>
         </CollapsibleContent>
-      </div>
+      </Card>
     </Collapsible>
   );
 }
