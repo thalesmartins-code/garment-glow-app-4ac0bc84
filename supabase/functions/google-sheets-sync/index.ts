@@ -111,7 +111,7 @@ async function getAccessToken(serviceAccountJsonRaw: string): Promise<string> {
     new TextEncoder().encode(unsignedToken)
   );
 
-  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+  const signatureB64 = encodeBase64(new Uint8Array(signature))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
