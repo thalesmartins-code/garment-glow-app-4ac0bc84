@@ -255,7 +255,9 @@ const DailySales = () => {
             <div className="flex items-center gap-4">
               <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "diario" | "mensal")}>
                 <TabsList className="h-9">
-                  <TabsTrigger value="diario" className="text-sm px-3 py-1.5" disabled={!isCurrentMonth}>Diário</TabsTrigger>
+                  <TabsTrigger value="diario" className="text-sm px-3 py-1.5" disabled={!isCurrentMonth}>
+                    Diário {viewMode === "diario" && isCurrentMonth ? `(Dia ${currentDate.getDate() - 1})` : ""}
+                  </TabsTrigger>
                   <TabsTrigger value="mensal" className="text-sm px-3 py-1.5">Mensal</TabsTrigger>
                 </TabsList>
               </Tabs>
