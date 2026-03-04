@@ -29,7 +29,7 @@ const variantStyles: Record<CardVariant, { icon: string; trend: string; card: st
   danger: { icon: "bg-destructive/10 text-destructive", trend: "text-destructive", card: "bg-destructive/5 border border-destructive/10" },
   info: { icon: "bg-primary/10 text-primary", trend: "text-primary", card: "bg-primary/5 border border-primary/10" },
   neutral: { icon: "bg-muted text-muted-foreground", trend: "", card: "" },
-  purple: { icon: "bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]", trend: "", card: "" },
+  purple: { icon: "bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]", trend: "", card: "bg-[hsl(270,70%,50%)]/5 border border-[hsl(270,70%,50%)]/10" },
   orange: { icon: "bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]", trend: "", card: "" },
 };
 
