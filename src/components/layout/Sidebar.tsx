@@ -80,7 +80,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className={cn("flex items-center gap-3 py-6 border-b border-sidebar-border overflow-hidden", collapsed ? "px-3 justify-center" : "px-6")}>
         <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-primary shadow-glow flex-shrink-0 transition-transform duration-300">
-          <PiggyBank className="w-5 h-5 text-white" />
+          <Rocket className="w-5 h-5 text-white" />
         </div>
         <div className={cn("transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap", collapsed ? "w-0 opacity-0" : "w-auto opacity-100")}>
           <h1 className="font-semibold text-lg tracking-tight">Analytics Pro</h1>
