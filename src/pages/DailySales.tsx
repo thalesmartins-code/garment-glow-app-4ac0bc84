@@ -353,22 +353,7 @@ const DailySales = () => {
         </div>
 
         {/* KPI Cards - Row 2 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <KPICard
-            title="Melhor dia"
-            value={`Dia ${activeMetrics.melhorDia.dia}`}
-            rawValue={activeMetrics.melhorDia.dia}
-            valuePrefix="Dia "
-            subtitle={formatCurrency(activeMetrics.melhorDia.valor)}
-            icon={<Star className="w-5 h-5" />}
-          />
-          <KPICard
-            title="Média diária"
-            value={formatCurrency(activeMetrics.mediaVendas)}
-            rawValue={activeMetrics.mediaVendas}
-            valuePrefix="R$ "
-            icon={<Calculator className="w-5 h-5" />}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           <KPICard
             title={viewMode === "diario" ? "Ano anterior (Dia)" : "Total ano anterior"}
             value={formatCurrency(activeMetrics.totalAnoAnterior)}
