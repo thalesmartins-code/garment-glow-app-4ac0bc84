@@ -202,6 +202,12 @@ const DailySales = () => {
 
   return (
     <div className="space-y-6">
+        {/* Sync Progress Bar */}
+        {isSyncing && (
+          <div className="w-full">
+            <Progress value={undefined} className="h-1 w-full [&>div]:animate-[indeterminate_1.5s_ease-in-out_infinite] [&>div]:w-1/3" />
+          </div>
+        )}
         {/* Action Bar */}
         <div className="flex items-center justify-end gap-3">
           <span className="text-xs text-muted-foreground">
