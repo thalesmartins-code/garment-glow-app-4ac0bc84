@@ -200,15 +200,34 @@ serve(async (req) => {
       );
     }
 
-    const serviceAccountJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
-    if (!serviceAccountJson) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Google Service Account not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Use separate env vars for client email and private key
+    const clientEmail = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_EMAIL") || Deno.env.get("GOOGLE_CLIENT_EMAIL");
+    const privateKey = Deno.env.get("GOOGLE_PRIVATE_KEY");
+    
+    if (!clientEmail || !privateKey) {
+      // Fallback: try GOOGLE_SERVICE_ACCOUNT_JSON
+      const saJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
+      if (!saJson) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Google Service Account not configured. Set GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY or GOOGLE_SERVICE_ACCOUNT_JSON" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      // Try parsing the JSON
+      try {
+        const sa = JSON.parse(saJson);
+        var accessToken = await getAccessToken(sa.client_email, sa.private_key);
+      } catch (e) {
+        return new Response(
+          JSON.stringify({ success: false, error: `Failed to parse service account JSON: ${(e as Error).message}` }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // Fix private key: replace literal \n with actual newlines
+      const fixedKey = privateKey.replace(/\\n/g, '\n');
+      var accessToken = await getAccessToken(clientEmail, fixedKey);
     }
-
-    const accessToken = await getAccessToken(serviceAccountJson);
     const targetYear = year || new Date().getFullYear();
 
     const tabsToSync: string[] = tabs || [
