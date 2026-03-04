@@ -171,7 +171,7 @@ const Index = () => {
 
         {/* Error State */}
         {error && (
-          <div className="bg-destructive/10 text-destructive rounded-xl p-4 flex items-center gap-3">
+          <div className="bg-destructive/10 text-destructive rounded-xl p-4 flex items-center gap-3 shadow-md">
             <span className="text-lg">⚠️</span>
             <div>
               <p className="font-medium">Erro ao carregar dados</p>
