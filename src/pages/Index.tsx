@@ -182,7 +182,7 @@ const Index = () => {
 
         {/* Empty State - No Data */}
         {!hasDataForPeriod && !isLoading && (
-          <div className="bg-card rounded-xl p-8 text-center border-0 shadow-md">
+          <div className="bg-card rounded-xl p-8 text-center shadow-md">
             <div className="text-6xl mb-4">📊</div>
             <h3 className="text-xl font-semibold mb-2">Nenhum dado disponível</h3>
             <p className="text-muted-foreground mb-6">
