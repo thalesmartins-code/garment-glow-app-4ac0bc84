@@ -341,6 +341,10 @@ const DailySales = () => {
             valueDecimals={1}
             icon={<Percent className="w-5 h-5" />}
           />
+        </div>
+
+        {/* KPI Cards - Row 2 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <KPICard
             title={viewMode === "diario" ? "GAP (Dia)" : "GAP"}
             value={formatCurrency(Math.abs(activeMetrics.gapTotal))}
@@ -350,10 +354,6 @@ const DailySales = () => {
             deltaLabel={activeMetrics.gapTotal >= 0 ? "acima da meta" : "abaixo da meta"}
             icon={<AlertTriangle className="w-5 h-5" />}
           />
-        </div>
-
-        {/* KPI Cards - Row 2 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           <KPICard
             title={viewMode === "diario" ? "Ano anterior (Dia)" : "Total ano anterior"}
             value={formatCurrency(activeMetrics.totalAnoAnterior)}
