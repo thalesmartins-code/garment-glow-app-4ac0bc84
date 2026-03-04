@@ -79,7 +79,7 @@ export function KPICard({
             </div>
           )}
         </div>
-        <p className="text-2xl font-bold">{displayValue}</p>
+        <p className="text-[1.65rem] font-bold">{displayValue}</p>
         {(delta !== undefined || subtitle) && (
           <div className="flex items-center gap-1 mt-2">
             {delta !== undefined && (
