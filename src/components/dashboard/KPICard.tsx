@@ -25,13 +25,13 @@ interface KPICardProps {
 
 const variantStyles: Record<CardVariant, { icon: string; trend: string; card: string }> = {
   default: { icon: "bg-accent/10 text-accent", trend: "", card: "" },
-  success: { icon: "bg-success/10 text-success", trend: "text-success", card: "bg-success/5 border border-success/10" },
-  warning: { icon: "bg-warning/10 text-warning", trend: "text-warning", card: "bg-warning/5 border border-warning/10" },
-  danger: { icon: "bg-destructive/10 text-destructive", trend: "text-destructive", card: "bg-destructive/5 border border-destructive/10" },
-  info: { icon: "bg-primary/10 text-primary", trend: "text-primary", card: "bg-primary/5 border border-primary/10" },
+  success: { icon: "bg-success/10 text-success", trend: "text-success", card: "bg-success/5 border border-success/5" },
+  warning: { icon: "bg-warning/10 text-warning", trend: "text-warning", card: "bg-warning/5 border border-warning/5" },
+  danger: { icon: "bg-destructive/10 text-destructive", trend: "text-destructive", card: "bg-destructive/5 border border-destructive/5" },
+  info: { icon: "bg-primary/10 text-primary", trend: "text-primary", card: "bg-primary/5 border border-primary/5" },
   neutral: { icon: "bg-muted text-muted-foreground", trend: "", card: "" },
-  purple: { icon: "bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]", trend: "", card: "bg-[hsl(270,70%,50%)]/5 border border-[hsl(270,70%,50%)]/10" },
-  orange: { icon: "bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]", trend: "", card: "bg-[hsl(25,95%,53%)]/5 border border-[hsl(25,95%,53%)]/10" },
+  purple: { icon: "bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]", trend: "", card: "bg-[hsl(270,70%,50%)]/5 border border-[hsl(270,70%,50%)]/5" },
+  orange: { icon: "bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]", trend: "", card: "bg-[hsl(25,95%,53%)]/5 border border-[hsl(25,95%,53%)]/5" },
 };
 
 export function KPICard({
