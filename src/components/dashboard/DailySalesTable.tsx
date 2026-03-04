@@ -351,7 +351,7 @@ export function DailySalesTable({
           </div>
         </CardHeader>
       )}
-        <div className="overflow-x-auto -mx-4 sm:mx-0">
+      <CardContent>
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
