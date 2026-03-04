@@ -109,12 +109,12 @@ export function Header({ title, subtitle }: HeaderProps) {
             <Button variant="ghost" className="gap-3 pl-2 pr-4 hover:bg-secondary/50 hover:text-foreground rounded-xl">
               <Avatar className="w-8 h-8">
                 <AvatarFallback className="bg-accent text-accent-foreground text-sm font-medium">
-                  JS
+                  {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="text-left hidden sm:block">
-                <p className="text-sm font-medium">Julia Santos</p>
-                <p className="text-xs text-muted-foreground">Gerente</p>
+                <p className="text-sm font-medium">{displayName}</p>
+                <p className="text-xs text-muted-foreground">{roleLabel}</p>
               </div>
             </Button>
           </DropdownMenuTrigger>
@@ -127,7 +127,8 @@ export function Header({ title, subtitle }: HeaderProps) {
             </DropdownMenuItem>
             <DropdownMenuItem>Configurações</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem className="text-destructive" onClick={signOut}>
+              <LogOut className="w-4 h-4 mr-2" />
               Sair
             </DropdownMenuItem>
           </DropdownMenuContent>
