@@ -69,7 +69,7 @@ export function KPICard({
   }
 
   return (
-    <Card className={cn(className)}>
+    <Card className={cn(styles.card, className)}>
       <CardContent className="p-4 flex gap-4">
         <div className="flex-1 min-w-0">
           <span className="text-sm font-medium text-muted-foreground">{title}</span>

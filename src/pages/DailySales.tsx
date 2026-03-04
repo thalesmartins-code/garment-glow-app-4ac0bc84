@@ -358,6 +358,7 @@ const DailySales = () => {
             valueSuffix="%"
             valueDecimals={1}
             icon={<Percent className="w-5 h-5" />}
+            variant={activeMetrics.metaPercentage >= 100 ? "success" : activeMetrics.metaPercentage >= 80 ? "warning" : "danger"}
           />
         </div>
 
