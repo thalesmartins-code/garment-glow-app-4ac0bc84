@@ -141,6 +141,29 @@ function parseTabData(
 
   const results: SheetRow[] = [];
   
+  // Find the seller row and header row dynamically
+  // The seller row contains seller names like "SANDRINI", "BUYCLOCK"
+  // The header row contains "Dia", "PMT", etc.
+  let sellerRowIdx = -1;
+  let headerRowIdx = -1;
+  
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    const row = rows[i];
+    if (!row) continue;
+    const joined = row.join(" ").toLowerCase();
+    if (joined.includes("dia") && joined.includes("pmt") && joined.includes("venda")) {
+      headerRowIdx = i;
+      // Seller row is typically the one before
+      if (i > 0) sellerRowIdx = i - 1;
+      break;
+    }
+  }
+  
+  if (headerRowIdx < 0) {
+    console.log("Could not find header row in first 10 rows");
+    return [];
+  }
+  
   // Row 0: seller names spanning column groups
   const sellerRow = rows[0];
   // Row 1: column headers (repeated for each seller)
