@@ -173,7 +173,7 @@ export function SalesTable({
                       <span className="font-medium">{formatNumber(mp.vendas)}</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right font-semibold bg-success/10 text-success">
+                  <TableCell className="text-right font-semibold">
                     {formatCurrency(mp.vendaTotal)}
                   </TableCell>
                   <TableCell className="text-right font-semibold">
@@ -185,9 +185,7 @@ export function SalesTable({
                   <TableCell className="text-right text-muted-foreground">
                     {formatCurrency(mp.meta)}
                   </TableCell>
-                  <TableCell className={cn(
-                    mp.metaPercentage >= 100 ? "bg-success/10" : "bg-warning/10"
-                  )}>
+                  <TableCell>
                     <ProgressBar value={mp.metaPercentage} showLabel size="sm" />
                   </TableCell>
                   <TableCell className="text-right">
@@ -214,7 +212,7 @@ export function SalesTable({
               <td className="px-4 py-4 text-right">
                 {formatNumber(totals.vendas)}
               </td>
-              <td className="px-4 py-4 text-right font-semibold bg-success/10 text-success">
+              <td className="px-4 py-4 text-right text-primary">
                 {formatCurrency(totals.vendaTotal)}
               </td>
               <td className="px-4 py-4 text-right text-primary">
@@ -226,7 +224,7 @@ export function SalesTable({
               <td className="px-4 py-4 text-right text-muted-foreground">
                 {formatCurrency(totals.meta)}
               </td>
-              <td className={cn("px-4 py-4", totalMetaPercentage >= 100 ? "bg-success/10" : "bg-warning/10")}>
+              <td className="px-4 py-4">
                 <ProgressBar value={totalMetaPercentage} showLabel size="sm" />
               </td>
               <td className="px-4 py-4 text-right">
