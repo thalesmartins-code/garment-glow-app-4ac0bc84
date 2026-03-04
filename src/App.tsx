@@ -17,6 +17,7 @@ import Settings from "./pages/Settings";
 import Sellers from "./pages/Sellers";
 import UserManagement from "./pages/UserManagement";
 import Profile from "./pages/Profile";
+import TVMode from "./pages/TVMode";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +35,9 @@ const App = () => (
               <BrowserRouter>
                 <Routes>
                   <Route path="/login" element={<Login />} />
+                  <Route path="/tv" element={<ProtectedRoute />}>
+                    <Route index element={<TVMode />} />
+                  </Route>
                   <Route element={<ProtectedRoute />}>
                     <Route element={<AppLayout />}>
                       <Route path="/" element={<Index />} />
