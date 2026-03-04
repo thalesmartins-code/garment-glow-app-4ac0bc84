@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
-  CalendarDays,
-  Upload,
-  Settings,
-  Store,
+  BarChart3,
+  TrendingUp,
+  FileUp,
+  SlidersHorizontal,
+  Users,
   ChevronLeft,
   ChevronRight,
-  PiggyBank,
+  Rocket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -18,11 +18,11 @@ import {
 } from "@/components/ui/tooltip";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: CalendarDays, label: "Vendas Diárias", path: "/vendas-diarias" },
-  { icon: Upload, label: "Importação", path: "/importacao" },
-  { icon: Settings, label: "Configurações", path: "/configuracoes" },
-  { icon: Store, label: "Sellers", path: "/sellers" },
+  { icon: BarChart3, label: "Dashboard", path: "/" },
+  { icon: TrendingUp, label: "Vendas Diárias", path: "/vendas-diarias" },
+  { icon: FileUp, label: "Importação", path: "/importacao" },
+  { icon: SlidersHorizontal, label: "Configurações", path: "/configuracoes" },
+  { icon: Users, label: "Sellers", path: "/sellers" },
 ];
 
 export function Sidebar() {
