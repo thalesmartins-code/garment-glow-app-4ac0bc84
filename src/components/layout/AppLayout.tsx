@@ -10,6 +10,7 @@ const routeTitles: Record<string, { title: string; subtitle: string }> = {
   "/configuracoes": { title: "Configurações", subtitle: "Configure metas e distribuição de PMT" },
   "/sellers": { title: "Sellers", subtitle: "Gerencie sellers e marketplaces ativos" },
   "/usuarios": { title: "Usuários", subtitle: "Gerencie usuários e permissões do sistema" },
+  "/perfil": { title: "Perfil", subtitle: "Gerencie suas informações pessoais" },
 };
 
 export function AppLayout() {
