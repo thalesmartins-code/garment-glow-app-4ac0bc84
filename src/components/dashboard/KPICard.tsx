@@ -49,6 +49,7 @@ export function KPICard({
   valuePrefix = "",
   valueSuffix = "",
   valueDecimals = 0,
+  progressValue,
 }: KPICardProps) {
   const displayValue = value;
 
