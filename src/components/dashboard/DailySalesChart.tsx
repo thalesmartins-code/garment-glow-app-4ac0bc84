@@ -70,7 +70,7 @@ export function DailySalesChart({ data, loading = false, selectedMarketplace = "
                 isOpen ? "rotate-180" : ""
               }`} 
             />
-          </div>
+          </CardHeader>
         </CollapsibleTrigger>
         <CollapsibleContent className="overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
           <div className="p-4 sm:p-6">
