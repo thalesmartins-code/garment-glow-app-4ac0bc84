@@ -115,14 +115,7 @@ export function SalesDataProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Save to localStorage when data changes
-  useEffect(() => {
-    if (salesData.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(salesData));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }, [salesData]);
+  // Supabase is the source of truth — no localStorage persistence for sales
 
   // Save quantities to localStorage when they change
   useEffect(() => {
