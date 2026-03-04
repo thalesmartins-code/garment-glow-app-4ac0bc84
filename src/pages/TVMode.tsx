@@ -187,7 +187,7 @@ const TVMode = () => {
             )}
             <div>
               <h1 className="text-2xl font-bold leading-tight">{selectedSeller.name}</h1>
-              <p className="text-xs text-muted-foreground">{periodLabel} · Todos os marketplaces</p>
+              <p className="text-xs text-muted-foreground">{periodLabel} · {viewLabel} · Todos os marketplaces</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -221,7 +221,7 @@ const TVMode = () => {
             </PopoverTrigger>
             <PopoverContent className="w-72 space-y-5" align="end">
               <div className="space-y-3">
-                <Label className="text-sm font-medium">Alternar sellers: {sellerCycleSec}s</Label>
+                <Label className="text-sm font-medium">Alternar visão: {sellerCycleSec}s</Label>
                 <Slider value={[sellerCycleSec]} onValueChange={([v]) => setSellerCycleSec(v)} min={5} max={60} step={5} />
                 <div className="flex justify-between text-xs text-muted-foreground"><span>5s</span><span>60s</span></div>
               </div>
@@ -239,21 +239,19 @@ const TVMode = () => {
         </div>
       </div>
 
-      {/* Seller cycle progress */}
-      {activeSellers.length > 1 && (
-        <div className="w-full h-0.5 bg-muted rounded-full overflow-hidden">
-          <div className="h-full bg-primary transition-all duration-100 ease-linear" style={{ width: `${cycleProgress}%` }} />
-        </div>
-      )}
+      {/* Cycle progress */}
+      <div className="w-full h-0.5 bg-muted rounded-full overflow-hidden">
+        <div className="h-full bg-primary transition-all duration-100 ease-linear" style={{ width: `${cycleProgress}%` }} />
+      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <KPICard title="Venda bruta aprovada" value={formatCurrency(metrics.vendaTotal)} rawValue={metrics.vendaTotal} valuePrefix="R$ " delta={metrics.yoy} deltaLabel="vs ano anterior" icon={<DollarSign className="w-5 h-5" />} />
-        <KPICard title="Meta do mês" value={formatCurrency(metrics.metaTotal)} rawValue={metrics.metaTotal} valuePrefix="R$ " icon={<Target className="w-5 h-5" />} />
-        <KPICard title="% da meta" value={`${metrics.metaPercentage.toFixed(1)}%`} rawValue={metrics.metaPercentage} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-5 h-5" />} />
-        <KPICard title="GAP" value={formatCurrency(Math.abs(metrics.gapTotal))} rawValue={Math.abs(metrics.gapTotal)} valuePrefix={metrics.gapTotal >= 0 ? "R$ +" : "R$ -"} delta={metrics.metaTotal > 0 ? (metrics.gapTotal >= 0 ? Math.abs(metrics.gapTotal / metrics.metaTotal * 100) : -Math.abs(metrics.gapTotal / metrics.metaTotal * 100)) : 0} deltaLabel={metrics.gapTotal >= 0 ? "acima da meta" : "abaixo da meta"} icon={<AlertTriangle className="w-5 h-5" />} />
-        <KPICard title="Ano anterior" value={formatCurrency(metrics.totalAnoAnterior)} rawValue={metrics.totalAnoAnterior} valuePrefix="R$ " icon={<Calendar className="w-5 h-5" />} />
-        <KPICard title="% YoY" value={`${metrics.yoy >= 0 ? "+" : ""}${metrics.yoy.toFixed(1)}%`} rawValue={Math.abs(metrics.yoy)} delta={metrics.yoy} deltaLabel="crescimento" icon={<TrendingUp className="w-5 h-5" />} />
+        <KPICard title={viewMode === "diario" ? "Venda bruta (Dia)" : "Venda bruta aprovada"} value={formatCurrency(activeMetrics.vendaTotal)} rawValue={activeMetrics.vendaTotal} valuePrefix="R$ " delta={activeMetrics.yoy} deltaLabel="vs ano anterior" icon={<DollarSign className="w-5 h-5" />} />
+        <KPICard title={viewMode === "diario" ? "Meta do dia" : "Meta do mês"} value={formatCurrency(activeMetrics.metaTotal)} rawValue={activeMetrics.metaTotal} valuePrefix="R$ " icon={<Target className="w-5 h-5" />} />
+        <KPICard title={viewMode === "diario" ? "% da meta (Dia)" : "% da meta"} value={`${activeMetrics.metaPercentage.toFixed(1)}%`} rawValue={activeMetrics.metaPercentage} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-5 h-5" />} />
+        <KPICard title={viewMode === "diario" ? "GAP (Dia)" : "GAP"} value={formatCurrency(Math.abs(activeMetrics.gapTotal))} rawValue={Math.abs(activeMetrics.gapTotal)} valuePrefix={activeMetrics.gapTotal >= 0 ? "R$ +" : "R$ -"} delta={activeMetrics.metaTotal > 0 ? (activeMetrics.gapTotal >= 0 ? Math.abs(activeMetrics.gapTotal / activeMetrics.metaTotal * 100) : -Math.abs(activeMetrics.gapTotal / activeMetrics.metaTotal * 100)) : 0} deltaLabel={activeMetrics.gapTotal >= 0 ? "acima da meta" : "abaixo da meta"} icon={<AlertTriangle className="w-5 h-5" />} />
+        <KPICard title={viewMode === "diario" ? "Ano anterior (Dia)" : "Ano anterior"} value={formatCurrency(activeMetrics.totalAnoAnterior)} rawValue={activeMetrics.totalAnoAnterior} valuePrefix="R$ " icon={<Calendar className="w-5 h-5" />} />
+        <KPICard title="% YoY" value={`${activeMetrics.yoy >= 0 ? "+" : ""}${activeMetrics.yoy.toFixed(1)}%`} rawValue={Math.abs(activeMetrics.yoy)} delta={activeMetrics.yoy} deltaLabel="crescimento" icon={<TrendingUp className="w-5 h-5" />} />
       </div>
 
       {/* Chart */}
