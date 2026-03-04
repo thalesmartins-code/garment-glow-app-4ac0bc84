@@ -171,7 +171,7 @@ export default function Integrations() {
     setConnectDialog(null);
     toast({
       title: "Marketplace conectado!",
-      description: `${connectDialog.name} foi integrado com sucesso para ${activeSeller?.name ?? "o seller ativo"}.`,
+      description: `${connectDialog.name} foi integrado com sucesso para ${selectedSeller?.name ?? "o seller ativo"}.`,
     });
   };
 
