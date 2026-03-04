@@ -1,6 +1,7 @@
-import { Calendar, Filter, RefreshCw } from "lucide-react";
+import { Calendar as CalendarIcon, Filter, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PeriodFilter, periodLabels } from "@/data/mockData";
+import { format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -9,6 +10,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // Default empty marketplace options
 const defaultMarketplaceOptions: { value: string; label: string; logo: string }[] = [];
@@ -22,6 +29,8 @@ interface FilterBarProps {
   isRefreshing?: boolean;
   lastUpdate?: string;
   marketplaceOptions?: { value: string; label: string; logo: string }[];
+  customDateRange?: { from: Date; to: Date };
+  onCustomDateRangeChange?: (range: { from: Date; to: Date }) => void;
 }
 
 export function FilterBar({
@@ -33,15 +42,17 @@ export function FilterBar({
   isRefreshing = false,
   lastUpdate,
   marketplaceOptions = defaultMarketplaceOptions,
+  customDateRange,
+  onCustomDateRangeChange,
 }: FilterBarProps) {
-  const periods: PeriodFilter[] = ['today', 'week', 'month', 'quarter', 'year'];
+  const periods: PeriodFilter[] = ['today', 'week', 'month', 'quarter', 'year', 'custom'];
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-card rounded-xl p-4 shadow-md">
       <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
         {/* Period Filter - Chips on desktop, Select on mobile */}
         <div className="hidden sm:flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
+          <CalendarIcon className="w-4 h-4 text-muted-foreground" />
           <div className="flex gap-1.5">
             {periods.map((period) => (
               <button
@@ -62,7 +73,7 @@ export function FilterBar({
         <div className="sm:hidden w-full">
           <Select value={selectedPeriod} onValueChange={(v) => onPeriodChange(v as PeriodFilter)}>
             <SelectTrigger className="w-full">
-              <Calendar className="w-4 h-4 mr-2" />
+              <CalendarIcon className="w-4 h-4 mr-2" />
               <SelectValue placeholder="Selecione o período" />
             </SelectTrigger>
             <SelectContent>
@@ -74,6 +85,47 @@ export function FilterBar({
             </SelectContent>
           </Select>
         </div>
+
+        {/* Custom Date Range Pickers */}
+        {selectedPeriod === "custom" && onCustomDateRangeChange && customDateRange && (
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5 text-sm">
+                  <CalendarIcon className="h-4 w-4" />
+                  {format(customDateRange.from, "dd/MM/yyyy")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={customDateRange.from}
+                  onSelect={(date) => date && onCustomDateRangeChange({ ...customDateRange, from: date })}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            <span className="text-sm text-muted-foreground">até</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5 text-sm">
+                  <CalendarIcon className="h-4 w-4" />
+                  {format(customDateRange.to, "dd/MM/yyyy")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={customDateRange.to}
+                  onSelect={(date) => date && onCustomDateRangeChange({ ...customDateRange, to: date })}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
 
         {/* Marketplace Filter */}
         <div className="flex items-center gap-2 w-full sm:w-auto">

@@ -1,79 +1,68 @@
-import { ShoppingCart, DollarSign, Target, TrendingUp, Percent, Users, FileUp, Settings } from "lucide-react";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DollarSign, Target, Percent, Users, FileUp, Settings } from "lucide-react";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { FilterBar } from "@/components/dashboard/FilterBar";
 import { SalesTable } from "@/components/dashboard/SalesTable";
-import { useDashboardData } from "@/hooks/useDashboardData";
 import { useSeller } from "@/contexts/SellerContext";
 import { useSellerSalesData } from "@/hooks/useSellerSalesData";
 import { useMemo, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { PeriodFilter } from "@/data/mockData";
+import { useToast } from "@/hooks/use-toast";
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear } from "date-fns";
 
-const meses = [
-  { value: 1, label: "Janeiro" },
-  { value: 2, label: "Fevereiro" },
-  { value: 3, label: "Março" },
-  { value: 4, label: "Abril" },
-  { value: 5, label: "Maio" },
-  { value: 6, label: "Junho" },
-  { value: 7, label: "Julho" },
-  { value: 8, label: "Agosto" },
-  { value: 9, label: "Setembro" },
-  { value: 10, label: "Outubro" },
-  { value: 11, label: "Novembro" },
-  { value: 12, label: "Dezembro" },
-];
+function getDateRangeForPeriod(period: PeriodFilter, customRange?: { from: Date; to: Date }): { from: Date; to: Date } {
+  const now = new Date();
+  switch (period) {
+    case "today":
+      return { from: startOfDay(now), to: endOfDay(now) };
+    case "week":
+      return { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) };
+    case "month":
+      return { from: startOfMonth(now), to: endOfMonth(now) };
+    case "quarter":
+      return { from: startOfQuarter(now), to: endOfQuarter(now) };
+    case "year":
+      return { from: startOfYear(now), to: endOfYear(now) };
+    case "custom":
+      return customRange ?? { from: startOfMonth(now), to: endOfMonth(now) };
+  }
+}
 
 const Index = () => {
   const { selectedSeller, getActiveMarketplaces } = useSeller();
   const activeMarketplaces = getActiveMarketplaces();
-  const { getMarketplaceSummary, hasAnyData, getAvailableYears, getAvailableMonths, updateMarketplaceQuantity } = useSellerSalesData();
+  const { getMarketplaceSummaryForDateRange, updateMarketplaceQuantity, hasAnyData } = useSellerSalesData();
+  const { toast } = useToast();
 
-  const currentDate = new Date();
-  const availableYears = getAvailableYears();
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
-  const availableMonths = getAvailableMonths(selectedYear);
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodFilter>("month");
+  const [selectedMarketplace, setSelectedMarketplace] = useState<string | "all">("all");
+  const [customDateRange, setCustomDateRange] = useState<{ from: Date; to: Date }>({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date()),
+  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const {
-    data,
-    summary,
-    isLoading,
-    isRefreshing,
-    error,
-    selectedPeriod,
-    selectedMarketplace,
-    setSelectedPeriod,
-    setSelectedMarketplace,
-    refresh,
-    hasData,
-  } = useDashboardData();
+  // Compute date range from selected period
+  const dateRange = useMemo(() => {
+    return getDateRangeForPeriod(selectedPeriod, customDateRange);
+  }, [selectedPeriod, customDateRange]);
 
-  // Get marketplace summary for current period
+  // Get marketplace summary for the date range
   const marketplaceSummary = useMemo(() => {
-    return getMarketplaceSummary(selectedYear, selectedMonth);
-  }, [getMarketplaceSummary, selectedYear, selectedMonth]);
+    return getMarketplaceSummaryForDateRange(dateRange.from, dateRange.to);
+  }, [getMarketplaceSummaryForDateRange, dateRange]);
 
   // Filter by marketplace if selected
   const filteredMarketplaces = useMemo(() => {
-    if (selectedMarketplace === "all") {
-      return marketplaceSummary;
-    }
+    if (selectedMarketplace === "all") return marketplaceSummary;
     return marketplaceSummary.filter((mp) => mp.id === selectedMarketplace);
   }, [marketplaceSummary, selectedMarketplace]);
 
   // Check if has any data
   const hasDataForPeriod = useMemo(() => {
-    return hasAnyData(selectedYear, selectedMonth);
-  }, [hasAnyData, selectedYear, selectedMonth]);
+    return filteredMarketplaces.some((mp) => mp.hasImportedData);
+  }, [filteredMarketplaces]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -95,7 +84,7 @@ const Index = () => {
     const totalReceita = filteredMarketplaces.reduce((sum, mp) => sum + mp.vendaTotal, 0);
     const metaGeral = filteredMarketplaces.reduce((sum, mp) => sum + mp.meta, 0);
     const vendaAnoAnteriorTotal = filteredMarketplaces.reduce((sum, mp) => sum + mp.vendaAnoAnterior, 0);
-    
+
     return {
       totalReceita,
       metaGeral,
@@ -104,7 +93,7 @@ const Index = () => {
     };
   }, [filteredMarketplaces]);
 
-  // Build marketplace options for filter (only seller's active marketplaces)
+  // Build marketplace options for filter
   const marketplaceFilterOptions = useMemo(() => {
     return activeMarketplaces.map((mp) => ({
       value: mp.id,
@@ -115,48 +104,23 @@ const Index = () => {
 
   // Handle quantity update callback
   const handleUpdateQuantity = useCallback((marketplaceId: string, qtdVendas: number) => {
-    updateMarketplaceQuantity(marketplaceId, selectedYear, selectedMonth, qtdVendas);
-  }, [updateMarketplaceQuantity, selectedYear, selectedMonth]);
+    const now = new Date();
+    updateMarketplaceQuantity(marketplaceId, now.getFullYear(), now.getMonth() + 1, qtdVendas);
+  }, [updateMarketplaceQuantity]);
 
-  // Period label
-  const periodLabel = `${meses.find(m => m.value === selectedMonth)?.label ?? ''} ${selectedYear}`;
+  const refresh = useCallback(() => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      toast({
+        title: "Dados atualizados",
+        description: "O dashboard foi atualizado com sucesso.",
+      });
+    }, 500);
+  }, [toast]);
 
   return (
     <div className="space-y-6">
-        {/* Year/Month Filters */}
-        <div className="flex flex-wrap items-center gap-3 bg-card rounded-xl p-4 shadow-md">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Mês:</span>
-            <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {meses.filter((m) => availableMonths.includes(m.value)).map((mes) => (
-                  <SelectItem key={mes.value} value={String(mes.value)}>
-                    {mes.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Ano:</span>
-            <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {availableYears.map((ano) => (
-                  <SelectItem key={ano} value={String(ano)}>
-                    {ano}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
         {/* Filters */}
         <FilterBar
           selectedPeriod={selectedPeriod}
@@ -165,23 +129,14 @@ const Index = () => {
           onMarketplaceChange={setSelectedMarketplace}
           onRefresh={refresh}
           isRefreshing={isRefreshing}
-          lastUpdate={data?.lastUpdate}
+          lastUpdate={new Date().toLocaleString("pt-BR")}
           marketplaceOptions={marketplaceFilterOptions}
+          customDateRange={customDateRange}
+          onCustomDateRangeChange={setCustomDateRange}
         />
 
-        {/* Error State */}
-        {error && (
-          <div className="bg-destructive/10 text-destructive rounded-xl p-4 flex items-center gap-3 shadow-md">
-            <span className="text-lg">⚠️</span>
-            <div>
-              <p className="font-medium">Erro ao carregar dados</p>
-              <p className="text-sm opacity-80">{error}</p>
-            </div>
-          </div>
-        )}
-
         {/* Empty State - No Data */}
-        {!hasDataForPeriod && !isLoading && (
+        {!hasDataForPeriod && (
           <div className="bg-card rounded-xl p-8 text-center shadow-md">
             <div className="text-6xl mb-4">📊</div>
             <h3 className="text-xl font-semibold mb-2">Nenhum dado disponível</h3>
@@ -211,42 +166,38 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <KPICard
                 title="Receita Total"
-                value={isLoading ? "..." : formatCurrency(calculatedSummary?.totalReceita ?? 0)}
+                value={formatCurrency(calculatedSummary?.totalReceita ?? 0)}
                 rawValue={calculatedSummary?.totalReceita ?? 0}
                 valuePrefix="R$ "
                 delta={calculatedSummary?.yoyGrowthGeral}
                 deltaLabel="vs ano anterior"
                 icon={<DollarSign className="w-5 h-5" />}
-                loading={isLoading}
               />
               <KPICard
                 title="% da Meta"
-                value={isLoading ? "..." : `${(calculatedSummary?.metaPercentage ?? 0).toFixed(1)}%`}
+                value={`${(calculatedSummary?.metaPercentage ?? 0).toFixed(1)}%`}
                 rawValue={calculatedSummary?.metaPercentage ?? 0}
                 valueSuffix="%"
                 valueDecimals={1}
                 subtitle={`Meta: ${formatCurrency(calculatedSummary?.metaGeral ?? 0)}`}
                 icon={<Target className="w-5 h-5" />}
-                loading={isLoading}
               />
               <KPICard
                 title="Crescimento Anual (YoY)"
-                value={isLoading ? "..." : `${(calculatedSummary?.yoyGrowthGeral ?? 0) > 0 ? "+" : ""}${(calculatedSummary?.yoyGrowthGeral ?? 0).toFixed(1)}%`}
+                value={`${(calculatedSummary?.yoyGrowthGeral ?? 0) > 0 ? "+" : ""}${(calculatedSummary?.yoyGrowthGeral ?? 0).toFixed(1)}%`}
                 rawValue={Math.abs(calculatedSummary?.yoyGrowthGeral ?? 0)}
                 valuePrefix={(calculatedSummary?.yoyGrowthGeral ?? 0) >= 0 ? "+" : "-"}
                 valueSuffix="%"
                 valueDecimals={1}
                 subtitle="Comparado ao mesmo período do ano anterior"
                 icon={<Percent className="w-5 h-5" />}
-                loading={isLoading}
               />
               <KPICard
                 title="Marketplaces Ativos"
-                value={isLoading ? "..." : formatNumber(filteredMarketplaces.length)}
+                value={formatNumber(filteredMarketplaces.length)}
                 rawValue={filteredMarketplaces.length}
                 subtitle={`${filteredMarketplaces.filter(mp => mp.metaPercentage >= 100).length} acima da meta`}
                 icon={<Users className="w-5 h-5" />}
-                loading={isLoading}
               />
             </div>
 
@@ -259,19 +210,12 @@ const Index = () => {
                 pmt: mp.ticketMedio,
                 lastYearTotal: mp.vendaAnoAnterior,
               }))} 
-              loading={isLoading}
+              loading={false}
               onUpdateQuantity={handleUpdateQuantity}
               isEditable={true}
             />
           </>
         )}
-
-        {/* Footer */}
-        <footer className="text-center py-6 text-sm text-muted-foreground">
-          <p>
-            Dashboard Executivo de Vendas • Dados baseados em importações
-          </p>
-        </footer>
     </div>
   );
 };

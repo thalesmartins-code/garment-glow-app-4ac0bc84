@@ -46,7 +46,7 @@ export interface DashboardData {
 }
 
 // Filter periods available
-export type PeriodFilter = 'today' | 'week' | 'month' | 'quarter' | 'year';
+export type PeriodFilter = 'today' | 'week' | 'month' | 'quarter' | 'year' | 'custom';
 
 export const periodLabels: Record<PeriodFilter, string> = {
   today: 'Hoje',
@@ -54,4 +54,5 @@ export const periodLabels: Record<PeriodFilter, string> = {
   month: 'Este Mês',
   quarter: 'Trimestre',
   year: 'Este Ano',
+  custom: 'Personalizado',
 };
