@@ -12,7 +12,7 @@ const REFRESH_MS = 5 * 60_000; // 5 minutes
 
 const TVMode = () => {
   const { activeSellers, setSelectedSeller, selectedSeller } = useSeller();
-  const salesDataCtx = useSalesData();
+  useSalesData(); // keep context active
   const { getDailySalesData, getAvailableYears, getAvailableMonths } = useSellerSalesData();
 
   const currentDate = new Date();
