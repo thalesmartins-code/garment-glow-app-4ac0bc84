@@ -164,14 +164,14 @@ function parseTabData(
     return [];
   }
   
-  // Row 0: seller names spanning column groups
-  const sellerRow = rows[0];
-  // Row 1: column headers (repeated for each seller)
-  const headerRow = rows[1];
+  const sellerRow = sellerRowIdx >= 0 ? rows[sellerRowIdx] : [];
+  const headerRow = rows[headerRowIdx];
+  const dataStartRow = headerRowIdx + 1;
   
-  console.log("Tab headers:", JSON.stringify(sellerRow.slice(0, 20)));
-  console.log("Column headers:", JSON.stringify(headerRow.slice(0, 20)));
-  if (rows.length > 2) console.log("First data row:", JSON.stringify(rows[2]?.slice(0, 20)));
+  console.log(`Found header at row ${headerRowIdx}, seller at row ${sellerRowIdx}, data starts at row ${dataStartRow}`);
+  console.log("Seller row:", JSON.stringify(sellerRow?.slice(0, 20)));
+  console.log("Header row:", JSON.stringify(headerRow?.slice(0, 20)));
+  if (rows.length > dataStartRow) console.log("First data row:", JSON.stringify(rows[dataStartRow]?.slice(0, 20)));
 
   // Detect seller column groups
   const sellerSections: Array<{ sellerId: string; startCol: number; endCol: number }> = [];
