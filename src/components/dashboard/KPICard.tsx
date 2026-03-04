@@ -70,7 +70,7 @@ export function KPICard({
 
   if (loading) {
     return (
-      <Card className={cn("border-0 shadow-md", className)}>
+      <Card className={cn(className)}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="h-4 bg-muted rounded w-24 animate-pulse" />
