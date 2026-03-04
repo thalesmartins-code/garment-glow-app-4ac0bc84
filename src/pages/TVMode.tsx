@@ -68,13 +68,13 @@ const TVMode = () => {
     return () => clearInterval(interval);
   }, [activeSellers, setSelectedSeller, sellerCycleSec]);
 
-  // Auto-refresh
+  // Auto-refresh data (sem recarregar a página, mantém fullscreen)
   useEffect(() => {
     const interval = setInterval(() => {
-      window.location.reload();
+      refreshData();
     }, refreshMin * 60_000);
     return () => clearInterval(interval);
-  }, [refreshMin]);
+  }, [refreshMin, refreshData]);
 
   // Clock
   useEffect(() => {
