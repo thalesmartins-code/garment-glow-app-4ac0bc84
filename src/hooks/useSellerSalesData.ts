@@ -194,6 +194,69 @@ export function useSellerSalesData(): UseSellerSalesDataReturn {
     [selectedSeller.id, activeMarketplaces, getDailySalesData, getMarketplaceInfo, getMarketplaceQuantity]
   );
 
+  // Get marketplace summary filtered by a date range (aggregates across months)
+  const getMarketplaceSummaryForDateRange = useCallback(
+    (startDate: Date, endDate: Date): MarketplaceSummary[] => {
+      const sellerId = selectedSeller.id;
+
+      return activeMarketplaces.map((mp) => {
+        const marketplaceInfo = getMarketplaceInfo(mp.id);
+        let vendaTotal = 0;
+        let vendaAprovadaReal = 0;
+        let metaTotal = 0;
+        let vendaAnoAnterior = 0;
+        let totalQtd = 0;
+        let hasImported = false;
+
+        // Iterate months in range
+        const cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+
+        while (cursor <= endMonth) {
+          const y = cursor.getFullYear();
+          const m = cursor.getMonth() + 1;
+          const dailyData = getDailySalesData(mp.id, y, m);
+
+          for (const d of dailyData) {
+            const dayDate = new Date(y, m - 1, d.dia);
+            if (dayDate >= startDate && dayDate <= endDate) {
+              vendaTotal += d.vendaTotal;
+              vendaAprovadaReal += d.vendaAprovadaReal;
+              metaTotal += d.metaVendas;
+              vendaAnoAnterior += d.vendaAnoAnterior;
+              if (d.isImported) hasImported = true;
+            }
+          }
+
+          const qtd = getMarketplaceQuantity(sellerId, marketplaceInfo?.name ?? mp.id, y, m);
+          totalQtd += qtd;
+
+          cursor.setMonth(cursor.getMonth() + 1);
+        }
+
+        const ticketMedio = totalQtd > 0 ? vendaTotal / totalQtd : 0;
+        const metaPercentage = metaTotal > 0 ? (vendaTotal / metaTotal) * 100 : 0;
+        const yoyGrowth = vendaAnoAnterior > 0 ? ((vendaTotal - vendaAnoAnterior) / vendaAnoAnterior) * 100 : 0;
+
+        return {
+          id: mp.id,
+          marketplace: marketplaceInfo?.name ?? mp.id,
+          logo: marketplaceInfo?.logo ?? "📊",
+          vendaTotal: Math.round(vendaTotal * 100) / 100,
+          vendaAprovadaReal: Math.round(vendaAprovadaReal * 100) / 100,
+          qtdVendas: totalQtd,
+          ticketMedio: Math.round(ticketMedio * 100) / 100,
+          meta: Math.round(metaTotal * 100) / 100,
+          metaPercentage: Math.round(metaPercentage * 100) / 100,
+          vendaAnoAnterior: Math.round(vendaAnoAnterior * 100) / 100,
+          yoyGrowth: Math.round(yoyGrowth * 100) / 100,
+          hasImportedData: hasImported,
+        };
+      });
+    },
+    [selectedSeller.id, activeMarketplaces, getDailySalesData, getMarketplaceInfo, getMarketplaceQuantity]
+  );
+
   // Update a specific sale value
   const updateSaleValue = useCallback(
     (marketplaceId: string, year: number, month: number, day: number, vendaTotal: number) => {
