@@ -241,87 +241,75 @@ const DailySales = () => {
           </div>
         )}
         {/* Filter Bar */}
-        <Card className="p-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Visão:</span>
-                <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "diario" | "mensal")}>
-                  <TabsList>
-                    <TabsTrigger value="diario">Diário</TabsTrigger>
-                    <TabsTrigger value="mensal">Mensal</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Marketplace:</span>
-                <Select value={selectedMarketplace} onValueChange={setSelectedMarketplace}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue>
-                      {selectedMarketplaceLabel && (
-                        <span className="flex items-center gap-2">
-                          <span>{selectedMarketplaceLabel.logo}</span>
-                          <span>{selectedMarketplaceLabel.label}</span>
-                        </span>
-                      )}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {marketplaceOptions.map((mp) => (
-                      <SelectItem key={mp.value} value={mp.value}>
-                        <span className="flex items-center gap-2">
-                          <span>{mp.logo}</span>
-                          <span>{mp.label}</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Mês:</span>
-                <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableMonths.map((m) => (
-                      <SelectItem key={m} value={String(m)}>
-                        {new Date(2000, m - 1).toLocaleString("pt-BR", { month: "long" }).replace(/^\w/, c => c.toUpperCase())}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Ano:</span>
-                <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
-                  <SelectTrigger className="w-[100px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableYears.map((ano) => (
-                      <SelectItem key={ano} value={String(ano)}>
-                        {ano}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <Card className="p-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="text-xs text-muted-foreground">
-                Atualizado: {formatLastUpdate(lastUpdate)}
+              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "diario" | "mensal")}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="diario" className="text-xs px-2 py-1">Diário</TabsTrigger>
+                  <TabsTrigger value="mensal" className="text-xs px-2 py-1">Mensal</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <Select value={selectedMarketplace} onValueChange={setSelectedMarketplace}>
+                <SelectTrigger className="w-[150px] h-8 text-xs">
+                  <SelectValue>
+                    {selectedMarketplaceLabel && (
+                      <span className="flex items-center gap-1.5">
+                        <span>{selectedMarketplaceLabel.logo}</span>
+                        <span>{selectedMarketplaceLabel.label}</span>
+                      </span>
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {marketplaceOptions.map((mp) => (
+                    <SelectItem key={mp.value} value={mp.value}>
+                      <span className="flex items-center gap-1.5">
+                        <span>{mp.logo}</span>
+                        <span>{mp.label}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
+                <SelectTrigger className="w-[120px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableMonths.map((m) => (
+                    <SelectItem key={m} value={String(m)}>
+                      {new Date(2000, m - 1).toLocaleString("pt-BR", { month: "long" }).replace(/^\w/, c => c.toUpperCase())}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+                <SelectTrigger className="w-[80px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map((ano) => (
+                    <SelectItem key={ano} value={String(ano)}>
+                      {ano}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground hidden lg:inline">
+                {formatLastUpdate(lastUpdate)}
               </span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isSyncing}
-                className="gap-2"
+                className="gap-1.5 h-8 text-xs"
               >
-                <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-                {isSyncing ? "Sincronizando..." : "Atualizar"}
+                <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+                {isSyncing ? "Sync..." : "Atualizar"}
               </Button>
             </div>
           </div>
