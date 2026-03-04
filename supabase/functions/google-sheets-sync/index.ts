@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { decode as decodeBase64, encode as encodeBase64 } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,53 +24,18 @@ const MONTH_NAMES: Record<string, number> = {
   "SETEMBRO": 9, "OUTUBRO": 10, "NOVEMBRO": 11, "DEZEMBRO": 12,
 };
 
-async function getAccessToken(serviceAccountJsonRaw: string): Promise<string> {
-  // Debug: log around the problematic position
-  console.log("JSON length:", serviceAccountJsonRaw.length);
-  console.log("Chars around pos 1440:", JSON.stringify(serviceAccountJsonRaw.substring(1435, 1455)));
-  
-  // Try parsing as-is first
-  let sa: Record<string, string>;
-  try {
-    sa = JSON.parse(serviceAccountJsonRaw);
-  } catch (e1) {
-    console.log("First parse failed:", (e1 as Error).message);
-    // Replace actual newlines with \n escape
-    const fixedJson = serviceAccountJsonRaw.replace(/\r?\n/g, '\\n');
-    console.log("Fixed chars around pos 1440:", JSON.stringify(fixedJson.substring(1435, 1455)));
-    try {
-      sa = JSON.parse(fixedJson);
-    } catch (e2) {
-      console.log("Second parse failed:", (e2 as Error).message);
-      // Use a very permissive approach: extract fields individually using regex
-      // The raw string has invalid JSON escapes (like \v) because the private_key
-      // contains \n that Supabase secrets store literally
-      const clientEmail = serviceAccountJsonRaw.match(/"client_email"\s*:\s*"([^"]+)"/)?.[1];
-      // Extract everything between "private_key" : " and the closing "
-      // The private key is between -----BEGIN PRIVATE KEY----- and -----END PRIVATE KEY-----
-      const pkMatch = serviceAccountJsonRaw.match(/-----BEGIN PRIVATE KEY-----([^-]+)-----END PRIVATE KEY-----/);
-      
-      if (!clientEmail || !pkMatch) {
-        throw new Error(`Could not extract credentials from service account JSON. Parse error: ${(e2 as Error).message}`);
-      }
-      
-      // The extracted PEM content between the markers - clean it
-      const pemContent = pkMatch[1].replace(/\\n/g, '').replace(/\n/g, '').replace(/\s/g, '');
-      
-      sa = {
-        client_email: clientEmail,
-        private_key: `-----BEGIN PRIVATE KEY-----\n${pemContent}\n-----END PRIVATE KEY-----\n`,
-      };
-    }
-  }
+async function getAccessToken(clientEmail: string, privateKeyPem: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
 
-  // Use base64url encoding for JWT
-  const b64url = (str: string) => btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  
+  // Base64url encode helper
+  const b64url = (data: Uint8Array | string) => {
+    const str = typeof data === "string" ? btoa(data) : btoa(String.fromCharCode(...data));
+    return str.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  };
+
   const header = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
   const claim = b64url(JSON.stringify({
-    iss: sa.client_email,
+    iss: clientEmail,
     scope: "https://www.googleapis.com/auth/spreadsheets.readonly",
     aud: "https://oauth2.googleapis.com/token",
     exp: now + 3600,
@@ -80,22 +44,35 @@ async function getAccessToken(serviceAccountJsonRaw: string): Promise<string> {
 
   const unsignedToken = `${header}.${claim}`;
 
-  // Import the private key
-  const pemContents = sa.private_key
+  // Parse private key PEM - keep only valid base64 characters
+  const pemB64 = privateKeyPem
     .replace(/-----BEGIN PRIVATE KEY-----/g, "")
     .replace(/-----END PRIVATE KEY-----/g, "")
-    .replace(/\\n/g, "")
-    .replace(/\n/g, "")
-    .replace(/\r/g, "")
-    .replace(/\s/g, "")
-    .trim();
+    .replace(/[^A-Za-z0-9+/=]/g, "");
 
-  // Ensure proper base64 padding
-  const padded = pemContents + '='.repeat((4 - pemContents.length % 4) % 4);
-  
-  console.log("PEM length:", pemContents.length, "padded:", padded.length, "first 20 chars:", pemContents.substring(0, 20));
-  
-  const binaryKey = decodeBase64(padded);
+  // Manual base64 decode
+  const lookup = new Uint8Array(256);
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  for (let i = 0; i < chars.length; i++) lookup[chars.charCodeAt(i)] = i;
+
+  // Remove trailing = for length calc
+  const stripped = pemB64.replace(/=+$/, "");
+  const bufLen = Math.floor((stripped.length * 3) / 4);
+  const padded = stripped + "=".repeat((4 - (stripped.length % 4)) % 4);
+
+  const binaryKey = new Uint8Array(bufLen);
+  let p = 0;
+  for (let i = 0; i < padded.length; i += 4) {
+    const a = lookup[padded.charCodeAt(i)];
+    const b = lookup[padded.charCodeAt(i + 1)];
+    const c = lookup[padded.charCodeAt(i + 2)];
+    const d = lookup[padded.charCodeAt(i + 3)];
+    binaryKey[p++] = (a << 2) | (b >> 4);
+    if (p < bufLen) binaryKey[p++] = ((b & 15) << 4) | (c >> 2);
+    if (p < bufLen) binaryKey[p++] = ((c & 3) << 6) | d;
+  }
+
+  console.log("Key bytes:", binaryKey.length, "b64 len:", stripped.length);
 
   const cryptoKey = await crypto.subtle.importKey(
     "pkcs8",
@@ -111,11 +88,7 @@ async function getAccessToken(serviceAccountJsonRaw: string): Promise<string> {
     new TextEncoder().encode(unsignedToken)
   );
 
-  const signatureB64 = encodeBase64(new Uint8Array(signature))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
+  const signatureB64 = b64url(new Uint8Array(signature));
   const jwt = `${header}.${claim}.${signatureB64}`;
 
   const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
@@ -162,51 +135,118 @@ function parseTabData(
   rows: string[][],
   month: number,
   year: number,
-  sellerId: string
+  _sellerId: string
 ): SheetRow[] {
-  if (rows.length < 2) return [];
+  if (rows.length < 3) return [];
 
   const results: SheetRow[] = [];
-  const headers = rows[0].map((h) => h?.toString().trim().toLowerCase() || "");
+  
+  // Find the seller row and header row dynamically
+  // The seller row contains seller names like "SANDRINI", "BUYCLOCK"
+  // The header row contains "Dia", "PMT", etc.
+  let sellerRowIdx = -1;
+  let headerRowIdx = -1;
+  
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    const row = rows[i];
+    if (!row) continue;
+    const joined = row.join(" ").toLowerCase();
+    if (joined.includes("dia") && joined.includes("pmt") && joined.includes("venda")) {
+      headerRowIdx = i;
+      // Seller row is typically the one before
+      if (i > 0) sellerRowIdx = i - 1;
+      break;
+    }
+  }
+  
+  if (headerRowIdx < 0) {
+    console.log("Could not find header row in first 10 rows");
+    return [];
+  }
+  
+  const sellerRow = sellerRowIdx >= 0 ? rows[sellerRowIdx] : [];
+  const headerRow = rows[headerRowIdx];
+  const dataStartRow = headerRowIdx + 1;
+  
+  console.log(`Found header at row ${headerRowIdx}, seller at row ${sellerRowIdx}, data starts at row ${dataStartRow}`);
+  console.log("Seller row:", JSON.stringify(sellerRow?.slice(0, 20)));
+  console.log("Header row:", JSON.stringify(headerRow?.slice(0, 20)));
+  if (rows.length > dataStartRow) console.log("First data row:", JSON.stringify(rows[dataStartRow]?.slice(0, 20)));
 
-  // Try to find column indices by header name
-  const colMap: Record<string, number> = {};
-  const knownHeaders = [
-    "dia", "marketplace", "pmt", "meta", "meta vendas", "venda total",
-    "venda aprovada", "venda aprovada real", "venda ano anterior",
-  ];
+  // Detect seller column groups
+  const sellerSections: Array<{ sellerId: string; startCol: number; endCol: number }> = [];
+  const sellerStarts: Array<{ sellerId: string; startCol: number }> = [];
+  
+  for (let i = 0; i < sellerRow.length; i++) {
+    const cell = sellerRow[i]?.toString().trim();
+    if (cell) {
+      sellerStarts.push({ sellerId: cell.toLowerCase(), startCol: i });
+    }
+  }
+  
+  // Calculate endCol for each seller (extends to next seller's start - 1, or end of headerRow)
+  for (let i = 0; i < sellerStarts.length; i++) {
+    const endCol = i < sellerStarts.length - 1 
+      ? sellerStarts[i + 1].startCol - 1 
+      : Math.max(headerRow.length - 1, sellerRow.length - 1);
+    sellerSections.push({ ...sellerStarts[i], endCol });
+  }
 
-  headers.forEach((h, i) => {
-    for (const known of knownHeaders) {
-      if (h.includes(known)) {
-        colMap[known] = i;
-        break;
+  console.log("Seller sections:", JSON.stringify(sellerSections));
+
+  // For each seller section, map columns by header names
+  for (const section of sellerSections) {
+    const colMap: Record<string, number> = {};
+    
+    for (let i = section.startCol; i <= section.endCol && i < headerRow.length; i++) {
+      const h = headerRow[i]?.toString().trim().toLowerCase().replace(/\n/g, ' ') || "";
+      if (h.includes("dia")) colMap["dia"] = i;
+      else if (h.includes("pmt") && !h.includes("acum")) colMap["pmt"] = i;
+      else if (h.includes("pmt acum")) colMap["pmt_acum"] = i;
+      else if (h.includes("meta venda") || h === "meta") colMap["meta"] = i;
+      else if (h.includes("venda aprovada real")) colMap["venda_aprovada_real"] = i;
+      else if (h.includes("venda bruta")) colMap["venda_bruta"] = i;
+      else if (h.includes("venda 2025") || h.includes("venda ano anterior")) {
+        // Could appear twice - first one is "VENDA 2025" before meta, second is after
+        if (!colMap["venda_ano_anterior_1"]) colMap["venda_ano_anterior_1"] = i;
+        else colMap["venda_ano_anterior_2"] = i;
       }
     }
-  });
+    
+    console.log(`Seller ${section.sellerId} colMap:`, JSON.stringify(colMap));
+    
+    if (!colMap["dia"]) continue;
 
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i];
-    if (!row || row.length < 2) continue;
+    // Parse data rows
+    let parsedCount = 0;
+    let skippedCount = 0;
+    for (let i = dataStartRow; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || row.length <= section.startCol) continue;
 
-    const diaVal = parseNumber(row[colMap["dia"] ?? 0]);
-    if (diaVal < 1 || diaVal > 31) continue;
+      const rawDia = row[colMap["dia"]];
+      const diaVal = parseNumber(rawDia);
+      if (diaVal < 1 || diaVal > 31) {
+        if (i < dataStartRow + 3) console.log(`${section.sellerId} row ${i}: skipped dia="${rawDia}" -> ${diaVal}`);
+        skippedCount++;
+        continue;
+      }
+      parsedCount++;
 
-    const marketplace = row[colMap["marketplace"] ?? 1]?.toString().trim();
-    if (!marketplace) continue;
-
-    results.push({
-      sellerId,
-      marketplace,
-      ano: year,
-      mes: month,
-      dia: diaVal,
-      pmt: parseNumber(row[colMap["pmt"] ?? 2]),
-      metaVendas: parseNumber(row[colMap["meta vendas"] ?? colMap["meta"] ?? 3]),
-      vendaTotal: parseNumber(row[colMap["venda total"] ?? 4]),
-      vendaAprovadaReal: parseNumber(row[colMap["venda aprovada real"] ?? colMap["venda aprovada"] ?? 5]),
-      vendaAnoAnterior: parseNumber(row[colMap["venda ano anterior"] ?? 6]),
-    });
+      results.push({
+        sellerId: section.sellerId,
+        marketplace: "Total", // This sheet has total/consolidated data
+        ano: year,
+        mes: month,
+        dia: diaVal,
+        pmt: parseNumber(row[colMap["pmt"]]),
+        metaVendas: parseNumber(row[colMap["meta"]]),
+        vendaTotal: parseNumber(row[colMap["venda_bruta"]]),
+        vendaAprovadaReal: parseNumber(row[colMap["venda_aprovada_real"]]),
+        vendaAnoAnterior: parseNumber(row[colMap["venda_ano_anterior_2"] ?? colMap["venda_ano_anterior_1"]]),
+      });
+    }
+    console.log(`${section.sellerId}: ${parsedCount} parsed, ${skippedCount} skipped`);
   }
 
   return results;
@@ -227,15 +267,34 @@ serve(async (req) => {
       );
     }
 
-    const serviceAccountJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
-    if (!serviceAccountJson) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Google Service Account not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Use separate env vars for client email and private key
+    const clientEmail = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_EMAIL") || Deno.env.get("GOOGLE_CLIENT_EMAIL");
+    const privateKey = Deno.env.get("GOOGLE_PRIVATE_KEY");
+    
+    if (!clientEmail || !privateKey) {
+      // Fallback: try GOOGLE_SERVICE_ACCOUNT_JSON
+      const saJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
+      if (!saJson) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Google Service Account not configured. Set GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY or GOOGLE_SERVICE_ACCOUNT_JSON" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      // Try parsing the JSON
+      try {
+        const sa = JSON.parse(saJson);
+        var accessToken = await getAccessToken(sa.client_email, sa.private_key);
+      } catch (e) {
+        return new Response(
+          JSON.stringify({ success: false, error: `Failed to parse service account JSON: ${(e as Error).message}` }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // Fix private key: replace literal \n with actual newlines
+      const fixedKey = privateKey.replace(/\\n/g, '\n');
+      var accessToken = await getAccessToken(clientEmail, fixedKey);
     }
-
-    const accessToken = await getAccessToken(serviceAccountJson);
     const targetYear = year || new Date().getFullYear();
 
     const tabsToSync: string[] = tabs || [
