@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import DailySales from "./pages/DailySales";
@@ -19,26 +20,28 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/vendas-diarias" element={<DailySales />} />
-            <Route path="/importacao" element={<Import />} />
-            <Route path="/configuracoes" element={<Settings />} />
-            <Route path="/sellers" element={<Sellers />} />
-            <Route path="/perfil" element={<Profile />} />
-            <Route path="/usuarios" element={<UserManagement />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange={false}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/vendas-diarias" element={<DailySales />} />
+              <Route path="/importacao" element={<Import />} />
+              <Route path="/configuracoes" element={<Settings />} />
+              <Route path="/sellers" element={<Sellers />} />
+              <Route path="/perfil" element={<Profile />} />
+              <Route path="/usuarios" element={<UserManagement />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
