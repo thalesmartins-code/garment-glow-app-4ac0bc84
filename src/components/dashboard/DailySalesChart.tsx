@@ -140,7 +140,7 @@ export function DailySalesChart({ data, loading = false, selectedMarketplace = "
             </ResponsiveContainer>
           </div>
         </CollapsibleContent>
-      </div>
+      </Card>
     </Collapsible>
   );
 }
