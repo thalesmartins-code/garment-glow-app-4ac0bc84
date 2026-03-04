@@ -1,4 +1,4 @@
-import { Bell, Check, ChevronDown, Store, User } from "lucide-react";
+import { Bell, Check, ChevronDown, Store, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSeller } from "@/contexts/SellerContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   title: string;
@@ -18,6 +19,16 @@ interface HeaderProps {
 
 export function Header({ title, subtitle }: HeaderProps) {
   const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
+  const { profile, role, signOut } = useAuth();
+
+  const displayName = profile?.full_name || "Usuário";
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const roleLabel = role === "admin" ? "Admin" : role === "editor" ? "Editor" : "Viewer";
 
   return (
     <header className="flex items-center justify-between px-8 py-6 bg-card border-b border-border">
@@ -98,12 +109,12 @@ export function Header({ title, subtitle }: HeaderProps) {
             <Button variant="ghost" className="gap-3 pl-2 pr-4 hover:bg-secondary/50 hover:text-foreground rounded-xl">
               <Avatar className="w-8 h-8">
                 <AvatarFallback className="bg-accent text-accent-foreground text-sm font-medium">
-                  JS
+                  {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="text-left hidden sm:block">
-                <p className="text-sm font-medium">Julia Santos</p>
-                <p className="text-xs text-muted-foreground">Gerente</p>
+                <p className="text-sm font-medium">{displayName}</p>
+                <p className="text-xs text-muted-foreground">{roleLabel}</p>
               </div>
             </Button>
           </DropdownMenuTrigger>
@@ -116,7 +127,8 @@ export function Header({ title, subtitle }: HeaderProps) {
             </DropdownMenuItem>
             <DropdownMenuItem>Configurações</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem className="text-destructive" onClick={signOut}>
+              <LogOut className="w-4 h-4 mr-2" />
               Sair
             </DropdownMenuItem>
           </DropdownMenuContent>

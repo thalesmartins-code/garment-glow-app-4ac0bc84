@@ -9,6 +9,7 @@ const routeTitles: Record<string, { title: string; subtitle: string }> = {
   "/importacao": { title: "Importação", subtitle: "Importe dados de vendas via CSV ou Excel" },
   "/configuracoes": { title: "Configurações", subtitle: "Configure metas e distribuição de PMT" },
   "/sellers": { title: "Sellers", subtitle: "Gerencie sellers e marketplaces ativos" },
+  "/usuarios": { title: "Usuários", subtitle: "Gerencie usuários e permissões do sistema" },
 };
 
 export function AppLayout() {

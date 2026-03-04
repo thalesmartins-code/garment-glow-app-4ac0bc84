@@ -7,11 +7,15 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { SellerProvider } from "@/contexts/SellerContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { SalesDataProvider } from "@/contexts/SalesDataContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import DailySales from "./pages/DailySales";
 import Import from "./pages/Import";
 import Settings from "./pages/Settings";
 import Sellers from "./pages/Sellers";
+import UserManagement from "./pages/UserManagement";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,26 +23,32 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <SellerProvider>
-        <SettingsProvider>
-          <SalesDataProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route element={<AppLayout />}>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/vendas-diarias" element={<DailySales />} />
-                  <Route path="/importacao" element={<Import />} />
-                  <Route path="/configuracoes" element={<Settings />} />
-                  <Route path="/sellers" element={<Sellers />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </SalesDataProvider>
-        </SettingsProvider>
-      </SellerProvider>
+      <AuthProvider>
+        <SellerProvider>
+          <SettingsProvider>
+            <SalesDataProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route element={<AppLayout />}>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/vendas-diarias" element={<DailySales />} />
+                      <Route path="/importacao" element={<Import />} />
+                      <Route path="/configuracoes" element={<Settings />} />
+                      <Route path="/sellers" element={<Sellers />} />
+                      <Route path="/usuarios" element={<UserManagement />} />
+                    </Route>
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </SalesDataProvider>
+          </SettingsProvider>
+        </SellerProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
