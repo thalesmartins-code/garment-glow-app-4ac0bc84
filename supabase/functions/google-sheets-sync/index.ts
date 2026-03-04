@@ -81,14 +81,39 @@ async function getAccessToken(serviceAccountJsonRaw: string): Promise<string> {
   const unsignedToken = `${header}.${claim}`;
 
   // Import the private key - strip everything except valid base64 chars
-  const pemContents = sa.private_key
+  let pemContents = sa.private_key
     .replace(/-----BEGIN PRIVATE KEY-----/g, "")
     .replace(/-----END PRIVATE KEY-----/g, "")
     .replace(/[^A-Za-z0-9+/=]/g, ""); // Keep ONLY valid base64 characters
 
+  // Ensure proper base64 padding
+  while (pemContents.length % 4 !== 0) {
+    pemContents += "=";
+  }
+
   console.log("PEM length:", pemContents.length, "first 20:", pemContents.substring(0, 20));
   
-  const binaryKey = decodeBase64(pemContents);
+  // Manual base64 decode to avoid atob issues in Deno edge runtime
+  const lookup = new Uint8Array(256);
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  for (let i = 0; i < chars.length; i++) lookup[chars.charCodeAt(i)] = i;
+  
+  const len = pemContents.length;
+  let bufLen = (len * 3) / 4;
+  if (pemContents[len - 1] === "=") bufLen--;
+  if (pemContents[len - 2] === "=") bufLen--;
+  
+  const binaryKey = new Uint8Array(bufLen);
+  let p = 0;
+  for (let i = 0; i < len; i += 4) {
+    const a = lookup[pemContents.charCodeAt(i)];
+    const b = lookup[pemContents.charCodeAt(i + 1)];
+    const c = lookup[pemContents.charCodeAt(i + 2)];
+    const d = lookup[pemContents.charCodeAt(i + 3)];
+    binaryKey[p++] = (a << 2) | (b >> 4);
+    if (p < bufLen) binaryKey[p++] = ((b & 15) << 4) | (c >> 2);
+    if (p < bufLen) binaryKey[p++] = ((c & 3) << 6) | d;
+  }
 
   const cryptoKey = await crypto.subtle.importKey(
     "pkcs8",
