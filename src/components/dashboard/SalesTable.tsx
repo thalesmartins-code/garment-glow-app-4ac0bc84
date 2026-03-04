@@ -173,7 +173,7 @@ export function SalesTable({
                       <span className="font-medium">{formatNumber(mp.vendas)}</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right font-semibold">
+                  <TableCell className="text-right font-semibold bg-success/10 text-success">
                     {formatCurrency(mp.vendaTotal)}
                   </TableCell>
                   <TableCell className="text-right font-semibold">
