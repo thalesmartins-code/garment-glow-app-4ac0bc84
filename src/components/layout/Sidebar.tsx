@@ -10,6 +10,7 @@ import {
   ChevronRight,
   AreaChart,
   ShieldCheck,
+  Plug,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { canAccess } from "@/config/roleAccess";
