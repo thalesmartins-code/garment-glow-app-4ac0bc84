@@ -20,6 +20,7 @@ interface KPICardProps {
   valuePrefix?: string;
   valueSuffix?: string;
   valueDecimals?: number;
+  progressValue?: number;
 }
 
 const variantStyles: Record<CardVariant, { icon: string; trend: string; card: string }> = {
