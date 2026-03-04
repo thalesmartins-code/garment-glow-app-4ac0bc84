@@ -71,14 +71,14 @@
     --table-hover: 217 70% 97%;
     --table-header: 210 20% 95%;
 
-    /* Sidebar */
-    --sidebar-background: 217 50% 10%;
-    --sidebar-foreground: 210 20% 90%;
+    /* Sidebar - Light mode */
+    --sidebar-background: 210 20% 98%;
+    --sidebar-foreground: 217 10% 20%;
     --sidebar-primary: 217 70% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 40% 18%;
-    --sidebar-accent-foreground: 210 20% 95%;
-    --sidebar-border: 217 30% 22%;
+    --sidebar-accent: 210 15% 93%;
+    --sidebar-accent-foreground: 217 10% 15%;
+    --sidebar-border: 210 15% 90%;
     --sidebar-ring: 217 70% 45%;
 
     /* Custom gradients */
