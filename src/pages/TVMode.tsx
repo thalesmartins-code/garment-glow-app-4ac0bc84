@@ -145,7 +145,7 @@ const TVMode = () => {
   const periodLabel = new Date(selectedYear, selectedMonth - 1).toLocaleString("pt-BR", { month: "long", year: "numeric" }).replace(/^\w/, c => c.toUpperCase());
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 flex flex-col gap-4 cursor-none select-none">
+    <div className="min-h-screen bg-background text-foreground p-6 flex flex-col gap-4 select-none">
       {/* Top bar — everything in one row */}
       <div className="flex items-center justify-between">
         {/* Left: seller name + period + seller pills */}
