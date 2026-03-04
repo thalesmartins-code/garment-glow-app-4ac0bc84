@@ -135,34 +135,41 @@ const TVMode = () => {
     return () => clearInterval(interval);
   }, [currentSellerIndex, activeSellers.length, sellerCycleSec]);
 
+  const periodLabel = new Date(selectedYear, selectedMonth - 1).toLocaleString("pt-BR", { month: "long", year: "numeric" }).replace(/^\w/, c => c.toUpperCase());
+
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 flex flex-col gap-6 cursor-none select-none">
-      {/* Top bar */}
+    <div className="min-h-screen bg-background text-foreground p-6 flex flex-col gap-4 cursor-none select-none">
+      {/* Top bar — everything in one row */}
       <div className="flex items-center justify-between">
-        {/* Seller indicators (left) */}
-        <div className="flex items-center gap-3">
-          {activeSellers.map((seller, idx) => (
-            <div
-              key={seller.id}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-500 ${
-                idx === currentSellerIndex
-                  ? "bg-primary text-primary-foreground scale-110"
-                  : "bg-muted text-muted-foreground scale-90 opacity-50"
-              }`}
-            >
-              <span>{seller.initials}</span>
-              <span className="hidden lg:inline">{seller.name}</span>
-            </div>
-          ))}
+        {/* Left: seller name + period + seller pills */}
+        <div className="flex items-center gap-5">
+          <div>
+            <h1 className="text-2xl font-bold leading-tight">{selectedSeller.name}</h1>
+            <p className="text-xs text-muted-foreground">{periodLabel} · Todos os marketplaces</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {activeSellers.map((seller, idx) => (
+              <div
+                key={seller.id}
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-all duration-500 ${
+                  idx === currentSellerIndex
+                    ? "bg-primary text-primary-foreground scale-105"
+                    : "bg-muted text-muted-foreground scale-95 opacity-50"
+                }`}
+              >
+                {seller.initials}
+              </div>
+            ))}
+          </div>
         </div>
 
+        {/* Right: clock + controls */}
         <div className="flex items-center gap-4">
           <div className="text-right">
             <div className="text-2xl font-bold tabular-nums">{formatTime(clock)}</div>
             <div className="text-xs text-muted-foreground capitalize">{formatDate(clock)}</div>
           </div>
 
-          {/* Settings popover */}
           <Popover>
             <PopoverTrigger asChild>
               <button className="p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
@@ -172,31 +179,13 @@ const TVMode = () => {
             <PopoverContent className="w-72 space-y-5" align="end">
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Alternar sellers: {sellerCycleSec}s</Label>
-                <Slider
-                  value={[sellerCycleSec]}
-                  onValueChange={([v]) => setSellerCycleSec(v)}
-                  min={5}
-                  max={60}
-                  step={5}
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>5s</span>
-                  <span>60s</span>
-                </div>
+                <Slider value={[sellerCycleSec]} onValueChange={([v]) => setSellerCycleSec(v)} min={5} max={60} step={5} />
+                <div className="flex justify-between text-xs text-muted-foreground"><span>5s</span><span>60s</span></div>
               </div>
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Atualizar dados: {refreshMin} min</Label>
-                <Slider
-                  value={[refreshMin]}
-                  onValueChange={([v]) => setRefreshMin(v)}
-                  min={1}
-                  max={30}
-                  step={1}
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>1 min</span>
-                  <span>30 min</span>
-                </div>
+                <Slider value={[refreshMin]} onValueChange={([v]) => setRefreshMin(v)} min={1} max={30} step={1} />
+                <div className="flex justify-between text-xs text-muted-foreground"><span>1 min</span><span>30 min</span></div>
               </div>
             </PopoverContent>
           </Popover>
@@ -213,15 +202,6 @@ const TVMode = () => {
           <div className="h-full bg-primary transition-all duration-100 ease-linear" style={{ width: `${cycleProgress}%` }} />
         </div>
       )}
-
-      {/* Current seller title */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">{selectedSeller.name}</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {new Date(selectedYear, selectedMonth - 1).toLocaleString("pt-BR", { month: "long", year: "numeric" }).replace(/^\w/, c => c.toUpperCase())}
-          {" · Todos os marketplaces"}
-        </p>
-      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
