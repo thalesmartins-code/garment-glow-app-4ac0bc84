@@ -38,7 +38,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("full_name, avatar_url")
       .eq("id", userId)
       .maybeSingle();
-    setProfile(profileData ?? null);
+
+    // If avatar_url is a storage path (not a full URL), generate a signed URL
+    let resolvedProfile = profileData ? { ...profileData } : null;
+    if (resolvedProfile?.avatar_url && !resolvedProfile.avatar_url.startsWith("http")) {
+      const { data: signedData } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(resolvedProfile.avatar_url, 3600);
+      resolvedProfile.avatar_url = signedData?.signedUrl ?? null;
+    }
+    setProfile(resolvedProfile ?? null);
   };
 
   useEffect(() => {

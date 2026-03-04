@@ -44,14 +44,15 @@ export default function Profile() {
       return;
     }
 
+    // Store the file path (not a URL) in the profile
+    setAvatarUrl(""); // reset while generating signed URL
+    await supabase.from("profiles").update({ avatar_url: filePath }).eq("id", user.id);
+
+    // Generate a signed URL for display
     const { data: signedData } = await supabase.storage
       .from("avatars")
       .createSignedUrl(filePath, 3600);
-    const url = signedData?.signedUrl ?? "";
-    setAvatarUrl(url);
-
-    // Save to profile immediately
-    await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+    setAvatarUrl(signedData?.signedUrl ?? "");
     toast({ title: "Foto atualizada" });
     setUploading(false);
   };
