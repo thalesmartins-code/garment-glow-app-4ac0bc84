@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { DollarSign, Target, TrendingUp, Percent, AlertTriangle, Calendar, Maximize2, Settings2 } from "lucide-react";
+import { DollarSign, Target, TrendingUp, Percent, AlertTriangle, Calendar, Maximize2, Settings2, Calculator } from "lucide-react";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { DailySalesChart } from "@/components/dashboard/DailySalesChart";
 import { useSeller } from "@/contexts/SellerContext";
@@ -118,14 +118,18 @@ const TVMode = () => {
   // Monthly metrics
   const monthlyMetrics = useMemo(() => {
     const data = dailySalesData;
-    if (data.length === 0) return { metaTotal: 0, vendaTotal: 0, metaPercentage: 0, yoy: 0, gapTotal: 0, totalAnoAnterior: 0 };
+    if (data.length === 0) return { metaTotal: 0, vendaTotal: 0, metaPercentage: 0, yoy: 0, gapTotal: 0, totalAnoAnterior: 0, mediaAtingimentoMeta: 0 };
     const metaTotal = data.reduce((s, d) => s + d.metaVendas, 0);
     const vendaTotal = data.reduce((s, d) => s + d.vendaTotal, 0);
     const totalAnoAnterior = data.reduce((s, d) => s + d.vendaAnoAnterior, 0);
     const gapTotal = data.reduce((s, d) => s + d.gap, 0);
     const metaPercentage = metaTotal > 0 ? (vendaTotal / metaTotal) * 100 : 0;
     const yoy = totalAnoAnterior > 0 ? ((vendaTotal - totalAnoAnterior) / totalAnoAnterior) * 100 : 0;
-    return { metaTotal, vendaTotal, metaPercentage, yoy, gapTotal, totalAnoAnterior };
+    const diasComVenda = data.filter((d) => d.vendaTotal > 0 && d.metaVendas > 0);
+    const mediaAtingimentoMeta = diasComVenda.length > 0
+      ? diasComVenda.reduce((s, d) => s + d.metaAtingida, 0) / diasComVenda.length
+      : 0;
+    return { metaTotal, vendaTotal, metaPercentage, yoy, gapTotal, totalAnoAnterior, mediaAtingimentoMeta };
   }, [dailySalesData]);
 
   // Daily metrics (yesterday / D-1)
@@ -267,7 +271,11 @@ const TVMode = () => {
         <KPICard title={viewMode === "diario" ? "Meta do dia" : "Meta do mês"} value={formatCurrency(activeMetrics.metaTotal)} rawValue={activeMetrics.metaTotal} valuePrefix="R$ " icon={<Target className="w-5 h-5" />} />
         <KPICard title={viewMode === "diario" ? "% da meta (Dia)" : "% da meta"} value={`${activeMetrics.metaPercentage.toFixed(1)}%`} rawValue={activeMetrics.metaPercentage} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-5 h-5" />} />
         <KPICard title={viewMode === "diario" ? "GAP (Dia)" : "GAP"} value={formatCurrency(Math.abs(activeMetrics.gapTotal))} rawValue={Math.abs(activeMetrics.gapTotal)} valuePrefix={activeMetrics.gapTotal >= 0 ? "R$ +" : "R$ -"} delta={activeMetrics.metaTotal > 0 ? (activeMetrics.gapTotal >= 0 ? Math.abs(activeMetrics.gapTotal / activeMetrics.metaTotal * 100) : -Math.abs(activeMetrics.gapTotal / activeMetrics.metaTotal * 100)) : 0} deltaLabel={activeMetrics.gapTotal >= 0 ? "acima da meta" : "abaixo da meta"} icon={<AlertTriangle className="w-5 h-5" />} />
-        <KPICard title={viewMode === "diario" ? "Ano anterior (Dia)" : "Ano anterior"} value={formatCurrency(activeMetrics.totalAnoAnterior)} rawValue={activeMetrics.totalAnoAnterior} valuePrefix="R$ " icon={<Calendar className="w-5 h-5" />} />
+        {viewMode === "diario" ? (
+          <KPICard title="Ano anterior (Dia)" value={formatCurrency(activeMetrics.totalAnoAnterior)} rawValue={activeMetrics.totalAnoAnterior} valuePrefix="R$ " icon={<Calendar className="w-5 h-5" />} />
+        ) : (
+          <KPICard title="Média ating. meta" value={`${monthlyMetrics.mediaAtingimentoMeta.toFixed(1)}%`} rawValue={monthlyMetrics.mediaAtingimentoMeta} valueSuffix="%" valueDecimals={1} icon={<Calculator className="w-5 h-5" />} />
+        )}
         <KPICard title="% YoY" value={`${activeMetrics.yoy >= 0 ? "+" : ""}${activeMetrics.yoy.toFixed(1)}%`} rawValue={Math.abs(activeMetrics.yoy)} delta={activeMetrics.yoy} deltaLabel="crescimento" icon={<TrendingUp className="w-5 h-5" />} />
       </div>
 
