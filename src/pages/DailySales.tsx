@@ -5,6 +5,7 @@ import { DailySalesTable } from "@/components/dashboard/DailySalesTable";
 import { DailySalesChart } from "@/components/dashboard/DailySalesChart";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSeller } from "@/contexts/SellerContext";
 import { useSalesData } from "@/contexts/SalesDataContext";
 import { useSellerSalesData, CalculatedDailySale } from "@/hooks/useSellerSalesData";
