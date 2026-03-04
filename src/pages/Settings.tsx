@@ -106,7 +106,7 @@ export default function Settings() {
   const selectedMarketplaceData = ALL_MARKETPLACES.find((m) => m.id === selectedMarketplace);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
         {/* Save Button */}
         <div className="flex justify-end">
           <Button onClick={handleSave} className="flex items-center gap-2">

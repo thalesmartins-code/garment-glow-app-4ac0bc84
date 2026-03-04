@@ -208,7 +208,7 @@ const DailySales = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
         {/* Action Bar */}
         <div className="flex items-center justify-end gap-3">
           <span className="text-xs text-muted-foreground">
