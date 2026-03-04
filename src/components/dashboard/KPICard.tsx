@@ -20,6 +20,7 @@ interface KPICardProps {
   valuePrefix?: string;
   valueSuffix?: string;
   valueDecimals?: number;
+  progressValue?: number;
 }
 
 const variantStyles: Record<CardVariant, { icon: string; trend: string; card: string }> = {
@@ -48,6 +49,7 @@ export function KPICard({
   valuePrefix = "",
   valueSuffix = "",
   valueDecimals = 0,
+  progressValue,
 }: KPICardProps) {
   const displayValue = value;
 
@@ -74,7 +76,24 @@ export function KPICard({
         <div className="flex-1 min-w-0">
           <span className="text-sm font-medium text-muted-foreground">{title}</span>
           <p className="text-[1.65rem] font-bold leading-tight">{displayValue}</p>
-        {(delta !== undefined || subtitle) && (
+          {subtitle && (
+            <span className="text-xs text-muted-foreground">{subtitle}</span>
+          )}
+          {progressValue !== undefined && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    progressValue >= 100 ? "bg-success" : progressValue >= 80 ? "bg-warning" : "bg-destructive"
+                  )}
+                  style={{ width: `${Math.min(progressValue, 100)}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-muted-foreground font-medium">{progressValue.toFixed(0)}%</span>
+            </div>
+          )}
+        {(delta !== undefined) && (
           <div className="flex items-center gap-1 mt-2">
             {delta !== undefined && (
               <>
@@ -95,9 +114,6 @@ export function KPICard({
             )}
             {deltaLabel && (
               <span className="text-xs text-muted-foreground">{deltaLabel}</span>
-            )}
-            {subtitle && !delta && (
-              <span className="text-xs text-muted-foreground">{subtitle}</span>
             )}
           </div>
         )}

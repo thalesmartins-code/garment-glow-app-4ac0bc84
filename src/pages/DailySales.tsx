@@ -349,6 +349,7 @@ const DailySales = () => {
             value={formatCurrency(activeMetrics.metaTotal)}
             rawValue={activeMetrics.metaTotal}
             valuePrefix="R$ "
+            subtitle={new Date(selectedYear, selectedMonth - 1).toLocaleString("pt-BR", { month: "long", year: "numeric" }).replace(/^\w/, c => c.toUpperCase())}
             icon={<Target className="w-5 h-5" />}
             variant="purple"
           />
@@ -360,6 +361,7 @@ const DailySales = () => {
             valueDecimals={1}
             icon={<Percent className="w-5 h-5" />}
             variant={activeMetrics.metaPercentage >= 100 ? "success" : activeMetrics.metaPercentage >= 80 ? "warning" : "danger"}
+            progressValue={activeMetrics.metaPercentage}
           />
         </div>
 
@@ -391,6 +393,7 @@ const DailySales = () => {
               rawValue={metrics.mediaAtingimentoMeta}
               valueSuffix="%"
               valueDecimals={1}
+              subtitle={new Date(selectedYear, selectedMonth - 1).toLocaleString("pt-BR", { month: "long", year: "numeric" }).replace(/^\w/, c => c.toUpperCase())}
               icon={<Calculator className="w-5 h-5" />}
               variant="default"
             />
