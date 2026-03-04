@@ -52,16 +52,37 @@ export function FilterBar({
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         {/* Marketplace Filter */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-muted-foreground hidden sm:block" />
           <Select value={selectedMarketplace} onValueChange={onMarketplaceChange}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Marketplaces (todos)" />
+            <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm">
+              <SelectValue>
+                {selectedMarketplace === "all" ? (
+                  <span className="flex items-center gap-1.5">
+                    <span>📊</span>
+                    <span>Marketplaces (todos)</span>
+                  </span>
+                ) : (
+                  (() => {
+                    const mp = marketplaceOptions.find(m => m.value === selectedMarketplace);
+                    return mp ? (
+                      <span className="flex items-center gap-1.5">
+                        <span>{mp.logo}</span>
+                        <span>{mp.label}</span>
+                      </span>
+                    ) : selectedMarketplace;
+                  })()
+                )}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Marketplaces (todos)</SelectItem>
+              <SelectItem value="all">
+                <span className="flex items-center gap-1.5">
+                  <span>📊</span>
+                  <span>Marketplaces (todos)</span>
+                </span>
+              </SelectItem>
               {marketplaceOptions.map((mp) => (
                 <SelectItem key={mp.value} value={mp.value}>
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-1.5">
                     <span>{mp.logo}</span>
                     <span>{mp.label}</span>
                   </span>
