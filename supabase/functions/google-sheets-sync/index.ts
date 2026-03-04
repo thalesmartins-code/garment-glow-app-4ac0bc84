@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { decode as decodeBase64, encode as encodeBase64 } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,12 +25,52 @@ const MONTH_NAMES: Record<string, number> = {
   "SETEMBRO": 9, "OUTUBRO": 10, "NOVEMBRO": 11, "DEZEMBRO": 12,
 };
 
-async function getAccessToken(serviceAccountJson: string): Promise<string> {
-  const sa = JSON.parse(serviceAccountJson);
+async function getAccessToken(serviceAccountJsonRaw: string): Promise<string> {
+  // Debug: log around the problematic position
+  console.log("JSON length:", serviceAccountJsonRaw.length);
+  console.log("Chars around pos 1440:", JSON.stringify(serviceAccountJsonRaw.substring(1435, 1455)));
+  
+  // Try parsing as-is first
+  let sa: Record<string, string>;
+  try {
+    sa = JSON.parse(serviceAccountJsonRaw);
+  } catch (e1) {
+    console.log("First parse failed:", (e1 as Error).message);
+    // Replace actual newlines with \n escape
+    const fixedJson = serviceAccountJsonRaw.replace(/\r?\n/g, '\\n');
+    console.log("Fixed chars around pos 1440:", JSON.stringify(fixedJson.substring(1435, 1455)));
+    try {
+      sa = JSON.parse(fixedJson);
+    } catch (e2) {
+      console.log("Second parse failed:", (e2 as Error).message);
+      // Use a very permissive approach: extract fields individually using regex
+      // The raw string has invalid JSON escapes (like \v) because the private_key
+      // contains \n that Supabase secrets store literally
+      const clientEmail = serviceAccountJsonRaw.match(/"client_email"\s*:\s*"([^"]+)"/)?.[1];
+      // Extract everything between "private_key" : " and the closing "
+      // The private key is between -----BEGIN PRIVATE KEY----- and -----END PRIVATE KEY-----
+      const pkMatch = serviceAccountJsonRaw.match(/-----BEGIN PRIVATE KEY-----([^-]+)-----END PRIVATE KEY-----/);
+      
+      if (!clientEmail || !pkMatch) {
+        throw new Error(`Could not extract credentials from service account JSON. Parse error: ${(e2 as Error).message}`);
+      }
+      
+      // The extracted PEM content between the markers - clean it
+      const pemContent = pkMatch[1].replace(/\\n/g, '').replace(/\n/g, '').replace(/\s/g, '');
+      
+      sa = {
+        client_email: clientEmail,
+        private_key: `-----BEGIN PRIVATE KEY-----\n${pemContent}\n-----END PRIVATE KEY-----\n`,
+      };
+    }
+  }
   const now = Math.floor(Date.now() / 1000);
 
-  const header = btoa(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const claim = btoa(JSON.stringify({
+  // Use base64url encoding for JWT
+  const b64url = (str: string) => btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  
+  const header = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const claim = b64url(JSON.stringify({
     iss: sa.client_email,
     scope: "https://www.googleapis.com/auth/spreadsheets.readonly",
     aud: "https://oauth2.googleapis.com/token",
@@ -41,11 +82,20 @@ async function getAccessToken(serviceAccountJson: string): Promise<string> {
 
   // Import the private key
   const pemContents = sa.private_key
-    .replace(/-----BEGIN PRIVATE KEY-----/, "")
-    .replace(/-----END PRIVATE KEY-----/, "")
-    .replace(/\n/g, "");
+    .replace(/-----BEGIN PRIVATE KEY-----/g, "")
+    .replace(/-----END PRIVATE KEY-----/g, "")
+    .replace(/\\n/g, "")
+    .replace(/\n/g, "")
+    .replace(/\r/g, "")
+    .replace(/\s/g, "")
+    .trim();
 
-  const binaryKey = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+  // Ensure proper base64 padding
+  const padded = pemContents + '='.repeat((4 - pemContents.length % 4) % 4);
+  
+  console.log("PEM length:", pemContents.length, "padded:", padded.length, "first 20 chars:", pemContents.substring(0, 20));
+  
+  const binaryKey = decodeBase64(padded);
 
   const cryptoKey = await crypto.subtle.importKey(
     "pkcs8",
@@ -61,7 +111,7 @@ async function getAccessToken(serviceAccountJson: string): Promise<string> {
     new TextEncoder().encode(unsignedToken)
   );
 
-  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+  const signatureB64 = encodeBase64(new Uint8Array(signature))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
