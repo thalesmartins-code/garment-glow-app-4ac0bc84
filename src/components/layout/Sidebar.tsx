@@ -78,7 +78,7 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div className={cn("flex items-center gap-3 py-6 border-b border-sidebar-border overflow-hidden", collapsed ? "px-3 justify-center" : "px-6")}>
+      <div className={cn("flex items-center gap-3 py-6 overflow-hidden", collapsed ? "px-3 justify-center" : "px-6")}>
         <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-primary shadow-glow flex-shrink-0 transition-transform duration-300">
           <AreaChart className="w-5 h-5 text-white" />
         </div>
