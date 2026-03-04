@@ -25,7 +25,9 @@ const MONTH_NAMES: Record<string, number> = {
 };
 
 async function getAccessToken(serviceAccountJson: string): Promise<string> {
-  const sa = JSON.parse(serviceAccountJson);
+  // Handle escaped newlines in private key (common when stored as env var)
+  const cleanedJson = serviceAccountJson.replace(/\\\\n/g, '\\n');
+  const sa = JSON.parse(cleanedJson);
   const now = Math.floor(Date.now() / 1000);
 
   const header = btoa(JSON.stringify({ alg: "RS256", typ: "JWT" }));
