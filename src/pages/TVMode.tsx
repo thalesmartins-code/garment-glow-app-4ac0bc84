@@ -271,7 +271,11 @@ const TVMode = () => {
         <KPICard title={viewMode === "diario" ? "Meta do dia" : "Meta do mês"} value={formatCurrency(activeMetrics.metaTotal)} rawValue={activeMetrics.metaTotal} valuePrefix="R$ " icon={<Target className="w-5 h-5" />} />
         <KPICard title={viewMode === "diario" ? "% da meta (Dia)" : "% da meta"} value={`${activeMetrics.metaPercentage.toFixed(1)}%`} rawValue={activeMetrics.metaPercentage} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-5 h-5" />} />
         <KPICard title={viewMode === "diario" ? "GAP (Dia)" : "GAP"} value={formatCurrency(Math.abs(activeMetrics.gapTotal))} rawValue={Math.abs(activeMetrics.gapTotal)} valuePrefix={activeMetrics.gapTotal >= 0 ? "R$ +" : "R$ -"} delta={activeMetrics.metaTotal > 0 ? (activeMetrics.gapTotal >= 0 ? Math.abs(activeMetrics.gapTotal / activeMetrics.metaTotal * 100) : -Math.abs(activeMetrics.gapTotal / activeMetrics.metaTotal * 100)) : 0} deltaLabel={activeMetrics.gapTotal >= 0 ? "acima da meta" : "abaixo da meta"} icon={<AlertTriangle className="w-5 h-5" />} />
-        <KPICard title={viewMode === "diario" ? "Ano anterior (Dia)" : "Ano anterior"} value={formatCurrency(activeMetrics.totalAnoAnterior)} rawValue={activeMetrics.totalAnoAnterior} valuePrefix="R$ " icon={<Calendar className="w-5 h-5" />} />
+        {viewMode === "diario" ? (
+          <KPICard title="Ano anterior (Dia)" value={formatCurrency(activeMetrics.totalAnoAnterior)} rawValue={activeMetrics.totalAnoAnterior} valuePrefix="R$ " icon={<Calendar className="w-5 h-5" />} />
+        ) : (
+          <KPICard title="Média ating. meta" value={`${monthlyMetrics.mediaAtingimentoMeta.toFixed(1)}%`} rawValue={monthlyMetrics.mediaAtingimentoMeta} valueSuffix="%" valueDecimals={1} icon={<Calculator className="w-5 h-5" />} />
+        )}
         <KPICard title="% YoY" value={`${activeMetrics.yoy >= 0 ? "+" : ""}${activeMetrics.yoy.toFixed(1)}%`} rawValue={Math.abs(activeMetrics.yoy)} delta={activeMetrics.yoy} deltaLabel="crescimento" icon={<TrendingUp className="w-5 h-5" />} />
       </div>
 
