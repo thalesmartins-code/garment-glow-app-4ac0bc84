@@ -57,22 +57,22 @@ export function DataPreview({ result, maxRows = 10 }: DataPreviewProps) {
 
       {/* Errors List */}
       {result.errors.length > 0 && (
-        <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-lg">
+        <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="w-4 h-4 text-red-500" />
-            <span className="text-sm font-medium text-red-600">
+            <AlertTriangle className="w-4 h-4 text-destructive" />
+            <span className="text-sm font-medium text-destructive">
               Erros encontrados ({result.errors.length})
             </span>
           </div>
           <ScrollArea className="max-h-32">
             <ul className="space-y-1">
               {result.errors.slice(0, 10).map((error, idx) => (
-                <li key={idx} className="text-sm text-red-600/80">
+                <li key={idx} className="text-sm text-destructive/80">
                   <span className="font-medium">Linha {error.line}:</span> {error.message}
                 </li>
               ))}
               {result.errors.length > 10 && (
-                <li className="text-sm text-red-600/60 italic">
+                <li className="text-sm text-destructive/60 italic">
                   ... e mais {result.errors.length - 10} erros
                 </li>
               )}
