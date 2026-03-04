@@ -272,7 +272,6 @@ const Index = () => {
             Dashboard Executivo de Vendas • Dados baseados em importações
           </p>
         </footer>
-      </div>
     </div>
   );
 };

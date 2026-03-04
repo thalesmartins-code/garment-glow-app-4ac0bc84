@@ -327,7 +327,6 @@ const DailySales = () => {
             Dashboard Executivo de Vendas • Dados atualizados em tempo real
           </p>
         </footer>
-      </div>
     </div>
   );
 };

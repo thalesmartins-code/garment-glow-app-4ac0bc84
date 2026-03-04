@@ -391,7 +391,6 @@ export default function Sellers() {
             </Card>
           ))}
         </div>
-      </div>
     </div>
   );
 }
