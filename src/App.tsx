@@ -38,10 +38,10 @@ const App = () => (
                     <Route element={<AppLayout />}>
                       <Route path="/" element={<Index />} />
                       <Route path="/vendas-diarias" element={<DailySales />} />
-                      <Route path="/importacao" element={<Import />} />
-                      <Route path="/configuracoes" element={<Settings />} />
-                      <Route path="/sellers" element={<Sellers />} />
-                      <Route path="/usuarios" element={<UserManagement />} />
+                      <Route path="/importacao" element={<RoleRoute><Import /></RoleRoute>} />
+                      <Route path="/configuracoes" element={<RoleRoute><Settings /></RoleRoute>} />
+                      <Route path="/sellers" element={<RoleRoute><Sellers /></RoleRoute>} />
+                      <Route path="/usuarios" element={<RoleRoute><UserManagement /></RoleRoute>} />
                       <Route path="/perfil" element={<Profile />} />
                     </Route>
                   </Route>
