@@ -8,7 +8,7 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
-  PieChart,
+  AreaChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
