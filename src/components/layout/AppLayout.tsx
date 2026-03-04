@@ -5,7 +5,7 @@ import { Header } from "./Header";
 
 const routeTitles: Record<string, { title: string; subtitle: string }> = {
   "/": { title: "Dashboard", subtitle: "Monitoramento de performance por marketplace" },
-  "/vendas-diarias": { title: "Vendas Diárias", subtitle: "Acompanhe o desempenho diário de vendas" },
+  "/vendas-diarias": { title: "Vendas", subtitle: "Acompanhe o desempenho diário de vendas" },
   "/importacao": { title: "Importação", subtitle: "Importe dados de vendas via CSV ou Excel" },
   "/configuracoes": { title: "Configurações", subtitle: "Configure metas e distribuição de PMT" },
   "/sellers": { title: "Sellers", subtitle: "Gerencie sellers e marketplaces ativos" },

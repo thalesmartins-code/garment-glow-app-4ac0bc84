@@ -19,7 +19,7 @@ import {
 
 const navItems = [
   { icon: BarChart3, label: "Dashboard", path: "/" },
-  { icon: TrendingUp, label: "Vendas Diárias", path: "/vendas-diarias" },
+  { icon: TrendingUp, label: "Vendas", path: "/vendas-diarias" },
   { icon: FileUp, label: "Importação", path: "/importacao" },
   { icon: SlidersHorizontal, label: "Configurações", path: "/configuracoes" },
   { icon: Users, label: "Sellers", path: "/sellers" },
