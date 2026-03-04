@@ -64,7 +64,7 @@ export function DailySalesChart({ data, loading = false, selectedMarketplace = "
       <Card>
         <CollapsibleTrigger className="w-full">
           <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Evolução de vendas diárias</CardTitle>
+            <CardTitle className="text-base">Evolução de vendas</CardTitle>
             <ChevronDown 
               className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${
                 isOpen ? "rotate-180" : ""
