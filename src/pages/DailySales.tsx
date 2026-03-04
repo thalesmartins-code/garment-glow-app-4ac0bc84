@@ -350,6 +350,7 @@ const DailySales = () => {
             rawValue={activeMetrics.metaTotal}
             valuePrefix="R$ "
             icon={<Target className="w-5 h-5" />}
+            variant="info"
           />
           <KPICard
             title={viewMode === "diario" ? "% da meta (Dia)" : "% da meta"}
