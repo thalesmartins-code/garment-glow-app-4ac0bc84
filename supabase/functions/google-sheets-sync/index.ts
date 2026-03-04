@@ -24,53 +24,18 @@ const MONTH_NAMES: Record<string, number> = {
   "SETEMBRO": 9, "OUTUBRO": 10, "NOVEMBRO": 11, "DEZEMBRO": 12,
 };
 
-async function getAccessToken(serviceAccountJsonRaw: string): Promise<string> {
-  // Debug: log around the problematic position
-  console.log("JSON length:", serviceAccountJsonRaw.length);
-  console.log("Chars around pos 1440:", JSON.stringify(serviceAccountJsonRaw.substring(1435, 1455)));
-  
-  // Try parsing as-is first
-  let sa: Record<string, string>;
-  try {
-    sa = JSON.parse(serviceAccountJsonRaw);
-  } catch (e1) {
-    console.log("First parse failed:", (e1 as Error).message);
-    // Replace actual newlines with \n escape
-    const fixedJson = serviceAccountJsonRaw.replace(/\r?\n/g, '\\n');
-    console.log("Fixed chars around pos 1440:", JSON.stringify(fixedJson.substring(1435, 1455)));
-    try {
-      sa = JSON.parse(fixedJson);
-    } catch (e2) {
-      console.log("Second parse failed:", (e2 as Error).message);
-      // Use a very permissive approach: extract fields individually using regex
-      // The raw string has invalid JSON escapes (like \v) because the private_key
-      // contains \n that Supabase secrets store literally
-      const clientEmail = serviceAccountJsonRaw.match(/"client_email"\s*:\s*"([^"]+)"/)?.[1];
-      // Extract everything between "private_key" : " and the closing "
-      // The private key is between -----BEGIN PRIVATE KEY----- and -----END PRIVATE KEY-----
-      const pkMatch = serviceAccountJsonRaw.match(/-----BEGIN PRIVATE KEY-----([^-]+)-----END PRIVATE KEY-----/);
-      
-      if (!clientEmail || !pkMatch) {
-        throw new Error(`Could not extract credentials from service account JSON. Parse error: ${(e2 as Error).message}`);
-      }
-      
-      // The extracted PEM content between the markers - clean it
-      const pemContent = pkMatch[1].replace(/\\n/g, '').replace(/\n/g, '').replace(/\s/g, '');
-      
-      sa = {
-        client_email: clientEmail,
-        private_key: `-----BEGIN PRIVATE KEY-----\n${pemContent}\n-----END PRIVATE KEY-----\n`,
-      };
-    }
-  }
+async function getAccessToken(clientEmail: string, privateKeyPem: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
 
-  // Use base64url encoding for JWT
-  const b64url = (str: string) => btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  
+  // Base64url encode helper
+  const b64url = (data: Uint8Array | string) => {
+    const str = typeof data === "string" ? btoa(data) : btoa(String.fromCharCode(...data));
+    return str.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  };
+
   const header = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
   const claim = b64url(JSON.stringify({
-    iss: sa.client_email,
+    iss: clientEmail,
     scope: "https://www.googleapis.com/auth/spreadsheets.readonly",
     aud: "https://oauth2.googleapis.com/token",
     exp: now + 3600,
@@ -79,40 +44,35 @@ async function getAccessToken(serviceAccountJsonRaw: string): Promise<string> {
 
   const unsignedToken = `${header}.${claim}`;
 
-  // Import the private key - strip everything except valid base64 chars
-  let pemContents = sa.private_key
+  // Parse private key PEM - keep only valid base64 characters
+  const pemB64 = privateKeyPem
     .replace(/-----BEGIN PRIVATE KEY-----/g, "")
     .replace(/-----END PRIVATE KEY-----/g, "")
-    .replace(/[^A-Za-z0-9+/=]/g, ""); // Keep ONLY valid base64 characters
+    .replace(/[^A-Za-z0-9+/=]/g, "");
 
-  // Ensure proper base64 padding
-  while (pemContents.length % 4 !== 0) {
-    pemContents += "=";
-  }
-
-  console.log("PEM length:", pemContents.length, "first 20:", pemContents.substring(0, 20), "last 20:", pemContents.substring(pemContents.length - 20));
-  
-  // Manual base64 decode to avoid atob issues in Deno edge runtime
+  // Manual base64 decode
   const lookup = new Uint8Array(256);
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   for (let i = 0; i < chars.length; i++) lookup[chars.charCodeAt(i)] = i;
-  
-  const len = pemContents.length;
-  let bufLen = (len * 3) / 4;
-  if (pemContents[len - 1] === "=") bufLen--;
-  if (pemContents[len - 2] === "=") bufLen--;
-  
+
+  // Remove trailing = for length calc
+  const stripped = pemB64.replace(/=+$/, "");
+  const bufLen = Math.floor((stripped.length * 3) / 4);
+  const padded = stripped + "=".repeat((4 - (stripped.length % 4)) % 4);
+
   const binaryKey = new Uint8Array(bufLen);
   let p = 0;
-  for (let i = 0; i < len; i += 4) {
-    const a = lookup[pemContents.charCodeAt(i)];
-    const b = lookup[pemContents.charCodeAt(i + 1)];
-    const c = lookup[pemContents.charCodeAt(i + 2)];
-    const d = lookup[pemContents.charCodeAt(i + 3)];
+  for (let i = 0; i < padded.length; i += 4) {
+    const a = lookup[padded.charCodeAt(i)];
+    const b = lookup[padded.charCodeAt(i + 1)];
+    const c = lookup[padded.charCodeAt(i + 2)];
+    const d = lookup[padded.charCodeAt(i + 3)];
     binaryKey[p++] = (a << 2) | (b >> 4);
     if (p < bufLen) binaryKey[p++] = ((b & 15) << 4) | (c >> 2);
     if (p < bufLen) binaryKey[p++] = ((c & 3) << 6) | d;
   }
+
+  console.log("Key bytes:", binaryKey.length, "b64 len:", stripped.length);
 
   const cryptoKey = await crypto.subtle.importKey(
     "pkcs8",
@@ -128,11 +88,7 @@ async function getAccessToken(serviceAccountJsonRaw: string): Promise<string> {
     new TextEncoder().encode(unsignedToken)
   );
 
-  const signatureB64 = encodeBase64(new Uint8Array(signature))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
+  const signatureB64 = b64url(new Uint8Array(signature));
   const jwt = `${header}.${claim}.${signatureB64}`;
 
   const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
