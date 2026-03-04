@@ -38,6 +38,7 @@ const App = () => (
                   <Route path="/tv" element={<ProtectedRoute />}>
                     <Route index element={<TVMode />} />
                   </Route>
+                  <Route element={<ProtectedRoute />}>
                     <Route element={<AppLayout />}>
                       <Route path="/" element={<Index />} />
                       <Route path="/vendas-diarias" element={<DailySales />} />
