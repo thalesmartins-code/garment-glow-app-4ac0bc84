@@ -402,7 +402,7 @@ const DailySales = () => {
             delta={activeMetrics.yoy}
             deltaLabel="crescimento"
             icon={<TrendingUp className="w-5 h-5" />}
-            variant={activeMetrics.yoy >= 0 ? "success" : "danger"}
+            variant="default"
           />
         </div>
 
