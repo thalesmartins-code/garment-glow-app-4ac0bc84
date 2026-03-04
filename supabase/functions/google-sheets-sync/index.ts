@@ -218,12 +218,20 @@ function parseTabData(
     if (!colMap["dia"]) continue;
 
     // Parse data rows
+    let parsedCount = 0;
+    let skippedCount = 0;
     for (let i = dataStartRow; i < rows.length; i++) {
       const row = rows[i];
       if (!row || row.length <= section.startCol) continue;
 
-      const diaVal = parseNumber(row[colMap["dia"]]);
-      if (diaVal < 1 || diaVal > 31) continue;
+      const rawDia = row[colMap["dia"]];
+      const diaVal = parseNumber(rawDia);
+      if (diaVal < 1 || diaVal > 31) {
+        if (i < dataStartRow + 3) console.log(`${section.sellerId} row ${i}: skipped dia="${rawDia}" -> ${diaVal}`);
+        skippedCount++;
+        continue;
+      }
+      parsedCount++;
 
       results.push({
         sellerId: section.sellerId,
