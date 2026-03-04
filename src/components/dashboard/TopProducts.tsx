@@ -11,7 +11,7 @@ const products = [
 
 export function TopProducts() {
   return (
-    <Card className="border-0 shadow-md">
+    <Card>
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-semibold">
           Estoque por Categoria

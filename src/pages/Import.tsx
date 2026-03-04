@@ -169,7 +169,7 @@ export default function Import() {
 
         {/* Status Card for Selected Seller */}
         {hasDataForSeller && (
-          <Card className="border-primary/20 bg-primary/5">
+          <Card className="bg-primary/5">
             <CardContent className="flex items-center gap-3 py-4">
               <Database className="w-5 h-5 text-primary" />
               <div>

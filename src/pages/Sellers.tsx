@@ -244,8 +244,8 @@ export default function Sellers() {
                 !seller.isActive ? "opacity-60" : ""
               } ${
                 selectedSeller.id === seller.id
-                  ? "ring-2 ring-primary border-primary"
-                  : "hover:border-primary/50"
+                  ? "ring-2 ring-primary"
+                  : ""
               }`}
             >
               <CardHeader className="pb-2">
