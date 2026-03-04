@@ -215,7 +215,7 @@ function parseTabData(
     
     console.log(`Seller ${section.sellerId} colMap:`, JSON.stringify(colMap));
     
-    if (!colMap["dia"]) continue;
+    if (colMap["dia"] === undefined) continue;
 
     // Parse data rows
     let parsedCount = 0;

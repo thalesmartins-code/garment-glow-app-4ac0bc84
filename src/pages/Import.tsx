@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGoogleSheetsSync } from "@/hooks/useGoogleSheetsSync";
+import { useSalesDataDB } from "@/hooks/useSalesDataDB";
 
 export default function Import() {
   const [parseResult, setParseResult] = useState<ImportResult | null>(null);
