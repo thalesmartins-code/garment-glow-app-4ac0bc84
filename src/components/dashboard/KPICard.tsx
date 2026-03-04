@@ -1,6 +1,5 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCountAnimation } from "@/hooks/useCountAnimation";
 import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 
