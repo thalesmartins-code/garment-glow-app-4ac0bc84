@@ -66,10 +66,11 @@ export function SalesDataProvider({ children }: { children: React.ReactNode }) {
             .range(from, from + pageSize - 1);
 
           if (error) {
-            console.error("Erro ao carregar dados do Supabase:", error);
+            console.error("Erro ao carregar dados do Supabase:", error.message, error.details);
             break;
           }
           if (!data || data.length === 0) break;
+          console.log(`Carregados ${data.length} registros do Supabase (página ${from / pageSize + 1})`);
 
           const mapped = data.map((row) => ({
             sellerId: row.seller_id,
