@@ -151,22 +151,22 @@ function parseTabData(
   if (rows.length > 2) console.log("First data row:", JSON.stringify(rows[2]?.slice(0, 20)));
 
   // Detect seller column groups
-  // Find all seller sections by looking at non-empty cells in row 0
   const sellerSections: Array<{ sellerId: string; startCol: number; endCol: number }> = [];
+  const sellerStarts: Array<{ sellerId: string; startCol: number }> = [];
   
   for (let i = 0; i < sellerRow.length; i++) {
     const cell = sellerRow[i]?.toString().trim();
     if (cell) {
-      // Find where this seller's section ends (next non-empty cell or end)
-      let endCol = sellerRow.length - 1;
-      for (let j = i + 1; j < sellerRow.length; j++) {
-        if (sellerRow[j]?.toString().trim()) {
-          endCol = j - 1;
-          break;
-        }
-      }
-      sellerSections.push({ sellerId: cell.toLowerCase(), startCol: i, endCol });
+      sellerStarts.push({ sellerId: cell.toLowerCase(), startCol: i });
     }
+  }
+  
+  // Calculate endCol for each seller (extends to next seller's start - 1, or end of headerRow)
+  for (let i = 0; i < sellerStarts.length; i++) {
+    const endCol = i < sellerStarts.length - 1 
+      ? sellerStarts[i + 1].startCol - 1 
+      : Math.max(headerRow.length - 1, sellerRow.length - 1);
+    sellerSections.push({ ...sellerStarts[i], endCol });
   }
 
   console.log("Seller sections:", JSON.stringify(sellerSections));
