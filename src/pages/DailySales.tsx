@@ -392,7 +392,7 @@ const DailySales = () => {
               valueSuffix="%"
               valueDecimals={1}
               icon={<Calculator className="w-5 h-5" />}
-              variant={metrics.mediaAtingimentoMeta >= 100 ? "success" : metrics.mediaAtingimentoMeta >= 80 ? "warning" : "danger"}
+              variant="info"
             />
           )}
           <KPICard
