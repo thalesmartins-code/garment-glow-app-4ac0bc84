@@ -128,21 +128,21 @@ export function DataPreview({ result, maxRows = 10 }: DataPreviewProps) {
         className={cn(
           "flex items-center gap-2 p-3 rounded-lg",
           result.success
-            ? "bg-green-500/10 border border-green-500/20"
-            : "bg-yellow-500/10 border border-yellow-500/20"
+            ? "bg-success/10 border border-success/20"
+            : "bg-warning/10 border border-warning/20"
         )}
       >
         {result.success ? (
           <>
-            <CheckCircle2 className="w-5 h-5 text-green-500" />
-            <span className="text-sm font-medium text-green-600">
+            <CheckCircle2 className="w-5 h-5 text-success" />
+            <span className="text-sm font-medium text-success">
               Arquivo válido! Pronto para importar.
             </span>
           </>
         ) : (
           <>
-            <AlertTriangle className="w-5 h-5 text-yellow-500" />
-            <span className="text-sm font-medium text-yellow-600">
+            <AlertTriangle className="w-5 h-5 text-warning" />
+            <span className="text-sm font-medium text-warning-foreground">
               {result.validRows > 0
                 ? `${result.validRows} registros válidos podem ser importados. Corrija os erros para importar todos.`
                 : "Nenhum registro válido. Corrija os erros e tente novamente."}
