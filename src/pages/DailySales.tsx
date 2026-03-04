@@ -30,7 +30,7 @@ const DailySales = () => {
   const [selectedMarketplace, setSelectedMarketplace] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<number>(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(currentDate.getMonth() + 1);
-  const [viewMode, setViewMode] = useState<"diario" | "mensal">("mensal");
+  const [viewMode, setViewMode] = useState<"diario" | "mensal">("diario");
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   // Get marketplaces available for this seller
