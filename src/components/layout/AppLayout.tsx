@@ -11,6 +11,7 @@ const routeTitles: Record<string, { title: string; subtitle: string }> = {
   "/sellers": { title: "Sellers", subtitle: "Gerencie sellers e marketplaces ativos" },
   "/usuarios": { title: "Usuários", subtitle: "Gerencie usuários e permissões do sistema" },
   "/perfil": { title: "Perfil", subtitle: "Gerencie suas informações pessoais" },
+  "/integracoes": { title: "Integrações", subtitle: "Conecte suas contas de marketplaces para sincronizar dados automaticamente" },
 };
 
 export function AppLayout() {
