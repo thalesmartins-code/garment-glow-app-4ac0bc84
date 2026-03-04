@@ -17,7 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const navItems = [
+const baseNavItems = [
   { icon: BarChart3, label: "Dashboard", path: "/" },
   { icon: TrendingUp, label: "Vendas", path: "/vendas-diarias" },
   { icon: FileUp, label: "Importação", path: "/importacao" },
@@ -28,6 +28,11 @@ const navItems = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { role } = useAuth();
+
+  const navItems = role === "admin"
+    ? [...baseNavItems, { icon: ShieldCheck, label: "Usuários", path: "/usuarios" }]
+    : baseNavItems;
 
   const renderLink = (item: { icon: any; label: string; path: string }) => {
     const isActive = location.pathname === item.path;
