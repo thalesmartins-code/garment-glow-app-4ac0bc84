@@ -212,6 +212,7 @@ const DailySales = () => {
         {/* Action Bar */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Marketplace:</span>
             <Select value={selectedMarketplace} onValueChange={setSelectedMarketplace}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue>
