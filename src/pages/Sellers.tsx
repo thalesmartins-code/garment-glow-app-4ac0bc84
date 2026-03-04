@@ -273,7 +273,7 @@ export default function Sellers() {
                           size="icon"
                           className={`h-8 w-8 ${
                             seller.isActive 
-                              ? "text-green-600 hover:text-green-700 hover:bg-green-100" 
+                              ? "text-success hover:text-success hover:bg-success/10" 
                               : "text-muted-foreground hover:text-foreground"
                           }`}
                           onClick={() => toggleSellerActive(seller.id)}

@@ -61,7 +61,7 @@ export function DailySalesChart({ data, loading = false, selectedMarketplace = "
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="border-0 shadow-md">
+      <Card>
         <CollapsibleTrigger className="w-full">
           <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors flex flex-row items-center justify-between">
             <CardTitle className="text-base">Evolução de vendas diárias</CardTitle>

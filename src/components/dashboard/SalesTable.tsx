@@ -87,7 +87,7 @@ export function SalesTable({
         </CardContent>
       </Card>;
   }
-  return <Card className="border-0 shadow-md">
+  return <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base">Vendas por Marketplace</CardTitle>
         <span className="text-sm text-muted-foreground">

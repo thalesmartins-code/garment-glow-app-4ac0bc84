@@ -411,7 +411,7 @@ export default function Import() {
                   <ul className="text-sm space-y-1">
                     {duplicateInfo.duplicatesByMarketplace.map((mp) => (
                       <li key={mp.marketplace} className="flex items-center gap-2 text-muted-foreground">
-                        <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0"></span>
+                        <span className="w-2 h-2 rounded-full bg-warning flex-shrink-0"></span>
                         {mp.marketplace}: {mp.count} registros
                       </li>
                     ))}
