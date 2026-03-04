@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
-import { FloatingChat } from "@/components/chat/FloatingChat";
+
 
 const routeTitles: Record<string, { title: string; subtitle: string }> = {
   "/": { title: "Dashboard", subtitle: "Monitoramento de performance por marketplace" },
@@ -24,7 +24,7 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
-      <FloatingChat />
+      
     </div>
   );
 }
