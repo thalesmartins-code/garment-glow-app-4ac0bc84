@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { DollarSign, Target, TrendingUp, Percent, Calculator, AlertTriangle, Calendar, Star, CalendarDays, RefreshCw, Loader2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { DailySalesTable } from "@/components/dashboard/DailySalesTable";
 import { DailySalesChart } from "@/components/dashboard/DailySalesChart";
 import { KPICard } from "@/components/dashboard/KPICard";
@@ -201,6 +202,12 @@ const DailySales = () => {
 
   return (
     <div className="space-y-6">
+        {/* Sync Progress Bar */}
+        {isSyncing && (
+          <div className="w-full">
+            <Progress value={undefined} className="h-1 w-full [&>div]:animate-[indeterminate_1.5s_ease-in-out_infinite] [&>div]:w-1/3" />
+          </div>
+        )}
         {/* Action Bar */}
         <div className="flex items-center justify-end gap-3">
           <span className="text-xs text-muted-foreground">
