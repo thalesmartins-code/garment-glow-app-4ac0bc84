@@ -47,7 +47,7 @@ export function Header({ title, subtitle }: HeaderProps) {
         {/* User menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-3 pl-2 pr-4 hover:bg-transparent">
+            <Button variant="ghost" className="gap-3 pl-2 pr-4 hover:bg-transparent hover:text-inherit">
               <Avatar className="w-8 h-8">
                 <AvatarFallback className="bg-accent text-accent-foreground text-sm font-medium">
                   JS
