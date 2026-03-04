@@ -158,7 +158,7 @@ const TVMode = () => {
   const formatTime = (date: Date) =>
     date.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const formatDate = (date: Date) =>
-    date.toLocaleString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+    date.toLocaleString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" }).replace(/-feira/g, "");
 
   // Cycle progress bar — resets on every view/seller change
   const [cycleProgress, setCycleProgress] = useState(0);
