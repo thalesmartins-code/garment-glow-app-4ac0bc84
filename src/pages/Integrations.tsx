@@ -134,7 +134,7 @@ const statusConfig = {
 };
 
 export default function Integrations() {
-  const { activeSeller } = useSeller();
+  const { selectedSeller } = useSeller();
   const { toast } = useToast();
   const [integrations, setIntegrations] = useState(MARKETPLACE_INTEGRATIONS);
   const [connectDialog, setConnectDialog] = useState<MarketplaceIntegration | null>(null);
