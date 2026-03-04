@@ -382,7 +382,7 @@ const DailySales = () => {
               rawValue={activeMetrics.totalAnoAnterior}
               valuePrefix="R$ "
               icon={<Calendar className="w-5 h-5" />}
-              variant="info"
+              variant="default"
             />
           ) : (
             <KPICard
