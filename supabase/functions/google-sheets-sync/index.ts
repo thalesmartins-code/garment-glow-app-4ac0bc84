@@ -42,18 +42,24 @@ async function getAccessToken(serviceAccountJsonRaw: string): Promise<string> {
       sa = JSON.parse(fixedJson);
     } catch (e2) {
       console.log("Second parse failed:", (e2 as Error).message);
-      // Try: the private key may have \n that are already escaped but there might be other bad escapes
-      // Use a very permissive approach: extract fields individually
+      // Use a very permissive approach: extract fields individually using regex
+      // The raw string has invalid JSON escapes (like \v) because the private_key
+      // contains \n that Supabase secrets store literally
       const clientEmail = serviceAccountJsonRaw.match(/"client_email"\s*:\s*"([^"]+)"/)?.[1];
-      const privateKeyRaw = serviceAccountJsonRaw.match(/"private_key"\s*:\s*"([\s\S]*?)(?:"|",)/)?.[1];
+      // Extract everything between "private_key" : " and the closing "
+      // The private key is between -----BEGIN PRIVATE KEY----- and -----END PRIVATE KEY-----
+      const pkMatch = serviceAccountJsonRaw.match(/-----BEGIN PRIVATE KEY-----([^-]+)-----END PRIVATE KEY-----/);
       
-      if (!clientEmail || !privateKeyRaw) {
+      if (!clientEmail || !pkMatch) {
         throw new Error(`Could not extract credentials from service account JSON. Parse error: ${(e2 as Error).message}`);
       }
       
+      // The extracted PEM content between the markers - clean it
+      const pemContent = pkMatch[1].replace(/\\n/g, '').replace(/\n/g, '').replace(/\s/g, '');
+      
       sa = {
         client_email: clientEmail,
-        private_key: privateKeyRaw.replace(/\\n/g, '\n'),
+        private_key: `-----BEGIN PRIVATE KEY-----\n${pemContent}\n-----END PRIVATE KEY-----\n`,
       };
     }
   }
