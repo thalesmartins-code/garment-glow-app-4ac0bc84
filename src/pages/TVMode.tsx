@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { DollarSign, Target, TrendingUp, Percent, AlertTriangle, Calendar, Maximize2, Settings2, Calculator } from "lucide-react";
 import { KPICard } from "@/components/dashboard/KPICard";
-import { DailySalesChart } from "@/components/dashboard/DailySalesChart";
+import { DailySalesTable } from "@/components/dashboard/DailySalesTable";
 import { useSeller } from "@/contexts/SellerContext";
 import { useSalesData } from "@/contexts/SalesDataContext";
 import { useSellerSalesData, CalculatedDailySale } from "@/hooks/useSellerSalesData";
-import { DailySale } from "@/data/mockData";
+
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -151,7 +151,7 @@ const TVMode = () => {
 
   const activeMetrics = viewMode === "diario" ? dailyMetrics : monthlyMetrics;
 
-  const chartData: DailySale[] = useMemo(() => dailySalesData.map(({ isImported, ...rest }) => rest as DailySale), [dailySalesData]);
+  
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
@@ -279,9 +279,20 @@ const TVMode = () => {
         <KPICard title="% YoY" value={`${activeMetrics.yoy >= 0 ? "+" : ""}${activeMetrics.yoy.toFixed(1)}%`} rawValue={Math.abs(activeMetrics.yoy)} delta={activeMetrics.yoy} deltaLabel="crescimento" icon={<TrendingUp className="w-5 h-5" />} />
       </div>
 
-      {/* Chart */}
-      <div className="flex-1 min-h-[300px]">
-        <DailySalesChart data={chartData} selectedMarketplace="all" />
+      {/* Daily Sales Table */}
+      <div className="flex-1 overflow-auto">
+        <DailySalesTable
+          dailySalesData={dailySalesData}
+          loading={false}
+          selectedMarketplace="all"
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          onMonthChange={() => {}}
+          onYearChange={() => {}}
+          availableMonths={[selectedMonth]}
+          availableYears={[selectedYear]}
+          isEditable={false}
+        />
       </div>
 
       {/* Footer */}
