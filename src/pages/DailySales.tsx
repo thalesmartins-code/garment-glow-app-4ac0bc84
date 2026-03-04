@@ -371,13 +371,24 @@ const DailySales = () => {
             deltaLabel={activeMetrics.gapTotal >= 0 ? "acima da meta" : "abaixo da meta"}
             icon={<AlertTriangle className="w-5 h-5" />}
           />
-          <KPICard
-            title={viewMode === "diario" ? "Ano anterior (Dia)" : "Total ano anterior"}
-            value={formatCurrency(activeMetrics.totalAnoAnterior)}
-            rawValue={activeMetrics.totalAnoAnterior}
-            valuePrefix="R$ "
-            icon={<Calendar className="w-5 h-5" />}
-          />
+          {viewMode === "diario" ? (
+            <KPICard
+              title="Ano anterior (Dia)"
+              value={formatCurrency(activeMetrics.totalAnoAnterior)}
+              rawValue={activeMetrics.totalAnoAnterior}
+              valuePrefix="R$ "
+              icon={<Calendar className="w-5 h-5" />}
+            />
+          ) : (
+            <KPICard
+              title="Média ating. meta"
+              value={`${(metrics.mediaAtingimentoMeta).toFixed(1)}%`}
+              rawValue={metrics.mediaAtingimentoMeta}
+              valueSuffix="%"
+              valueDecimals={1}
+              icon={<Calculator className="w-5 h-5" />}
+            />
+          )}
           <KPICard
             title="% YoY"
             value={`${activeMetrics.yoy >= 0 ? "+" : ""}${activeMetrics.yoy.toFixed(1)}%`}
