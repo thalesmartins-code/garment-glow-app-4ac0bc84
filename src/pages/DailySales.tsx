@@ -350,6 +350,7 @@ const DailySales = () => {
             rawValue={activeMetrics.metaTotal}
             valuePrefix="R$ "
             icon={<Target className="w-5 h-5" />}
+            variant="info"
           />
           <KPICard
             title={viewMode === "diario" ? "% da meta (Dia)" : "% da meta"}
@@ -372,6 +373,7 @@ const DailySales = () => {
             delta={activeMetrics.metaTotal > 0 ? (activeMetrics.gapTotal >= 0 ? Math.abs(activeMetrics.gapTotal / activeMetrics.metaTotal * 100) : -Math.abs(activeMetrics.gapTotal / activeMetrics.metaTotal * 100)) : 0}
             deltaLabel={activeMetrics.gapTotal >= 0 ? "acima da meta" : "abaixo da meta"}
             icon={<AlertTriangle className="w-5 h-5" />}
+            variant={activeMetrics.gapTotal >= 0 ? "success" : "danger"}
           />
           {viewMode === "diario" ? (
             <KPICard
@@ -380,6 +382,7 @@ const DailySales = () => {
               rawValue={activeMetrics.totalAnoAnterior}
               valuePrefix="R$ "
               icon={<Calendar className="w-5 h-5" />}
+              variant="neutral"
             />
           ) : (
             <KPICard
@@ -389,6 +392,7 @@ const DailySales = () => {
               valueSuffix="%"
               valueDecimals={1}
               icon={<Calculator className="w-5 h-5" />}
+              variant={metrics.mediaAtingimentoMeta >= 100 ? "success" : metrics.mediaAtingimentoMeta >= 80 ? "warning" : "danger"}
             />
           )}
           <KPICard
@@ -398,6 +402,7 @@ const DailySales = () => {
             delta={activeMetrics.yoy}
             deltaLabel="crescimento"
             icon={<TrendingUp className="w-5 h-5" />}
+            variant={activeMetrics.yoy >= 0 ? "success" : "danger"}
           />
         </div>
 
