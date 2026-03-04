@@ -44,8 +44,10 @@ export default function Profile() {
       return;
     }
 
-    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-    const url = data.publicUrl + "?t=" + Date.now(); // cache bust
+    const { data: signedData } = await supabase.storage
+      .from("avatars")
+      .createSignedUrl(filePath, 3600);
+    const url = signedData?.signedUrl ?? "";
     setAvatarUrl(url);
 
     // Save to profile immediately
