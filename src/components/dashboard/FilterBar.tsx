@@ -48,9 +48,10 @@ export function FilterBar({
   const periods: PeriodFilter[] = ['today', 'week', 'month', 'quarter', 'year', 'custom'];
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-card rounded-xl p-4 shadow-md">
-      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-        {/* Period Filter - Chips on desktop, Select on mobile */}
+    <div className="space-y-4">
+      {/* Row 1: Period filters + custom date */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-card rounded-xl p-4 shadow-md">
+        {/* Period Filter - Chips on desktop */}
         <div className="hidden sm:flex items-center gap-2">
           <CalendarIcon className="w-4 h-4 text-muted-foreground" />
           <div className="flex gap-1.5">
@@ -126,8 +127,10 @@ export function FilterBar({
             </Popover>
           </div>
         )}
+      </div>
 
-        {/* Marketplace Filter */}
+      {/* Row 2: Marketplace filter + refresh */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between bg-card rounded-xl p-4 shadow-md">
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Filter className="w-4 h-4 text-muted-foreground hidden sm:block" />
           <Select value={selectedMarketplace} onValueChange={onMarketplaceChange}>
@@ -147,24 +150,24 @@ export function FilterBar({
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-        {lastUpdate && (
-          <span className="text-xs text-muted-foreground">
-            Atualizado: {lastUpdate}
-          </span>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          className="gap-2"
-        >
-          <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-          <span className="hidden sm:inline">Atualizar</span>
-        </Button>
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          {lastUpdate && (
+            <span className="text-xs text-muted-foreground">
+              Atualizado: {lastUpdate}
+            </span>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="gap-2"
+          >
+            <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+            <span className="hidden sm:inline">Atualizar</span>
+          </Button>
+        </div>
       </div>
     </div>
   );
