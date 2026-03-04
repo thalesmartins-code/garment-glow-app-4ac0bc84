@@ -56,6 +56,21 @@
 
     --radius: 0.75rem;
 
+    /* Dashboard specific tokens */
+    --kpi-positive: 142 70% 45%;
+    --kpi-negative: 0 72% 51%;
+    --kpi-neutral: 217 70% 45%;
+    
+    --progress-bg: 210 15% 90%;
+    --progress-fill: 217 70% 45%;
+    --progress-success: 142 70% 45%;
+    --progress-warning: 38 92% 50%;
+    --progress-danger: 0 72% 51%;
+
+    --table-stripe: 210 20% 98%;
+    --table-hover: 217 70% 97%;
+    --table-header: 210 20% 95%;
+
     /* Sidebar */
     --sidebar-background: 217 50% 10%;
     --sidebar-foreground: 210 20% 90%;
@@ -76,6 +91,7 @@
     --shadow-md: 0 4px 6px -1px hsl(217 10% 10% / 0.03), 0 2px 4px -2px hsl(217 10% 10% / 0.02);
     --shadow-lg: 0 10px 15px -3px hsl(217 10% 10% / 0.04), 0 4px 6px -4px hsl(217 10% 10% / 0.02);
     --shadow-glow: 0 0 20px hsl(217 70% 45% / 0.15);
+    --shadow-card: 0 1px 3px 0 hsl(217 10% 10% / 0.1), 0 1px 2px -1px hsl(217 10% 10% / 0.1);
   }
 
   .dark {
@@ -95,9 +111,28 @@
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 100%;
+    --success: 142 70% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 45%;
+    --warning-foreground: 217 10% 10%;
     --border: 217 10% 18%;
     --input: 217 10% 18%;
     --ring: 217 70% 50%;
+
+    --kpi-positive: 142 70% 45%;
+    --kpi-negative: 0 72% 55%;
+    --kpi-neutral: 217 70% 50%;
+
+    --progress-bg: 217 10% 20%;
+    --progress-fill: 217 70% 50%;
+    --progress-success: 142 70% 45%;
+    --progress-warning: 38 92% 50%;
+    --progress-danger: 0 72% 55%;
+
+    --table-stripe: 217 10% 10%;
+    --table-hover: 217 70% 15%;
+    --table-header: 217 10% 13%;
+
     --sidebar-background: 217 50% 4%;
     --sidebar-foreground: 210 20% 90%;
     --sidebar-primary: 217 70% 50%;
@@ -117,6 +152,126 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+@layer components {
+  .kpi-card {
+    @apply bg-card rounded-xl p-5 transition-all duration-200;
+    box-shadow: var(--shadow-card);
+  }
+
+  .kpi-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .kpi-value {
+    @apply text-2xl sm:text-3xl font-bold tracking-tight;
+  }
+
+  .kpi-label {
+    @apply text-sm font-medium text-muted-foreground tracking-wide;
+  }
+
+  .kpi-delta-positive {
+    @apply text-sm font-semibold flex items-center gap-1;
+    color: hsl(var(--kpi-positive));
+  }
+
+  .kpi-delta-negative {
+    @apply text-sm font-semibold flex items-center gap-1;
+    color: hsl(var(--kpi-negative));
+  }
+
+  .kpi-delta-neutral {
+    @apply text-sm font-semibold flex items-center gap-1;
+    color: hsl(var(--kpi-neutral));
+  }
+
+  .progress-bar {
+    @apply h-2 rounded-full overflow-hidden;
+    background: hsl(var(--progress-bg));
+  }
+
+  .progress-fill {
+    @apply h-full rounded-full transition-all duration-500 ease-out;
+  }
+
+  .progress-success {
+    background: hsl(var(--progress-success));
+  }
+
+  .progress-warning {
+    background: hsl(var(--progress-warning));
+  }
+
+  .progress-danger {
+    background: hsl(var(--progress-danger));
+  }
+
+  .progress-info {
+    background: hsl(var(--progress-fill));
+  }
+
+  .data-table {
+    @apply w-full text-sm;
+  }
+
+  .data-table thead {
+    background: hsl(var(--table-header));
+  }
+
+  .data-table th {
+    @apply px-4 py-3 text-left font-semibold text-foreground cursor-pointer select-none;
+    @apply transition-colors duration-150;
+  }
+
+  .data-table th:hover {
+    @apply bg-muted;
+  }
+
+  .data-table td {
+    @apply px-4 py-3;
+  }
+
+  .data-table tbody tr:nth-child(even) {
+    background: hsl(var(--table-stripe));
+  }
+
+  .data-table tbody tr:hover {
+    background: hsl(var(--table-hover));
+  }
+
+  .filter-chip {
+    @apply px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-150;
+    @apply border border-border bg-card hover:bg-accent;
+  }
+
+  .filter-chip-active {
+    @apply bg-primary text-primary-foreground border-primary hover:bg-primary/90;
+  }
+
+  .dashboard-container {
+    @apply min-h-screen p-4 sm:p-6 lg:p-8;
+  }
+
+  .dashboard-grid {
+    @apply grid gap-4 sm:gap-6;
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-4;
+  }
+
+  .dashboard-section {
+    @apply bg-card rounded-xl overflow-hidden;
+    box-shadow: var(--shadow-card);
+  }
+
+  .dashboard-section-header {
+    @apply px-4 sm:px-6 py-4 border-b border-border flex items-center justify-between;
+  }
+
+  .dashboard-section-title {
+    @apply text-lg font-semibold;
   }
 }
 
@@ -149,5 +304,58 @@
 
   .glass {
     @apply backdrop-blur-md bg-white/80 border border-white/20;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out forwards;
+  }
+
+  .animate-pulse-subtle {
+    animation: pulseSubtle 2s ease-in-out infinite;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulseSubtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 5px hsl(var(--primary) / 0.2); }
+    50% { box-shadow: 0 0 20px hsl(var(--primary) / 0.4); }
+  }
+
+  .progress-animated {
+    animation: progressGrow 0.8s ease-out forwards;
+  }
+
+  @keyframes progressGrow {
+    from { width: 0; }
   }
 }

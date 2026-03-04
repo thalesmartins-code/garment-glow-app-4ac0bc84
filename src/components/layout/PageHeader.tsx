@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { NotificationCenter } from "@/components/financeiro/NotificationCenter";
 
 interface PageHeaderProps {
   title: string;
@@ -33,12 +32,10 @@ export function PageHeader({ title, subtitle }: PageHeaderProps) {
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar clientes..."
+            placeholder="Buscar..."
             className="w-72 pl-10 bg-secondary/50 border-0 focus-visible:ring-accent"
           />
         </div>
-
-        <NotificationCenter />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
