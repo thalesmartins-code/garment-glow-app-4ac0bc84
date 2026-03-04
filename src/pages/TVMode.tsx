@@ -5,7 +5,7 @@ import { DailySalesTable } from "@/components/dashboard/DailySalesTable";
 import { useSeller } from "@/contexts/SellerContext";
 import { useSalesData } from "@/contexts/SalesDataContext";
 import { useSellerSalesData, CalculatedDailySale } from "@/hooks/useSellerSalesData";
-import { DailySale } from "@/data/mockData";
+
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
