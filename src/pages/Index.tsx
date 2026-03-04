@@ -122,14 +122,7 @@ const Index = () => {
   const periodLabel = `${meses.find(m => m.value === selectedMonth)?.label ?? ''} ${selectedYear}`;
 
   return (
-    <div className="dashboard-container">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <DashboardHeader 
-          period={periodLabel} 
-          sellerName={selectedSeller.name}
-        />
-
+    <div className="max-w-7xl mx-auto space-y-6">
         {/* Year/Month Filters */}
         <div className="flex flex-wrap items-center gap-3 bg-card rounded-xl p-4 shadow-card">
           <div className="flex items-center gap-2">
@@ -279,7 +272,6 @@ const Index = () => {
             Dashboard Executivo de Vendas • Dados baseados em importações
           </p>
         </footer>
-      </div>
     </div>
   );
 };

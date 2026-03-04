@@ -106,23 +106,9 @@ export default function Settings() {
   const selectedMarketplaceData = ALL_MARKETPLACES.find((m) => m.id === selectedMarketplace);
 
   return (
-    <div className="dashboard-container">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary text-primary-foreground">
-              <SettingsIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                Configurações
-              </h1>
-              <p className="text-muted-foreground text-sm sm:text-base">
-                Configure metas de vendas e distribuição de PMT por mês e marketplace
-              </p>
-            </div>
-          </div>
+    <div className="max-w-7xl mx-auto space-y-6">
+        {/* Save Button */}
+        <div className="flex justify-end">
           <Button onClick={handleSave} className="flex items-center gap-2">
             <Save className="h-4 w-4" />
             Salvar Configurações
@@ -246,7 +232,6 @@ export default function Settings() {
           />
         </div>
         </div>
-      </div>
     </div>
   );
 }

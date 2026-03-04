@@ -200,55 +200,30 @@ const DailySales = () => {
 
   if (initialLoading) {
     return (
-      <div className="dashboard-container">
-        <div className="max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-          <p className="text-muted-foreground text-sm">Sincronizando dados...</p>
-        </div>
+      <div className="max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="text-muted-foreground text-sm">Sincronizando dados...</p>
       </div>
     );
   }
 
   return (
-    <div className="dashboard-container">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary text-primary-foreground">
-              <CalendarDays className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                Vendas Diárias
-              </h1>
-              <p className="text-muted-foreground text-sm sm:text-base">
-                <span className="font-medium text-foreground">{selectedSeller.name}</span>
-                {" • "}
-                Acompanhe o desempenho diário de vendas por marketplace
-                {selectedMarketplaceLabel && selectedMarketplace !== "all" && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-foreground font-medium">
-                    • {selectedMarketplaceLabel.logo} {selectedMarketplaceLabel.label}
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">
-              Atualizado: {formatLastUpdate(lastUpdate)}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isSyncing}
-              className="gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-              {isSyncing ? "Sincronizando..." : "Atualizar"}
-            </Button>
-          </div>
+    <div className="max-w-7xl mx-auto space-y-6">
+        {/* Action Bar */}
+        <div className="flex items-center justify-end gap-3">
+          <span className="text-xs text-muted-foreground">
+            Atualizado: {formatLastUpdate(lastUpdate)}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isSyncing}
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+            {isSyncing ? "Sincronizando..." : "Atualizar"}
+          </Button>
         </div>
 
         {/* KPI Cards - Row 1 */}
@@ -352,7 +327,6 @@ const DailySales = () => {
             Dashboard Executivo de Vendas • Dados atualizados em tempo real
           </p>
         </footer>
-      </div>
     </div>
   );
 };

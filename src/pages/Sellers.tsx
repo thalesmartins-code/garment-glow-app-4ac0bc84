@@ -204,24 +204,9 @@ export default function Sellers() {
   );
 
   return (
-    <div className="dashboard-container">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary text-primary-foreground">
-              <Store className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                Sellers
-              </h1>
-              <p className="text-muted-foreground text-sm sm:text-base">
-                Gerencie seus sellers e marketplaces ativos
-              </p>
-            </div>
-          </div>
-
+    <div className="max-w-7xl mx-auto space-y-6">
+        {/* Action Bar */}
+        <div className="flex justify-end">
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={resetForm}>
@@ -406,7 +391,6 @@ export default function Sellers() {
             </Card>
           ))}
         </div>
-      </div>
     </div>
   );
 }
