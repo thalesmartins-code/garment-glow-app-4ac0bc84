@@ -177,7 +177,7 @@ const DailySales = () => {
     if (!dayData) {
       return {
         vendaTotal: 0, metaVendas: 0, metaPercentage: 0, gap: 0,
-        vendaAnoAnterior: 0, yoy: 0, dia: today,
+        vendaAnoAnterior: 0, yoy: 0, dia: yesterday || 1,
       };
     }
 
