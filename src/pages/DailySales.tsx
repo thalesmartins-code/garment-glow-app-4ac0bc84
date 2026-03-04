@@ -241,17 +241,17 @@ const DailySales = () => {
           </div>
         )}
         {/* Filter Bar */}
-        <Card className="p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
+        <Card className="p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
               <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "diario" | "mensal")}>
-                <TabsList className="h-8">
-                  <TabsTrigger value="diario" className="text-xs px-2 py-1">Diário</TabsTrigger>
-                  <TabsTrigger value="mensal" className="text-xs px-2 py-1">Mensal</TabsTrigger>
+                <TabsList className="h-9">
+                  <TabsTrigger value="diario" className="text-sm px-3 py-1.5">Diário</TabsTrigger>
+                  <TabsTrigger value="mensal" className="text-sm px-3 py-1.5">Mensal</TabsTrigger>
                 </TabsList>
               </Tabs>
               <Select value={selectedMarketplace} onValueChange={setSelectedMarketplace}>
-                <SelectTrigger className="w-[150px] h-8 text-xs">
+                <SelectTrigger className="w-[160px] h-9 text-sm">
                   <SelectValue>
                     {selectedMarketplaceLabel && (
                       <span className="flex items-center gap-1.5">
@@ -273,7 +273,7 @@ const DailySales = () => {
                 </SelectContent>
               </Select>
               <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
-                <SelectTrigger className="w-[120px] h-8 text-xs">
+                <SelectTrigger className="w-[130px] h-9 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -285,7 +285,7 @@ const DailySales = () => {
                 </SelectContent>
               </Select>
               <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
-                <SelectTrigger className="w-[80px] h-8 text-xs">
+                <SelectTrigger className="w-[90px] h-9 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -297,7 +297,7 @@ const DailySales = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <span className="text-xs text-muted-foreground hidden lg:inline">
                 {formatLastUpdate(lastUpdate)}
               </span>
@@ -306,9 +306,9 @@ const DailySales = () => {
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isSyncing}
-                className="gap-1.5 h-8 text-xs"
+                className="gap-1.5 h-9 text-sm"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
                 {isSyncing ? "Sync..." : "Atualizar"}
               </Button>
             </div>
