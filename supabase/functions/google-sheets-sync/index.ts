@@ -141,6 +141,9 @@ function parseTabData(
 
   const results: SheetRow[] = [];
   const headers = rows[0].map((h) => h?.toString().trim().toLowerCase() || "");
+  console.log("Tab headers:", JSON.stringify(headers));
+  // Also log first data row for reference
+  if (rows.length > 1) console.log("First data row:", JSON.stringify(rows[1]));
 
   // Try to find column indices by header name
   const colMap: Record<string, number> = {};
