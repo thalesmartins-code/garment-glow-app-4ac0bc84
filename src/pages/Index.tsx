@@ -208,7 +208,7 @@ const Index = () => {
         {/* KPI Cards Grid - only show if has data */}
         {hasDataForPeriod && (
           <>
-            <div className="dashboard-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <KPICard
                 title="Receita Total"
                 value={isLoading ? "..." : formatCurrency(calculatedSummary?.totalReceita ?? 0)}

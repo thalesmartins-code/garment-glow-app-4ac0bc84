@@ -37,7 +37,7 @@ export function FilterBar({
   const periods: PeriodFilter[] = ['today', 'week', 'month', 'quarter', 'year'];
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-card rounded-xl p-4 shadow-card">
+    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-card rounded-xl p-4 border-0 shadow-md">
       <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
         {/* Period Filter - Chips on desktop, Select on mobile */}
         <div className="hidden sm:flex items-center gap-2">

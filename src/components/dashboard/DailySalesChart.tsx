@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { DailySale } from "@/data/mockData";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronDown } from "lucide-react";
 
 interface DailySalesChartProps {

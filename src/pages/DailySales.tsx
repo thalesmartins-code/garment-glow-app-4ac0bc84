@@ -264,7 +264,7 @@ const DailySales = () => {
         </div>
 
         {/* KPI Cards - Row 2 */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
             title="Melhor dia"
             value={`Dia ${metrics.melhorDia.dia}`}

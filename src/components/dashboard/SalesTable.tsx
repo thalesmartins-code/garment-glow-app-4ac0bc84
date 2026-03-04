@@ -5,6 +5,7 @@ import { MarketplaceSales } from "@/data/mockData";
 import { ProgressBar } from "./ProgressBar";
 import { EditableQuantityCell } from "./EditableQuantityCell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SortField = "marketplace" | "vendas" | "vendaTotal" | "vendaAprovadaReal" | "pmt" | "meta" | "metaPercentage" | "yoyGrowth";
 type SortDirection = "asc" | "desc";
