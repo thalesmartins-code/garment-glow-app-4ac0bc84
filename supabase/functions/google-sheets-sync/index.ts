@@ -249,7 +249,8 @@ function parseTabData(
   }
 
   return results;
-}
+    }
+    console.log(`${section.sellerId}: ${parsedCount} parsed, ${skippedCount} skipped`);
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
