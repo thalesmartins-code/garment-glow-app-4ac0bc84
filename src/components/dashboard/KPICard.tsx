@@ -22,15 +22,15 @@ interface KPICardProps {
   valueDecimals?: number;
 }
 
-const variantStyles: Record<CardVariant, { icon: string; trend: string }> = {
-  default: { icon: "bg-accent/10 text-accent", trend: "" },
-  success: { icon: "bg-success/10 text-success", trend: "text-success" },
-  warning: { icon: "bg-warning/10 text-warning", trend: "text-warning" },
-  danger: { icon: "bg-destructive/10 text-destructive", trend: "text-destructive" },
-  info: { icon: "bg-primary/10 text-primary", trend: "text-primary" },
-  neutral: { icon: "bg-muted text-muted-foreground", trend: "" },
-  purple: { icon: "bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]", trend: "" },
-  orange: { icon: "bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]", trend: "" },
+const variantStyles: Record<CardVariant, { icon: string; trend: string; card: string }> = {
+  default: { icon: "bg-accent/10 text-accent", trend: "", card: "" },
+  success: { icon: "bg-success/10 text-success", trend: "text-success", card: "bg-success/5 border border-success/20" },
+  warning: { icon: "bg-warning/10 text-warning", trend: "text-warning", card: "bg-warning/5 border border-warning/20" },
+  danger: { icon: "bg-destructive/10 text-destructive", trend: "text-destructive", card: "bg-destructive/5 border border-destructive/20" },
+  info: { icon: "bg-primary/10 text-primary", trend: "text-primary", card: "bg-primary/5 border border-primary/20" },
+  neutral: { icon: "bg-muted text-muted-foreground", trend: "", card: "" },
+  purple: { icon: "bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]", trend: "", card: "" },
+  orange: { icon: "bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]", trend: "", card: "" },
 };
 
 export function KPICard({
@@ -69,7 +69,7 @@ export function KPICard({
   }
 
   return (
-    <Card className={cn(className)}>
+    <Card className={cn(styles.card, className)}>
       <CardContent className="p-4 flex gap-4">
         <div className="flex-1 min-w-0">
           <span className="text-sm font-medium text-muted-foreground">{title}</span>
