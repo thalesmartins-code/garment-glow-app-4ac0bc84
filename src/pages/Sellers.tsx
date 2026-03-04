@@ -204,7 +204,7 @@ export default function Sellers() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
         {/* Action Bar */}
         <div className="flex justify-end">
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>

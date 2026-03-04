@@ -200,7 +200,7 @@ const DailySales = () => {
 
   if (initialLoading) {
     return (
-      <div className="max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
         <p className="text-muted-foreground text-sm">Sincronizando dados...</p>
       </div>
@@ -208,7 +208,7 @@ const DailySales = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
         {/* Action Bar */}
         <div className="flex items-center justify-end gap-3">
           <span className="text-xs text-muted-foreground">
