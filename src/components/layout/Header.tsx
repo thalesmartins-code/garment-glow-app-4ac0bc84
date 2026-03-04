@@ -21,6 +21,7 @@ interface HeaderProps {
 export function Header({ title, subtitle }: HeaderProps) {
   const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
   const { profile, role, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const displayName = profile?.full_name || "Usuário";
   const initials = displayName
