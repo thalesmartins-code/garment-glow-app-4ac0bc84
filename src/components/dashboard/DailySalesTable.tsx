@@ -46,6 +46,7 @@ interface DailySalesTableProps {
   onUpdateSale?: (day: number, vendaTotal: number) => void;
   onUpdateSaleAprovadaReal?: (day: number, vendaAprovadaReal: number) => void;
   isEditable?: boolean;
+  compact?: boolean;
 }
 
 interface MarketplaceBreakdown {
