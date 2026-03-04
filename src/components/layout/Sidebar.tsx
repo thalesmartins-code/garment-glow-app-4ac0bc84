@@ -8,7 +8,7 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
-  Rocket,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
