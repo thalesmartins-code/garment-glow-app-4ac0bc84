@@ -71,11 +71,6 @@ export function KPICard({
   return (
     <Card className={cn(className)}>
       <CardContent className="p-4 flex items-center gap-4">
-        {icon && (
-          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", styles.icon)}>
-            {icon}
-          </div>
-        )}
         <div className="flex-1 min-w-0">
           <span className="text-sm font-medium text-muted-foreground">{title}</span>
           <p className="text-[1.65rem] font-bold leading-tight">{displayValue}</p>
@@ -107,6 +102,11 @@ export function KPICard({
           </div>
         )}
         </div>
+        {icon && (
+          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", styles.icon)}>
+            {icon}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
