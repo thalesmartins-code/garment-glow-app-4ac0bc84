@@ -292,6 +292,7 @@ const TVMode = () => {
           availableMonths={[selectedMonth]}
           availableYears={[selectedYear]}
           isEditable={false}
+          compact
         />
       </div>
 
