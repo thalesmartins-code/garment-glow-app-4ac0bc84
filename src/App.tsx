@@ -15,6 +15,7 @@ import Import from "./pages/Import";
 import Settings from "./pages/Settings";
 import Sellers from "./pages/Sellers";
 import UserManagement from "./pages/UserManagement";
+import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -40,6 +41,7 @@ const App = () => (
                       <Route path="/configuracoes" element={<Settings />} />
                       <Route path="/sellers" element={<Sellers />} />
                       <Route path="/usuarios" element={<UserManagement />} />
+                      <Route path="/perfil" element={<Profile />} />
                     </Route>
                   </Route>
                   <Route path="*" element={<NotFound />} />

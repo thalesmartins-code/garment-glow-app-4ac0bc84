@@ -1,4 +1,5 @@
 import { Bell, Check, ChevronDown, Store, User, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,6 +21,7 @@ interface HeaderProps {
 export function Header({ title, subtitle }: HeaderProps) {
   const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
   const { profile, role, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const displayName = profile?.full_name || "Usuário";
   const initials = displayName
@@ -121,7 +123,7 @@ export function Header({ title, subtitle }: HeaderProps) {
           <DropdownMenuContent align="end" className="w-48 rounded-xl">
             <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/perfil")}>
               <User className="w-4 h-4 mr-2" />
               Perfil
             </DropdownMenuItem>
