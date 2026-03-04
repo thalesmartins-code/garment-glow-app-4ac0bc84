@@ -338,10 +338,11 @@ export function DailySalesTable({
 
   return (
     <Card>
+      {!compact && (
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Calendar className={cn("text-primary", compact ? "w-4 h-4" : "w-5 h-5")} />
-          <CardTitle className={cn(compact ? "text-sm font-medium" : "text-lg font-semibold")}>Vendas Diárias</CardTitle>
+          <Calendar className="w-5 h-5 text-primary" />
+          <CardTitle className="text-lg font-semibold">Vendas Diárias</CardTitle>
           {isEditable && selectedMarketplace !== "all" && (
             <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
               Clique para editar
