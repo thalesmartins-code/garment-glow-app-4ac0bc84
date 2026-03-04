@@ -33,6 +33,7 @@ interface SalesDataContextType {
   updateSaleField: (sellerId: string, marketplace: string, ano: number, mes: number, dia: number, field: string, value: number) => void;
   findDuplicates: (sellerId: string, newData: ImportedSale[]) => DuplicateCheckResult;
   isLoading: boolean;
+  refreshData: () => Promise<void>;
   // Marketplace quantities
   getMarketplaceQuantity: (sellerId: string, marketplace: string, ano: number, mes: number) => number;
   updateMarketplaceQuantity: (sellerId: string, marketplace: string, ano: number, mes: number, qtdVendas: number) => void;
