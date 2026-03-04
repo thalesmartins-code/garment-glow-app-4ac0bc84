@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, Store, User } from "lucide-react";
+import { Bell, Check, ChevronDown, Store, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,7 +17,7 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
-  const { sellers, selectedSeller, setSelectedSeller, activeSellers } = useSeller();
+  const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
 
   return (
     <header className="flex items-center justify-between px-8 py-6 bg-card border-b border-border">
@@ -34,43 +34,60 @@ export function Header({ title, subtitle }: HeaderProps) {
         {/* Seller Switcher */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2 h-9 px-3">
-              <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-primary">
-                  {selectedSeller.initials}
-                </span>
+            <Button
+              variant="ghost"
+              className="gap-2.5 h-10 px-3 rounded-xl bg-secondary/50 hover:bg-secondary border-0"
+            >
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-accent-foreground text-[11px] font-bold"
+                style={{ background: "var(--gradient-primary)" }}
+              >
+                {selectedSeller.initials}
               </div>
-              <span className="text-sm font-medium hidden sm:inline">
+              <span className="text-sm font-medium text-foreground hidden sm:inline">
                 {selectedSeller.name}
               </span>
-              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground ml-0.5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel className="flex items-center gap-2 text-xs">
+          <DropdownMenuContent align="end" className="w-52 rounded-xl p-1.5">
+            <DropdownMenuLabel className="flex items-center gap-2 text-xs text-muted-foreground px-2 py-1.5">
               <Store className="w-3.5 h-3.5" />
               Trocar Seller
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {activeSellers.map((seller) => (
-              <DropdownMenuItem
-                key={seller.id}
-                onClick={() => setSelectedSeller(seller.id)}
-                className={seller.id === selectedSeller.id ? "bg-accent" : ""}
-              >
-                <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center mr-2">
-                  <span className="text-[10px] font-bold text-primary">
+            {activeSellers.map((seller) => {
+              const isActive = seller.id === selectedSeller.id;
+              return (
+                <DropdownMenuItem
+                  key={seller.id}
+                  onClick={() => setSelectedSeller(seller.id)}
+                  className={`gap-2.5 rounded-lg px-2 py-2 cursor-pointer ${
+                    isActive ? "bg-accent/10" : ""
+                  }`}
+                >
+                  <div
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                      isActive
+                        ? "text-accent-foreground"
+                        : "bg-secondary text-secondary-foreground"
+                    }`}
+                    style={isActive ? { background: "var(--gradient-primary)" } : undefined}
+                  >
                     {seller.initials}
+                  </div>
+                  <span className={`text-sm flex-1 ${isActive ? "font-semibold" : "font-medium"}`}>
+                    {seller.name}
                   </span>
-                </div>
-                {seller.name}
-              </DropdownMenuItem>
-            ))}
+                  {isActive && <Check className="w-4 h-4 text-accent shrink-0" />}
+                </DropdownMenuItem>
+              );
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative hover:bg-transparent">
+        <Button variant="ghost" size="icon" className="relative hover:bg-secondary/50 rounded-xl">
           <Bell className="w-5 h-5 text-muted-foreground" />
           <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full" />
         </Button>
@@ -78,7 +95,7 @@ export function Header({ title, subtitle }: HeaderProps) {
         {/* User menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-3 pl-2 pr-4 hover:bg-transparent hover:text-inherit">
+            <Button variant="ghost" className="gap-3 pl-2 pr-4 hover:bg-secondary/50 rounded-xl">
               <Avatar className="w-8 h-8">
                 <AvatarFallback className="bg-accent text-accent-foreground text-sm font-medium">
                   JS
@@ -90,7 +107,7 @@ export function Header({ title, subtitle }: HeaderProps) {
               </div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="w-48 rounded-xl">
             <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
