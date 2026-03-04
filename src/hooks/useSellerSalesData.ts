@@ -29,6 +29,7 @@ interface MarketplaceSummary {
 interface UseSellerSalesDataReturn {
   getDailySalesData: (marketplace: string, year: number, month: number) => CalculatedDailySale[];
   getMarketplaceSummary: (year: number, month: number) => MarketplaceSummary[];
+  getMarketplaceSummaryForDateRange: (startDate: Date, endDate: Date) => MarketplaceSummary[];
   updateSaleValue: (marketplace: string, year: number, month: number, day: number, vendaTotal: number) => void;
   updateSaleAprovadaReal: (marketplace: string, year: number, month: number, day: number, vendaAprovadaReal: number) => void;
   updateMarketplaceQuantity: (marketplaceId: string, year: number, month: number, qtdVendas: number) => void;
