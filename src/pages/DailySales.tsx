@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
-import { DollarSign, Target, TrendingUp, Percent, Calculator, AlertTriangle, Calendar, Star, CalendarDays, RefreshCw, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { DollarSign, Target, TrendingUp, Percent, Calculator, AlertTriangle, Calendar, Star, CalendarDays, RefreshCw, Loader2, Monitor } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { DailySalesTable } from "@/components/dashboard/DailySalesTable";
