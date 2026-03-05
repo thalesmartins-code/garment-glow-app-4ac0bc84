@@ -26,14 +26,6 @@ export function SellerProvider({ children }: { children: React.ReactNode }) {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Check if we need to reset (old sellers without "sandrini" id)
-          const hasSandrini = parsed.some((s: Seller) => s.id === "sandrini");
-          if (!hasSandrini) {
-            // Reset to new defaults
-            localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem(SELECTED_SELLER_KEY);
-            return DEFAULT_SELLERS;
-          }
           return parsed.map((s: Seller) => ({
             ...s,
             isActive: s.isActive !== undefined ? s.isActive : true,
