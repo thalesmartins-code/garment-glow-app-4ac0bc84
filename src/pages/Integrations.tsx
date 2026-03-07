@@ -368,7 +368,10 @@ export default function Integrations() {
     setMlCodeInput("");
   };
 
-  const connectedCount = integrations.filter((i) => i.status === "connected").length;
+  // Filter integrations by seller's active marketplaces (exclude "total")
+  const sellerMarketplaces = selectedSeller?.activeMarketplaces?.filter((id) => id !== "total") || [];
+  const filteredIntegrations = integrations.filter((i) => sellerMarketplaces.includes(i.id));
+  const connectedCount = filteredIntegrations.filter((i) => i.status === "connected").length;
 
   return (
     <div className="space-y-6">
@@ -392,7 +395,7 @@ export default function Integrations() {
               <Link2Off className="w-6 h-6 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{integrations.length - connectedCount}</p>
+              <p className="text-2xl font-bold">{filteredIntegrations.length - connectedCount}</p>
               <p className="text-sm text-muted-foreground">Disponíveis</p>
             </div>
           </CardContent>
