@@ -25,7 +25,7 @@ serve(async (req) => {
     const { action, code, redirect_uri, refresh_token } = await req.json();
 
     if (action === "get_auth_url") {
-      const authUrl = `https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=${ML_APP_ID}&redirect_uri=${encodeURIComponent(redirect_uri)}`;
+      const authUrl = `https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=${ML_APP_ID}&redirect_uri=${redirect_uri}`;
       return new Response(
         JSON.stringify({ success: true, auth_url: authUrl }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
