@@ -567,6 +567,52 @@ export default function Integrations() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ML Manual Code Dialog */}
+      <Dialog open={mlCodeDialog} onOpenChange={setMlCodeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              🟡 Colar código do Mercado Livre
+            </DialogTitle>
+            <DialogDescription>
+              Cole o código de autorização que apareceu na URL após autorizar o acesso no Mercado Livre (parâmetro <code>?code=</code>).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="ml-code">Código de autorização</Label>
+              <Input
+                id="ml-code"
+                placeholder="TG-xxxxx..."
+                value={mlCodeInput}
+                onChange={(e) => setMlCodeInput(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMlCodeDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleManualCodeExchange}
+              disabled={connecting || !mlCodeInput.trim()}
+            >
+              {connecting ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" />
+                  Trocando...
+                </>
+              ) : (
+                <>
+                  <Link2 className="w-4 h-4 mr-1.5" />
+                  Trocar por token
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
