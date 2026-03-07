@@ -210,7 +210,7 @@ export default function Integrations() {
   const handleConnect = async (integration: MarketplaceIntegration) => {
     if (integration.id === "ml") {
       // Real ML OAuth flow
-      const redirectUri = `${window.location.origin}/integracoes`;
+      const redirectUri = "https://garment-glow-app.lovable.app/integracoes";
       const { data, error } = await supabase.functions.invoke("ml-oauth", {
         body: { action: "get_auth_url", redirect_uri: redirectUri },
       });
