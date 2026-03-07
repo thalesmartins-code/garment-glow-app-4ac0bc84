@@ -447,15 +447,17 @@ export default function Integrations() {
                         Desconectar
                       </Button>
                       {integration.id === "ml" && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleSyncML}
-                          disabled={syncing}
-                          title="Sincronizar pedidos e vendas"
-                        >
-                          <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
-                        </Button>
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleSyncML}
+                            disabled={syncing}
+                            title="Sincronizar pedidos e vendas"
+                          >
+                            <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
+                          </Button>
+                        </>
                       )}
                     </>
                   ) : (
@@ -468,6 +470,16 @@ export default function Integrations() {
                         <Link2 className="w-4 h-4 mr-1.5" />
                         Conectar
                       </Button>
+                      {integration.id === "ml" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setMlCodeDialog(true)}
+                          title="Colar código manualmente"
+                        >
+                          📋
+                        </Button>
+                      )}
                       <Button variant="ghost" size="sm" asChild>
                         <a href={integration.docsUrl} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="w-4 h-4" />
