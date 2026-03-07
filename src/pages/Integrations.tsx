@@ -27,6 +27,10 @@ import {
   RefreshCw,
   ShieldCheck,
   Zap,
+  DollarSign,
+  ShoppingCart,
+  Tag,
+  TrendingUp,
 } from "lucide-react";
 
 interface MarketplaceIntegration {
