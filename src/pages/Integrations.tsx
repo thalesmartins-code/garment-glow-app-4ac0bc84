@@ -27,6 +27,10 @@ import {
   RefreshCw,
   ShieldCheck,
   Zap,
+  DollarSign,
+  ShoppingCart,
+  Tag,
+  TrendingUp,
 } from "lucide-react";
 
 interface MarketplaceIntegration {
@@ -155,6 +159,23 @@ export default function Integrations() {
   const [syncing, setSyncing] = useState(false);
   const [mlCodeDialog, setMlCodeDialog] = useState(false);
   const [mlCodeInput, setMlCodeInput] = useState("");
+  const [mlMetrics, setMlMetrics] = useState<{
+    total_revenue: number;
+    approved_revenue: number;
+    total_orders: number;
+    cancelled_orders: number;
+    shipped_orders: number;
+    active_listings: number;
+    avg_ticket: number;
+    period: string;
+  } | null>(() => {
+    const saved = localStorage.getItem("ml_metrics");
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [mlUser, setMlUser] = useState<{ nickname: string } | null>(() => {
+    const saved = localStorage.getItem("ml_user");
+    return saved ? JSON.parse(saved) : null;
+  });
 
   // Persist integration statuses
   const updateIntegrationStatus = (id: string, status: MarketplaceIntegration["status"]) => {
@@ -239,6 +260,10 @@ export default function Integrations() {
     updateIntegrationStatus(integrationId, "disconnected");
     if (integrationId === "ml") {
       localStorage.removeItem("ml_tokens");
+      localStorage.removeItem("ml_metrics");
+      localStorage.removeItem("ml_user");
+      setMlMetrics(null);
+      setMlUser(null);
     }
     toast({
       title: "Marketplace desconectado",
@@ -289,6 +314,10 @@ export default function Integrations() {
           variant: "destructive",
         });
       } else {
+        setMlMetrics(data.metrics);
+        setMlUser(data.user);
+        localStorage.setItem("ml_metrics", JSON.stringify(data.metrics));
+        localStorage.setItem("ml_user", JSON.stringify(data.user));
         toast({
           title: "Sincronização concluída!",
           description: `Dados do Mercado Livre importados com sucesso.`,
@@ -388,6 +417,65 @@ export default function Integrations() {
           <Badge variant="outline">{selectedSeller.name}</Badge>
           <span className="text-muted-foreground">— As integrações abaixo serão vinculadas a este seller.</span>
         </div>
+      )}
+
+      {/* ML Metrics */}
+      {mlMetrics && integrations.find((i) => i.id === "ml")?.status === "connected" && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                🟡 Métricas do Mercado Livre
+                {mlUser && <Badge variant="outline" className="text-xs font-normal">{mlUser.nickname}</Badge>}
+              </CardTitle>
+              <span className="text-xs text-muted-foreground">Últimos 30 dias</span>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-500/10">
+                  <DollarSign className="w-5 h-5 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Receita Aprovada</p>
+                  <p className="text-lg font-bold">
+                    {mlMetrics.approved_revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500/10">
+                  <ShoppingCart className="w-5 h-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Pedidos</p>
+                  <p className="text-lg font-bold">{mlMetrics.total_orders}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-500/10">
+                  <TrendingUp className="w-5 h-5 text-emerald-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Ticket Médio</p>
+                  <p className="text-lg font-bold">
+                    {mlMetrics.avg_ticket.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-500/10">
+                  <Tag className="w-5 h-5 text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Anúncios Ativos</p>
+                  <p className="text-lg font-bold">{mlMetrics.active_listings}</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Marketplace cards */}
