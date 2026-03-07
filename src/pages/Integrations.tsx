@@ -153,6 +153,8 @@ export default function Integrations() {
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [mlCodeDialog, setMlCodeDialog] = useState(false);
+  const [mlCodeInput, setMlCodeInput] = useState("");
 
   // Persist integration statuses
   const updateIntegrationStatus = (id: string, status: MarketplaceIntegration["status"]) => {
