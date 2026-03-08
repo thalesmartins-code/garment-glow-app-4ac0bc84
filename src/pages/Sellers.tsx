@@ -261,7 +261,8 @@ export default function Sellers() {
                     <div>
                       <CardTitle className="text-lg">{seller.name}</CardTitle>
                       <CardDescription className="text-xs">
-                        {seller.activeMarketplaces.length} marketplaces ativos
+                        {seller.activeMarketplaces.filter(id => id !== "total").length} marketplaces ativos
+                      </CardDescription>
                       </CardDescription>
                     </div>
                   </div>
