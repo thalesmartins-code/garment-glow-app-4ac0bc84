@@ -263,7 +263,6 @@ export default function Sellers() {
                       <CardDescription className="text-xs">
                         {seller.activeMarketplaces.filter(id => id !== "total").length} marketplaces ativos
                       </CardDescription>
-                      </CardDescription>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
