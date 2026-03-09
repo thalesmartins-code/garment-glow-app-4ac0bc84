@@ -76,16 +76,6 @@ const MARKETPLACE_INTEGRATIONS: MarketplaceIntegration[] = [
     features: ["Pedidos", "Vendas", "Logística", "Chat"],
   },
   {
-    id: "magalu",
-    name: "Magazine Luiza",
-    logo: "🔵",
-    description: "Conecte com o Magalu Marketplace para sincronizar vendas, pedidos e catálogo.",
-    status: "disconnected",
-    authType: "oauth",
-    docsUrl: "https://developers.magalu.com",
-    features: ["Pedidos", "Vendas", "Catálogo", "Métricas"],
-  },
-  {
     id: "americanas",
     name: "Americanas",
     logo: "🔴",
