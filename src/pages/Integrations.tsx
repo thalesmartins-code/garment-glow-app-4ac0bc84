@@ -305,7 +305,6 @@ export default function Integrations() {
       title: "Marketplace desconectado",
       description: "A integração foi removida com sucesso.",
     });
-    });
   };
 
   const handleConfirmConnect = async () => {
