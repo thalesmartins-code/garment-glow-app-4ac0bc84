@@ -280,7 +280,7 @@ export default function Integrations() {
 
           // Test connection with the obtained token
           const { data, error } = await supabase.functions.invoke("magalu-integration", {
-            body: { action: "test_connection", access_token: response.access_token },
+            body: { action: "test_connection", access_token: (response as any).access_token },
           });
 
           if (error || !data?.success) {

@@ -14,32 +14,26 @@ serve(async (req) => {
   }
 
   try {
-    const MAGALU_API_KEY = Deno.env.get("MAGALU_API_KEY");
-    const MAGALU_API_KEY_ID = Deno.env.get("MAGALU_API_KEY_ID");
-    const MAGALU_API_KEY_SECRET = Deno.env.get("MAGALU_API_KEY_SECRET");
+    const { action, access_token, tenant_id } = await req.json();
 
-    if (!MAGALU_API_KEY) {
+    if (!access_token) {
       return new Response(
-        JSON.stringify({ error: "Magalu API Key not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Missing access_token. Please authenticate via ID Magalu first." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const { action, tenant_id } = await req.json();
-
     const apiHeaders: Record<string, string> = {
-      "x-api-key": MAGALU_API_KEY,
+      "Authorization": `Bearer ${access_token}`,
       "Accept": "application/json",
       "Content-Type": "application/json",
     };
 
-    // Add tenant header if provided (multi-seller support)
     if (tenant_id) {
       apiHeaders["x-tenant-id"] = tenant_id;
     }
 
     if (action === "test_connection") {
-      // Test the API Key by trying to list orders
       const response = await fetch(`${MAGALU_API_BASE}/seller/v1/orders?_limit=1`, {
         headers: apiHeaders,
       });
@@ -97,7 +91,6 @@ serve(async (req) => {
         );
       }
 
-      // Calculate metrics from orders
       const orders = Array.isArray(data) ? data : data?.results || data?.items || [];
       
       let totalRevenue = 0;
