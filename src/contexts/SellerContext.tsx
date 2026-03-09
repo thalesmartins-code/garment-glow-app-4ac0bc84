@@ -15,6 +15,8 @@ interface SellerContextType {
 }
 
 const STORAGE_KEY = "sellers_data";
+const STORAGE_VERSION_KEY = "sellers_data_version";
+const CURRENT_VERSION = "2";
 const SELECTED_SELLER_KEY = "selected_seller_id";
 
 const SellerContext = createContext<SellerContextType | undefined>(undefined);
@@ -22,6 +24,13 @@ const SellerContext = createContext<SellerContextType | undefined>(undefined);
 export function SellerProvider({ children }: { children: React.ReactNode }) {
   const [sellers, setSellers] = useState<Seller[]>(() => {
     try {
+      const version = localStorage.getItem(STORAGE_VERSION_KEY);
+      if (version !== CURRENT_VERSION) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(SELECTED_SELLER_KEY);
+        localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_VERSION);
+        return DEFAULT_SELLERS;
+      }
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
