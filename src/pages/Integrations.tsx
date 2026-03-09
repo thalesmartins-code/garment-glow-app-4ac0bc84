@@ -549,6 +549,64 @@ export default function Integrations() {
         </Card>
       )}
 
+      {/* Magalu Metrics */}
+      {magaluMetrics && integrations.find((i) => i.id === "magalu")?.status === "connected" && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                🔵 Métricas da Magazine Luiza
+              </CardTitle>
+              <span className="text-xs text-muted-foreground">{magaluMetrics.period}</span>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+                  <DollarSign className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Receita Aprovada</p>
+                  <p className="text-lg font-bold">
+                    {magaluMetrics.approved_revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+                  <ShoppingCart className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Pedidos</p>
+                  <p className="text-lg font-bold">{magaluMetrics.total_orders}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Ticket Médio</p>
+                  <p className="text-lg font-bold">
+                    {magaluMetrics.avg_ticket.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+                  <ShoppingCart className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Enviados</p>
+                  <p className="text-lg font-bold">{magaluMetrics.shipped_orders}</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredIntegrations.map((integration) => {
