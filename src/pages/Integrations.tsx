@@ -235,24 +235,6 @@ export default function Integrations() {
       return;
     }
 
-    if (integration.id === "magalu") {
-      const redirectUri = "https://analytics.alcavie.com/integracoes";
-      const { data, error } = await supabase.functions.invoke("magalu-oauth", {
-        body: { action: "get_auth_url", redirect_uri: redirectUri },
-      });
-
-      if (error || !data?.success) {
-        toast({
-          title: "Erro",
-          description: "Não foi possível gerar a URL de autorização da Magazine Luiza.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      window.location.href = data.auth_url;
-      return;
-    }
 
     // Other marketplaces: show dialog
     setConnectDialog(integration);
