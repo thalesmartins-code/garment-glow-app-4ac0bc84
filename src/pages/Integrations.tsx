@@ -331,6 +331,7 @@ export default function Integrations() {
       setMlUser(null);
     }
     if (integrationId === "magalu") {
+      localStorage.removeItem("magalu_tokens");
       localStorage.removeItem("magalu_metrics");
       setMagaluMetrics(null);
     }
