@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.mercado-libre-integration]
 verify_jwt = false
+
+[functions.magalu-oauth]
+verify_jwt = false
+
+[functions.magalu-integration]
+verify_jwt = false
