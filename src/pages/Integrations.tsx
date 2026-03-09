@@ -260,27 +260,59 @@ export default function Integrations() {
 
 
     if (integration.id === "magalu") {
-      // Magalu uses server-side API Key — just test connection
+      // Magalu OAuth2 PKCE via SDK popup
       setConnecting(true);
-      const { data, error } = await supabase.functions.invoke("magalu-integration", {
-        body: { action: "test_connection" },
-      });
-      setConnecting(false);
+      try {
+        const magaluClient = await createMagaluClient({
+          client_id: "f994feec-d5df-46c3-80a5-0a97f7e12893",
+          redirect_uri: "https://analytics.alcavie.com/integracoes",
+        });
 
-      if (error || !data?.success) {
+        const response = await magaluClient.loginWithPopup();
+
+        if (response?.access_token) {
+          localStorage.setItem("magalu_tokens", JSON.stringify({
+            access_token: response.access_token,
+            refresh_token: response.refresh_token,
+            expires_at: Date.now() + (response.expires_in || 1800) * 1000,
+            id_token: response.id_token,
+          }));
+
+          // Test connection with the obtained token
+          const { data, error } = await supabase.functions.invoke("magalu-integration", {
+            body: { action: "test_connection", access_token: response.access_token },
+          });
+
+          if (error || !data?.success) {
+            toast({
+              title: "Autenticação OK, mas falha ao testar API",
+              description: data?.error || error?.message || "Token válido, mas a API retornou erro.",
+              variant: "destructive",
+            });
+          }
+
+          updateIntegrationStatus("magalu", "connected");
+          toast({
+            title: "Magazine Luiza conectada!",
+            description: "Autenticação via ID Magalu realizada com sucesso.",
+          });
+        } else {
+          toast({
+            title: "Login cancelado",
+            description: "O login com ID Magalu foi cancelado ou falhou.",
+            variant: "destructive",
+          });
+        }
+      } catch (err: any) {
+        console.error("Magalu OAuth error:", err);
         toast({
           title: "Erro ao conectar Magazine Luiza",
-          description: data?.error || error?.message || "Falha ao testar a conexão.",
+          description: err?.message || "Falha na autenticação via ID Magalu.",
           variant: "destructive",
         });
-        return;
+      } finally {
+        setConnecting(false);
       }
-
-      updateIntegrationStatus("magalu", "connected");
-      toast({
-        title: "Magazine Luiza conectada!",
-        description: "API Key validada com sucesso.",
-      });
       return;
     }
 
