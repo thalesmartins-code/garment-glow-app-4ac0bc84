@@ -250,11 +250,6 @@ export default function Integrations() {
       setMlMetrics(null);
       setMlUser(null);
     }
-    if (integrationId === "magalu") {
-      localStorage.removeItem("magalu_tokens");
-      localStorage.removeItem("magalu_metrics");
-      setMagaluMetrics(null);
-    }
     toast({
       title: "Marketplace desconectado",
       description: "A integração foi removida com sucesso.",
