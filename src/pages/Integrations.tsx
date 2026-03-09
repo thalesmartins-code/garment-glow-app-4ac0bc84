@@ -728,51 +728,9 @@ export default function Integrations() {
         </DialogContent>
       </Dialog>
 
-      {/* Magalu Manual Code Dialog */}
-      <Dialog open={magaluCodeDialog} onOpenChange={setMagaluCodeDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              🔵 Colar código da Magazine Luiza
-            </DialogTitle>
-            <DialogDescription>
-              Cole o código de autorização que apareceu na URL após autorizar o acesso na Magazine Luiza (parâmetro <code>?code=</code>).
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="magalu-code">Código de autorização</Label>
-              <Input
-                id="magalu-code"
-                placeholder="Cole o código aqui..."
-                value={magaluCodeInput}
-                onChange={(e) => setMagaluCodeInput(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setMagaluCodeDialog(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleMagaluManualCodeExchange}
-              disabled={connecting || !magaluCodeInput.trim()}
-            >
-              {connecting ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" />
-                  Trocando...
-                </>
-              ) : (
-                <>
-                  <Link2 className="w-4 h-4 mr-1.5" />
-                  Trocar por token
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+    </div>
+  );
+}
     </div>
   );
 }
