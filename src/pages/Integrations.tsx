@@ -437,7 +437,7 @@ export default function Integrations() {
   const handleMagaluManualCodeExchange = async () => {
     if (!magaluCodeInput.trim()) return;
     setConnecting(true);
-    const redirectUri = "https://alcavie.com/";
+    const redirectUri = "https://analytics.alcavie.com/integracoes";
     const { data, error } = await supabase.functions.invoke("magalu-oauth", {
       body: { action: "exchange_code", code: magaluCodeInput.trim(), redirect_uri: redirectUri },
     });
