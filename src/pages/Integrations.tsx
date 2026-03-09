@@ -647,13 +647,13 @@ export default function Integrations() {
                         <Link2 className="w-4 h-4 mr-1.5" />
                         Conectar
                       </Button>
-                      {integration.id === "ml" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setMlCodeDialog(true)}
-                          title="Colar código manualmente"
-                        >
+                      {(integration.id === "ml") && (
+                        <Button variant="outline" size="sm" onClick={() => setMlCodeDialog(true)} title="Colar código manualmente">
+                          📋
+                        </Button>
+                      )}
+                      {(integration.id === "magalu") && (
+                        <Button variant="outline" size="sm" onClick={() => setMagaluCodeDialog(true)} title="Colar código manualmente">
                           📋
                         </Button>
                       )}
