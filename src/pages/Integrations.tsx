@@ -56,6 +56,16 @@ const MARKETPLACE_INTEGRATIONS: MarketplaceIntegration[] = [
     features: ["Pedidos", "Vendas", "Métricas", "Anúncios"],
   },
   {
+    id: "magalu",
+    name: "Magazine Luiza",
+    logo: "🔵",
+    description: "Conecte via API Key para importar pedidos e vendas do Magalu Marketplace.",
+    status: "disconnected",
+    authType: "api_key",
+    docsUrl: "https://developers.magalu.com",
+    features: ["Pedidos", "Vendas", "Entregas", "Métricas"],
+  },
+  {
     id: "amz",
     name: "Amazon",
     logo: "📦",
