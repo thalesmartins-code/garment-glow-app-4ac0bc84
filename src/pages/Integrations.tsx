@@ -594,11 +594,6 @@ export default function Integrations() {
                           📋
                         </Button>
                       )}
-                      {(integration.id === "magalu") && (
-                        <Button variant="outline" size="sm" onClick={() => setMagaluCodeDialog(true)} title="Colar código manualmente">
-                          📋
-                        </Button>
-                      )}
                       <Button variant="ghost" size="sm" asChild>
                         <a href={integration.docsUrl} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="w-4 h-4" />
