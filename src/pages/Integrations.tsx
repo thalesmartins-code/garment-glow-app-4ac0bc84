@@ -268,7 +268,7 @@ export default function Integrations() {
           redirect_uri: "https://analytics.alcavie.com/integracoes",
         });
 
-        const response = await magaluClient.loginWithPopup();
+        const response = await magaluClient.loginWithPopup() as any;
 
         if (response?.access_token) {
           localStorage.setItem("magalu_tokens", JSON.stringify({
