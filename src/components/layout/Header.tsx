@@ -127,7 +127,10 @@ export function Header({ title, subtitle }: HeaderProps) {
               <User className="w-4 h-4 mr-2" />
               Perfil
             </DropdownMenuItem>
-            <DropdownMenuItem>Configurações</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
+              <SlidersHorizontal className="w-4 h-4 mr-2" />
+              Configurações
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive" onClick={signOut}>
               <LogOut className="w-4 h-4 mr-2" />
