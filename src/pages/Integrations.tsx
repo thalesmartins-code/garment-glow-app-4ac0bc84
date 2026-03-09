@@ -578,11 +578,6 @@ export default function Integrations() {
                           <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
                         </Button>
                       )}
-                      {integration.id === "magalu" && (
-                        <Button variant="ghost" size="sm" onClick={handleSyncMagalu} disabled={syncing} title="Sincronizar pedidos e vendas">
-                          <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
-                        </Button>
-                      )}
                     </>
                   ) : (
                     <>
