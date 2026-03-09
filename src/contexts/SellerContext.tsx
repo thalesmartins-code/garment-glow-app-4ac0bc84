@@ -24,6 +24,13 @@ const SellerContext = createContext<SellerContextType | undefined>(undefined);
 export function SellerProvider({ children }: { children: React.ReactNode }) {
   const [sellers, setSellers] = useState<Seller[]>(() => {
     try {
+      const version = localStorage.getItem(STORAGE_VERSION_KEY);
+      if (version !== CURRENT_VERSION) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(SELECTED_SELLER_KEY);
+        localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_VERSION);
+        return DEFAULT_SELLERS;
+      }
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
