@@ -188,23 +188,7 @@ export default function Integrations() {
     const exchangeCode = async () => {
       setConnecting(true);
 
-      if (state === "magalu") {
-        const redirectUri = "https://analytics.alcavie.com/integracoes";
-        const { data, error } = await supabase.functions.invoke("magalu-oauth", {
-          body: { action: "exchange_code", code, redirect_uri: redirectUri },
-        });
-        if (error || !data?.success) {
-          toast({ title: "Erro ao conectar Magazine Luiza", description: data?.error || error?.message || "Falha na troca do código.", variant: "destructive" });
-        } else {
-          localStorage.setItem("magalu_tokens", JSON.stringify({
-            access_token: data.access_token,
-            refresh_token: data.refresh_token,
-            expires_at: Date.now() + data.expires_in * 1000,
-          }));
-          updateIntegrationStatus("magalu", "connected");
-          toast({ title: "Magazine Luiza conectada!", description: "Conta conectada com sucesso." });
-        }
-      } else {
+      {
         const redirectUri = "https://alcavie.com/";
         const { data, error } = await supabase.functions.invoke("ml-oauth", {
           body: { action: "exchange_code", code, redirect_uri: redirectUri },
