@@ -714,15 +714,6 @@ export default function Integrations() {
                         <Link2 className="w-4 h-4 mr-1.5" />
                         Conectar
                       </Button>
-                        <Button
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleConnect(integration)}
-                        >
-                          <Link2 className="w-4 h-4 mr-1.5" />
-                          Conectar
-                        </Button>
-                      )}
                       {(integration.id === "ml") && (
                         <Button variant="outline" size="sm" onClick={() => setMlCodeDialog(true)} title="Colar código manualmente">
                           📋
