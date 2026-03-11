@@ -404,7 +404,7 @@ const DailySales = () => {
             icon={<Target className="w-5 h-5" />}
             variant={metrics.metaVsPmtAcum >= 100 ? "success" : metrics.metaVsPmtAcum >= 80 ? "warning" : "danger"}
             progressValue={metrics.metaVsPmtAcum}
-            subtitle={isCurrentMonth ? `Até D-1 (${String(currentDate.getDate() - 1).padStart(2, "0")}/${String(currentDate.getMonth() + 1).padStart(2, "0")})` : "Mês completo"}
+            subtitleNode={<span className={`text-xs font-medium ${metrics.gapPmtAcum >= 0 ? "text-success" : "text-destructive"}`}>{metrics.gapPmtAcum >= 0 ? "+" : ""}{formatCurrency(metrics.gapPmtAcum)}</span>}
           />
           {viewMode === "diario" ? (
             <KPICard
