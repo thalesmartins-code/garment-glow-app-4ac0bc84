@@ -201,21 +201,87 @@ export default function Integrations() {
     });
   };
 
-  // Check for existing ML tokens on mount
-  useEffect(() => {
-    const mlTokens = localStorage.getItem("ml_tokens");
-    if (mlTokens) {
-      try {
-        const tokens = JSON.parse(mlTokens);
-        if (tokens.access_token && tokens.expires_at > Date.now()) {
-          updateIntegrationStatus("ml", "connected");
-        } else if (tokens.access_token && tokens.expires_at <= Date.now()) {
-          updateIntegrationStatus("ml", "expired");
-        }
-      } catch (e) {
-        // ignore
+  // Helper: save ML tokens to both localStorage and Supabase
+  const saveMLTokens = async (tokenData: { access_token: string; refresh_token: string; expires_in: number; user_id: string }) => {
+    const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000).toISOString();
+    const localPayload = {
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expires_at: Date.now() + tokenData.expires_in * 1000,
+      user_id: tokenData.user_id,
+    };
+    localStorage.removeItem("ml_pkce_code_verifier");
+    localStorage.setItem("ml_tokens", JSON.stringify(localPayload));
+
+    // Save to Supabase ml_tokens table
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || null;
+
+      // Upsert: delete existing then insert
+      if (userId) {
+        await supabase.from("ml_tokens").delete().eq("user_id", userId);
       }
+      await supabase.from("ml_tokens").insert({
+        user_id: userId,
+        access_token: tokenData.access_token,
+        refresh_token: tokenData.refresh_token,
+        expires_at: expiresAt,
+        ml_user_id: String(tokenData.user_id),
+        token_type: "bearer",
+      });
+    } catch (e) {
+      console.error("Failed to save ML tokens to DB:", e);
     }
+  };
+
+  // Check for existing ML tokens on mount (localStorage + DB fallback)
+  useEffect(() => {
+    const checkTokens = async () => {
+      // First check localStorage
+      const mlTokens = localStorage.getItem("ml_tokens");
+      if (mlTokens) {
+        try {
+          const tokens = JSON.parse(mlTokens);
+          if (tokens.access_token && tokens.expires_at > Date.now()) {
+            updateIntegrationStatus("ml", "connected");
+            return;
+          } else if (tokens.access_token && tokens.expires_at <= Date.now()) {
+            updateIntegrationStatus("ml", "expired");
+            return;
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      // Fallback: check DB
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: dbTokens } = await supabase
+          .from("ml_tokens")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (dbTokens?.access_token) {
+          const expiresAt = dbTokens.expires_at ? new Date(dbTokens.expires_at).getTime() : 0;
+          localStorage.setItem("ml_tokens", JSON.stringify({
+            access_token: dbTokens.access_token,
+            refresh_token: dbTokens.refresh_token,
+            expires_at: expiresAt,
+            user_id: dbTokens.ml_user_id,
+          }));
+          if (expiresAt > Date.now()) {
+            updateIntegrationStatus("ml", "connected");
+          } else {
+            updateIntegrationStatus("ml", "expired");
+          }
+        }
+      } catch (e) { /* ignore */ }
+    };
+    checkTokens();
   }, []);
 
   // Handle ML OAuth callback
@@ -245,13 +311,7 @@ export default function Integrations() {
         return;
       }
 
-      localStorage.removeItem("ml_pkce_code_verifier");
-      localStorage.setItem("ml_tokens", JSON.stringify({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        expires_at: Date.now() + data.expires_in * 1000,
-        user_id: data.user_id,
-      }));
+      await saveMLTokens(data);
       updateIntegrationStatus("ml", "connected");
       toast({ title: "Mercado Livre conectado!", description: `Conta conectada com sucesso (User ID: ${data.user_id}).` });
       setSearchParams({}, { replace: true });
@@ -450,13 +510,7 @@ export default function Integrations() {
         variant: "destructive",
       });
     } else {
-      localStorage.removeItem("ml_pkce_code_verifier");
-      localStorage.setItem("ml_tokens", JSON.stringify({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        expires_at: Date.now() + data.expires_in * 1000,
-        user_id: data.user_id,
-      }));
+      await saveMLTokens(data);
       updateIntegrationStatus("ml", "connected");
       toast({
         title: "Mercado Livre conectado!",
