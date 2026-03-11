@@ -44,7 +44,7 @@ serve(async (req) => {
 
     // 2. Get recent orders (last 30 days)
     const dateFrom = new Date();
-    dateFrom.setDate(dateFrom.getDate() - 30);
+    dateFrom.setDate(dateFrom.getDate() - periodDays);
     const dateFromStr = dateFrom.toISOString();
 
     const ordersData = await mlFetch(
