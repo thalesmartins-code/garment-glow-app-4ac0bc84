@@ -10,6 +10,7 @@ import {
   AreaChart,
   ShieldCheck,
   Plug,
+  Store,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { canAccess } from "@/config/roleAccess";
@@ -26,6 +27,7 @@ const baseNavItems = [
   { icon: FileUp, label: "Importação", path: "/importacao" },
   { icon: Users, label: "Sellers", path: "/sellers" },
   { icon: Plug, label: "Integrações", path: "/integracoes" },
+  { icon: Store, label: "Mercado Livre", path: "/mercado-livre" },
 ];
 
 export function Sidebar() {
