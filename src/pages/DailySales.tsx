@@ -384,20 +384,26 @@ const DailySales = () => {
             icon={<Percent className="w-5 h-5" />}
             variant={activeMetrics.metaPercentage >= 100 ? "success" : activeMetrics.metaPercentage >= 80 ? "warning" : "danger"}
             progressValue={activeMetrics.metaPercentage}
+            subtitleNode={
+              <span className={`text-xs font-medium ${activeMetrics.gapTotal >= 0 ? "text-success" : "text-destructive"}`}>
+                GAP: {activeMetrics.gapTotal >= 0 ? "+" : ""}{formatCurrency(activeMetrics.gapTotal)}
+              </span>
+            }
           />
         </div>
 
         {/* KPI Cards - Row 2 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <KPICard
-            title={viewMode === "diario" ? "GAP (Dia)" : "GAP"}
-            value={formatCurrency(Math.abs(activeMetrics.gapTotal))}
-            rawValue={Math.abs(activeMetrics.gapTotal)}
-            valuePrefix={activeMetrics.gapTotal >= 0 ? "R$ +" : "R$ -"}
-            delta={activeMetrics.metaTotal > 0 ? (activeMetrics.gapTotal >= 0 ? Math.abs(activeMetrics.gapTotal / activeMetrics.metaTotal * 100) : -Math.abs(activeMetrics.gapTotal / activeMetrics.metaTotal * 100)) : 0}
-            deltaLabel={activeMetrics.gapTotal >= 0 ? "acima da meta" : "abaixo da meta"}
-            icon={<AlertTriangle className="w-5 h-5" />}
-            variant={activeMetrics.gapTotal >= 0 ? "success" : "danger"}
+            title={viewMode === "diario" ? "Ating. vs PMT Acum. (D-1)" : "Ating. vs PMT Acum."}
+            value={`${metrics.metaVsPmtAcum.toFixed(1)}%`}
+            rawValue={metrics.metaVsPmtAcum}
+            valueSuffix="%"
+            valueDecimals={1}
+            icon={<Target className="w-5 h-5" />}
+            variant={metrics.metaVsPmtAcum >= 100 ? "success" : metrics.metaVsPmtAcum >= 80 ? "warning" : "danger"}
+            progressValue={metrics.metaVsPmtAcum}
+            subtitle={isCurrentMonth ? `Até D-1 (${String(currentDate.getDate() - 1).padStart(2, "0")}/${String(currentDate.getMonth() + 1).padStart(2, "0")})` : "Mês completo"}
           />
           {viewMode === "diario" ? (
             <KPICard
