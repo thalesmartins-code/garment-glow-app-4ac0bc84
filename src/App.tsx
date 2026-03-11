@@ -10,6 +10,7 @@ import { SalesDataProvider } from "@/contexts/SalesDataContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { RoleRoute } from "@/components/auth/RoleRoute";
+import { OAuthCodeRedirect } from "@/components/auth/OAuthCodeRedirect";
 import Index from "./pages/Index";
 import DailySales from "./pages/DailySales";
 import Import from "./pages/Import";
@@ -34,6 +35,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <BrowserRouter>
+                <OAuthCodeRedirect>
                 <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route path="/tv" element={<ProtectedRoute />}>
@@ -53,6 +55,7 @@ const App = () => (
                   </Route>
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </OAuthCodeRedirect>
               </BrowserRouter>
             </SalesDataProvider>
           </SettingsProvider>
