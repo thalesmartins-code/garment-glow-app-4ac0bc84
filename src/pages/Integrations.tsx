@@ -201,33 +201,46 @@ export default function Integrations() {
     });
   };
 
+  // Check for existing ML tokens on mount
+  useEffect(() => {
+    const mlTokens = localStorage.getItem("ml_tokens");
+    if (mlTokens) {
+      try {
+        const tokens = JSON.parse(mlTokens);
+        if (tokens.access_token && tokens.expires_at > Date.now()) {
+          updateIntegrationStatus("ml", "connected");
+        } else if (tokens.access_token && tokens.expires_at <= Date.now()) {
+          updateIntegrationStatus("ml", "expired");
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, []);
+
   // Handle ML OAuth callback
-  // Handle OAuth callback — use "state" param to identify provider
   useEffect(() => {
     const code = searchParams.get("code");
-    const state = searchParams.get("state");
     if (!code) return;
 
     const exchangeCode = async () => {
       setConnecting(true);
 
-      {
-        const redirectUri = "https://analytics.alcavie.com/integracoes";
-        const { data, error } = await supabase.functions.invoke("ml-oauth", {
-          body: { action: "exchange_code", code, redirect_uri: redirectUri },
-        });
-        if (error || !data?.success) {
-          toast({ title: "Erro ao conectar Mercado Livre", description: data?.error || error?.message || "Falha na troca do código.", variant: "destructive" });
-        } else {
-          localStorage.setItem("ml_tokens", JSON.stringify({
-            access_token: data.access_token,
-            refresh_token: data.refresh_token,
-            expires_at: Date.now() + data.expires_in * 1000,
-            user_id: data.user_id,
-          }));
-          updateIntegrationStatus("ml", "connected");
-          toast({ title: "Mercado Livre conectado!", description: `Conta conectada com sucesso (User ID: ${data.user_id}).` });
-        }
+      const redirectUri = "https://analytics.alcavie.com/integracoes";
+      const { data, error } = await supabase.functions.invoke("ml-oauth", {
+        body: { action: "exchange_code", code, redirect_uri: redirectUri },
+      });
+      if (error || !data?.success) {
+        toast({ title: "Erro ao conectar Mercado Livre", description: data?.error || error?.message || "Falha na troca do código.", variant: "destructive" });
+      } else {
+        localStorage.setItem("ml_tokens", JSON.stringify({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          expires_at: Date.now() + data.expires_in * 1000,
+          user_id: data.user_id,
+        }));
+        updateIntegrationStatus("ml", "connected");
+        toast({ title: "Mercado Livre conectado!", description: `Conta conectada com sucesso (User ID: ${data.user_id}).` });
       }
 
       setSearchParams({}, { replace: true });
