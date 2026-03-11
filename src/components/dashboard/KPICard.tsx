@@ -40,6 +40,7 @@ export function KPICard({
   value,
   rawValue,
   subtitle,
+  subtitleNode,
   delta,
   deltaLabel,
   icon,
