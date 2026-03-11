@@ -60,7 +60,7 @@ export default function MercadoLivre() {
   const [metrics, setMetrics] = useState<MLMetrics | null>(null);
   const [mlUser, setMlUser] = useState<MLUser | null>(null);
   const [daily, setDaily] = useState<DailyBreakdown[]>([]);
-  const [period, setPeriod] = useState(30);
+  const [period, setPeriod] = useState(7);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
