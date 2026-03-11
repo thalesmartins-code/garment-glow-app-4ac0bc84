@@ -24,79 +24,31 @@ async function mlFetch(path: string, accessToken: string) {
 }
 
 /**
- * Fetch all orders for a single day, paginating with offset.
- * Daily volume should be well under 10k, so offset works fine.
+ * Fetch all orders for a date range using offset pagination.
+ * Stops at 10k offset limit (safe for daily/weekly chunks).
  */
-async function fetchOrdersForDay(
+async function fetchOrdersChunk(
   sellerId: number,
-  dayStart: string,
-  dayEnd: string,
-  accessToken: string
+  dateFrom: string,
+  dateTo: string,
+  accessToken: string,
+  maxOrders = 5000
 ): Promise<any[]> {
   const PAGE_SIZE = 50;
-  const MAX_OFFSET = 10000;
   let allOrders: any[] = [];
   let offset = 0;
 
-  while (offset < MAX_OFFSET) {
-    const url = `/orders/search?seller=${sellerId}&order.date_created.from=${dayStart}&order.date_created.to=${dayEnd}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`;
+  while (offset < 10000 && allOrders.length < maxOrders) {
+    const url = `/orders/search?seller=${sellerId}&order.date_created.from=${dateFrom}&order.date_created.to=${dateTo}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`;
     const data = await mlFetch(url, accessToken);
     const results = data.results || [];
     allOrders = allOrders.concat(results);
     const total = data.paging?.total || 0;
     offset += PAGE_SIZE;
-
     if (results.length < PAGE_SIZE || offset >= total) break;
   }
 
   return allOrders;
-}
-
-/**
- * Generate day boundaries as ISO strings for each day in the period.
- */
-function getDayIntervals(periodDays: number): Array<{ start: string; end: string; label: string }> {
-  const intervals: Array<{ start: string; end: string; label: string }> = [];
-  const now = new Date();
-
-  for (let i = 0; i < periodDays; i++) {
-    const dayStart = new Date(now);
-    dayStart.setDate(now.getDate() - i);
-    dayStart.setHours(0, 0, 0, 0);
-
-    const dayEnd = new Date(dayStart);
-    dayEnd.setHours(23, 59, 59, 999);
-
-    intervals.push({
-      start: dayStart.toISOString(),
-      end: dayEnd.toISOString(),
-      label: dayStart.toISOString().substring(0, 10),
-    });
-  }
-
-  return intervals;
-}
-
-/**
- * Run async tasks with a concurrency limit.
- */
-async function parallelLimit<T>(
-  tasks: Array<() => Promise<T>>,
-  concurrency: number
-): Promise<T[]> {
-  const results: T[] = new Array(tasks.length);
-  let idx = 0;
-
-  async function worker() {
-    while (idx < tasks.length) {
-      const i = idx++;
-      results[i] = await tasks[i]();
-    }
-  }
-
-  const workers = Array.from({ length: Math.min(concurrency, tasks.length) }, () => worker());
-  await Promise.all(workers);
-  return results;
 }
 
 serve(async (req) => {
@@ -119,18 +71,34 @@ serve(async (req) => {
     const user = await mlFetch("/users/me", access_token);
     const sellerId = user.id;
 
-    // 2. Generate day intervals and fetch orders in parallel (5 concurrent)
-    const intervals = getDayIntervals(periodDays);
-    const CONCURRENCY = 5;
+    // 2. Split period into weekly chunks and fetch sequentially
+    // This avoids WORKER_LIMIT by not overloading memory/CPU
+    const now = new Date();
+    const CHUNK_DAYS = 7;
+    const chunks: Array<{ from: string; to: string }> = [];
 
-    const tasks = intervals.map((interval) => () =>
-      fetchOrdersForDay(sellerId, interval.start, interval.end, access_token)
-    );
+    for (let d = 0; d < periodDays; d += CHUNK_DAYS) {
+      const chunkEnd = new Date(now);
+      chunkEnd.setDate(now.getDate() - d);
+      chunkEnd.setHours(23, 59, 59, 999);
 
-    const ordersPerDay = await parallelLimit(tasks, CONCURRENCY);
-    const allOrders = ordersPerDay.flat();
+      const chunkStart = new Date(now);
+      chunkStart.setDate(now.getDate() - Math.min(d + CHUNK_DAYS - 1, periodDays - 1));
+      chunkStart.setHours(0, 0, 0, 0);
 
-    // Deduplicate by order ID (edge case: orders spanning midnight)
+      chunks.push({
+        from: chunkStart.toISOString(),
+        to: chunkEnd.toISOString(),
+      });
+    }
+
+    let allOrders: any[] = [];
+    for (const chunk of chunks) {
+      const chunkOrders = await fetchOrdersChunk(sellerId, chunk.from, chunk.to, access_token);
+      allOrders = allOrders.concat(chunkOrders);
+    }
+
+    // Deduplicate by order ID
     const seen = new Set<number>();
     const orders = allOrders.filter((o) => {
       if (seen.has(o.id)) return false;
@@ -138,9 +106,7 @@ serve(async (req) => {
       return true;
     });
 
-    console.log(
-      `Fetched ${orders.length} unique orders across ${periodDays} days (${intervals.length} day-intervals, concurrency: ${CONCURRENCY})`
-    );
+    console.log(`Fetched ${orders.length} unique orders in ${chunks.length} chunks (period: ${periodDays} days)`);
 
     // 3. Aggregate metrics
     let totalRevenue = 0;
