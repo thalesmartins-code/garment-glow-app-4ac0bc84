@@ -94,15 +94,8 @@ export default function MercadoLivre() {
 
       // 2. Call edge function
       const { data, error } = await supabase.functions.invoke("mercado-libre-integration", {
-        body: { access_token: accessToken },
+        body: { access_token: accessToken, days: period },
       });
-
-      if (error || !data?.success) {
-        toast({ title: "Erro ao buscar dados", description: data?.error || error?.message, variant: "destructive" });
-        setSyncing(false);
-        setLoading(false);
-        return;
-      }
 
       setMetrics(data.metrics);
       setMlUser(data.user);
