@@ -55,6 +55,7 @@ const App = () => (
                   </Route>
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </OAuthCodeRedirect>
               </BrowserRouter>
             </SalesDataProvider>
           </SettingsProvider>
