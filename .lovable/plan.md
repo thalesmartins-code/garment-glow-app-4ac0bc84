@@ -1,59 +1,52 @@
 
 
-# Mudanca de Paleta de Cores para Tema Financeiro
+## Plano: Criar página dedicada "Mercado Livre" com Dashboard completo
 
-## Objetivo
-Substituir a paleta atual (rose gold / moda) por uma paleta corporativa financeira baseada em **azul escuro (navy)** com acentos em **verde esmeralda**, transmitindo confianca, profissionalismo e solidez.
+### Objetivo
+Criar uma nova rota `/mercado-livre` no sidebar com uma página dedicada que exiba dashboards completos usando os dados da API do Mercado Livre (via edge function `mercado-libre-integration` já existente).
 
-## Nova Paleta
+### O que será criado
 
-| Elemento | Atual (Rose Gold) | Novo (Financeiro) |
-|---|---|---|
-| Accent | Rosa dourado (HSL 15 45% 65%) | Azul navy (HSL 217 70% 45%) |
-| Sidebar BG | Cinza escuro quente | Azul muito escuro |
-| Gradient principal | Rosa para rosa escuro | Azul navy para azul royal |
-| Shadow glow | Rosa translucido | Azul translucido |
-| Success | Verde (mantido) | Verde (mantido) |
+**1. Nova página `src/pages/MercadoLivre.tsx`**
+- Busca o token ML do banco (`ml_tokens`) ou localStorage
+- Chama `mercado-libre-integration` para obter métricas e breakdown diário
+- Exibe estado vazio caso não esteja conectado, com link para `/integracoes`
 
-## Arquivos a Alterar
+**2. KPIs (4 cards no topo)**
+- Receita Total (últimos 30 dias)
+- Receita Aprovada
+- Total de Pedidos
+- Ticket Médio
+- Cada card usando o componente `KPICard` existente
 
-### 1. `src/index.css` - Variaveis CSS (arquivo principal)
-- Trocar comentario do design system de "Fashion Store" para "Financial Management SaaS"
-- **:root (light mode)**:
-  - `--accent`: de `15 45% 65%` para `217 70% 45%` (azul corporativo)
-  - `--ring`: de `15 45% 65%` para `217 70% 45%`
-  - `--sidebar-background`: de `24 10% 8%` para `217 50% 10%`
-  - `--sidebar-primary`: de `15 45% 65%` para `217 70% 45%`
-  - `--sidebar-accent`: de `24 10% 15%` para `217 40% 18%`
-  - `--sidebar-border`: de `24 10% 18%` para `217 30% 22%`
-  - `--sidebar-ring`: de `15 45% 65%` para `217 70% 45%`
-  - `--gradient-rose` renomear para `--gradient-primary`: gradiente azul navy
-  - `--shadow-glow`: tom azul translucido
-- **Dark mode**: mesmas mudancas adaptadas para tons escuros
+**3. Gráfico de Vendas Diárias**
+- Gráfico de área/linha usando Recharts (já instalado) com o `daily_breakdown` retornado pela API
+- Eixo X: datas, Eixo Y: valor em R$
+- Duas linhas: Venda Total e Venda Aprovada
 
-### 2. `src/index.css` - Classes utilitarias
-- Renomear `.text-gradient` para usar novo gradiente
-- Renomear `.bg-gradient-rose` para `.bg-gradient-primary` (manter `.bg-gradient-rose` como alias para nao quebrar)
-- Atualizar gradientes para tons azuis
+**4. Cards adicionais**
+- Anúncios Ativos
+- Pedidos Enviados vs Cancelados
+- Info do vendedor (nickname, link para perfil)
 
-### 3. `tailwind.config.ts`
-- Sem alteracoes estruturais necessarias (ja usa variaveis CSS)
+**5. Tabela de vendas diárias**
+- Tabela com colunas: Data, Qtd Pedidos, Venda Total, Venda Aprovada
+- Usando componente `Table` existente
 
-### 4. Componentes que usam `bg-gradient-rose` e `shadow-glow` (atualizacao de referencia)
-Arquivos que referenciam a classe antiga:
-- `src/components/dashboard/MetricCard.tsx` - trocar `bg-gradient-rose` por `bg-gradient-primary`
-- `src/components/dashboard/RecentSales.tsx` - trocar `bg-gradient-rose`
-- `src/components/chat/FloatingChat.tsx` - trocar `bg-gradient-rose` (4 ocorrencias)
-- `src/components/layout/Sidebar.tsx` - trocar `bg-gradient-rose`
-- `src/pages/FinanceiroDashboard.tsx` - verificar e atualizar se necessario
-- Demais paginas que usem a classe
+**6. Integração no app**
+- Adicionar rota `/mercado-livre` em `App.tsx` (protegida, dentro do AppLayout)
+- Adicionar item no Sidebar com ícone dedicado
+- Adicionar em `roleAccess.ts` (acessível a admin, editor, viewer)
+- Botão de sincronizar (refresh) no header da página
 
-### 5. Graficos (`src/pages/FinanceiroDashboard.tsx`, `FinanceiroDRE.tsx`, `FinanceiroDFC.tsx`)
-- Atualizar cores dos graficos (bars, areas, pies) de tons rosados para tons azuis/verdes corporativos
+### Arquivos modificados
+- `src/pages/MercadoLivre.tsx` (novo)
+- `src/App.tsx` — nova rota
+- `src/components/layout/Sidebar.tsx` — novo nav item
+- `src/config/roleAccess.ts` — permissão da rota
 
-## Resultado Esperado
-- Sidebar em azul escuro profissional
-- Gradientes e botoes de destaque em azul corporativo
-- Graficos com paleta azul/verde/cinza
-- Visual coerente com um sistema financeiro serio e confiavel
+### Dependências
+- Usa componentes existentes: `KPICard`, `Card`, `Table`, Recharts
+- Usa edge function existente: `mercado-libre-integration`
+- Token lido de `ml_tokens` (Supabase) com fallback localStorage
 
