@@ -169,8 +169,8 @@ export default function MercadoLivre() {
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPIs - Row 1: 3 cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KPICard
           title="Receita Total"
           value={metrics ? currencyFmt(metrics.total_revenue) : "—"}
@@ -188,13 +188,6 @@ export default function MercadoLivre() {
           subtitle={`Últimos ${period} dias`}
         />
         <KPICard
-          title="Total de Pedidos"
-          value={metrics ? String(metrics.total_orders) : "—"}
-          icon={<ShoppingCart className="w-5 h-5" />}
-          variant="purple"
-          loading={loading}
-        />
-        <KPICard
           title="Ticket Médio"
           value={metrics ? currencyFmt(metrics.avg_ticket) : "—"}
           icon={<Tag className="w-5 h-5" />}
@@ -203,8 +196,15 @@ export default function MercadoLivre() {
         />
       </div>
 
-      {/* Secondary KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* KPIs - Row 2: 4 cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPICard
+          title="Total de Pedidos"
+          value={metrics ? String(metrics.total_orders) : "—"}
+          icon={<ShoppingCart className="w-5 h-5" />}
+          variant="purple"
+          loading={loading}
+        />
         <KPICard
           title="Anúncios Ativos"
           value={metrics ? String(metrics.active_listings) : "—"}
