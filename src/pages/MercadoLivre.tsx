@@ -106,7 +106,7 @@ export default function MercadoLivre() {
       setSyncing(false);
       setLoading(false);
     }
-  }, [user, toast]);
+  }, [user, toast, period]);
 
   useEffect(() => {
     fetchData();
