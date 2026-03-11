@@ -22,12 +22,24 @@ serve(async (req) => {
       );
     }
 
-    const { action, code, redirect_uri, refresh_token } = await req.json();
+    const { action, code, redirect_uri, refresh_token, code_verifier } = await req.json();
 
     if (action === "get_auth_url") {
-      const authUrl = `https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=${ML_APP_ID}&redirect_uri=${redirect_uri}`;
+      // Generate PKCE code_verifier and code_challenge
+      const verifierBytes = new Uint8Array(32);
+      crypto.getRandomValues(verifierBytes);
+      const generatedCodeVerifier = base64UrlEncode(verifierBytes);
+
+      const challengeBytes = await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(generatedCodeVerifier)
+      );
+      const codeChallenge = base64UrlEncode(new Uint8Array(challengeBytes));
+
+      const authUrl = `https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=${ML_APP_ID}&redirect_uri=${redirect_uri}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+
       return new Response(
-        JSON.stringify({ success: true, auth_url: authUrl }),
+        JSON.stringify({ success: true, auth_url: authUrl, code_verifier: generatedCodeVerifier }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -40,16 +52,22 @@ serve(async (req) => {
         );
       }
 
+      const tokenBody: Record<string, string> = {
+        grant_type: "authorization_code",
+        client_id: ML_APP_ID,
+        client_secret: ML_CLIENT_SECRET,
+        code,
+        redirect_uri,
+      };
+
+      if (code_verifier) {
+        tokenBody.code_verifier = code_verifier;
+      }
+
       const tokenResponse = await fetch("https://api.mercadolibre.com/oauth/token", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          grant_type: "authorization_code",
-          client_id: ML_APP_ID,
-          client_secret: ML_CLIENT_SECRET,
-          code,
-          redirect_uri,
-        }),
+        body: JSON.stringify(tokenBody),
       });
 
       const tokenData = await tokenResponse.json();
@@ -127,3 +145,11 @@ serve(async (req) => {
     );
   }
 });
+
+function base64UrlEncode(buffer: Uint8Array): string {
+  let binary = "";
+  for (const byte of buffer) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}

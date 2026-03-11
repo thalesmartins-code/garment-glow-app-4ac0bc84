@@ -228,10 +228,11 @@ export default function Integrations() {
 
     const exchangeCode = async () => {
       setConnecting(true);
-
       const redirectUri = "https://analytics.alcavie.com/integracoes";
+      const codeVerifier = localStorage.getItem("ml_pkce_code_verifier") || undefined;
+
       const { data, error } = await supabase.functions.invoke("ml-oauth", {
-        body: { action: "exchange_code", code, redirect_uri: redirectUri },
+        body: { action: "exchange_code", code, redirect_uri: redirectUri, code_verifier: codeVerifier },
       });
 
       if (error || !data?.success) {
@@ -244,6 +245,7 @@ export default function Integrations() {
         return;
       }
 
+      localStorage.removeItem("ml_pkce_code_verifier");
       localStorage.setItem("ml_tokens", JSON.stringify({
         access_token: data.access_token,
         refresh_token: data.refresh_token,
@@ -263,7 +265,6 @@ export default function Integrations() {
 
   const handleConnect = async (integration: MarketplaceIntegration) => {
     if (integration.id === "ml") {
-      // Real ML OAuth flow
       const redirectUri = "https://analytics.alcavie.com/integracoes";
       const { data, error } = await supabase.functions.invoke("ml-oauth", {
         body: { action: "get_auth_url", redirect_uri: redirectUri },
@@ -276,6 +277,10 @@ export default function Integrations() {
           variant: "destructive",
         });
         return;
+      }
+
+      if (data.code_verifier) {
+        localStorage.setItem("ml_pkce_code_verifier", data.code_verifier);
       }
 
       window.location.href = data.auth_url;
@@ -432,9 +437,10 @@ export default function Integrations() {
     if (!mlCodeInput.trim()) return;
     setConnecting(true);
     const redirectUri = "https://analytics.alcavie.com/integracoes";
+    const codeVerifier = localStorage.getItem("ml_pkce_code_verifier") || undefined;
 
     const { data, error } = await supabase.functions.invoke("ml-oauth", {
-      body: { action: "exchange_code", code: mlCodeInput.trim(), redirect_uri: redirectUri },
+      body: { action: "exchange_code", code: mlCodeInput.trim(), redirect_uri: redirectUri, code_verifier: codeVerifier },
     });
 
     if (error || !data?.success) {
@@ -444,6 +450,7 @@ export default function Integrations() {
         variant: "destructive",
       });
     } else {
+      localStorage.removeItem("ml_pkce_code_verifier");
       localStorage.setItem("ml_tokens", JSON.stringify({
         access_token: data.access_token,
         refresh_token: data.refresh_token,
