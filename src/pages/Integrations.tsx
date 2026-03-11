@@ -223,6 +223,9 @@ export default function Integrations() {
     const code = searchParams.get("code");
     if (!code) return;
 
+    setMlCodeInput(code);
+    setMlCodeDialog(true);
+
     const exchangeCode = async () => {
       setConnecting(true);
 
@@ -230,25 +233,33 @@ export default function Integrations() {
       const { data, error } = await supabase.functions.invoke("ml-oauth", {
         body: { action: "exchange_code", code, redirect_uri: redirectUri },
       });
+
       if (error || !data?.success) {
-        toast({ title: "Erro ao conectar Mercado Livre", description: data?.error || error?.message || "Falha na troca do código.", variant: "destructive" });
-      } else {
-        localStorage.setItem("ml_tokens", JSON.stringify({
-          access_token: data.access_token,
-          refresh_token: data.refresh_token,
-          expires_at: Date.now() + data.expires_in * 1000,
-          user_id: data.user_id,
-        }));
-        updateIntegrationStatus("ml", "connected");
-        toast({ title: "Mercado Livre conectado!", description: `Conta conectada com sucesso (User ID: ${data.user_id}).` });
+        toast({
+          title: "Erro ao conectar Mercado Livre",
+          description: data?.error || error?.message || "Falha na troca do código.",
+          variant: "destructive",
+        });
+        setConnecting(false);
+        return;
       }
 
+      localStorage.setItem("ml_tokens", JSON.stringify({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: Date.now() + data.expires_in * 1000,
+        user_id: data.user_id,
+      }));
+      updateIntegrationStatus("ml", "connected");
+      toast({ title: "Mercado Livre conectado!", description: `Conta conectada com sucesso (User ID: ${data.user_id}).` });
       setSearchParams({}, { replace: true });
+      setMlCodeDialog(false);
+      setMlCodeInput("");
       setConnecting(false);
     };
 
     exchangeCode();
-  }, [searchParams]);
+  }, [searchParams, setSearchParams, toast]);
 
   const handleConnect = async (integration: MarketplaceIntegration) => {
     if (integration.id === "ml") {
