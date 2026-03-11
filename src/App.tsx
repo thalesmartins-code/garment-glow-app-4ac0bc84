@@ -20,6 +20,7 @@ import UserManagement from "./pages/UserManagement";
 import Profile from "./pages/Profile";
 import TVMode from "./pages/TVMode";
 import Integrations from "./pages/Integrations";
+import MercadoLivre from "./pages/MercadoLivre";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
