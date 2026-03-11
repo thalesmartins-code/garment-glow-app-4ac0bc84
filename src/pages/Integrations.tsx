@@ -212,7 +212,7 @@ export default function Integrations() {
       setConnecting(true);
 
       {
-        const redirectUri = "https://alcavie.com/";
+        const redirectUri = "https://analytics.alcavie.com/integracoes";
         const { data, error } = await supabase.functions.invoke("ml-oauth", {
           body: { action: "exchange_code", code, redirect_uri: redirectUri },
         });
