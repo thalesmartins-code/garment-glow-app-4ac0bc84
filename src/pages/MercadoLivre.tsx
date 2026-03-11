@@ -185,7 +185,7 @@ export default function MercadoLivre() {
           icon={<TrendingUp className="w-5 h-5" />}
           variant="success"
           loading={loading}
-          subtitle="Últimos 30 dias"
+          subtitle={`Últimos ${period} dias`}
         />
         <KPICard
           title="Total de Pedidos"
