@@ -43,17 +43,36 @@ serve(async (req) => {
     const user = await mlFetch("/users/me", access_token);
     const sellerId = user.id;
 
-    // 2. Get recent orders (last 30 days)
+    // 2. Fetch ALL orders with pagination (last N days)
     const dateFrom = new Date();
     dateFrom.setDate(dateFrom.getDate() - periodDays);
     const dateFromStr = dateFrom.toISOString();
 
-    const ordersData = await mlFetch(
-      `/orders/search?seller=${sellerId}&order.date_created.from=${dateFromStr}&sort=date_desc&limit=50`,
-      access_token
-    );
+    const PAGE_SIZE = 50;
+    const MAX_PAGES = 20; // safety cap: 1000 orders max
+    let allOrders: any[] = [];
+    let offset = 0;
+    let totalAvailable = 0;
 
-    const orders = ordersData.results || [];
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const ordersData = await mlFetch(
+        `/orders/search?seller=${sellerId}&order.date_created.from=${dateFromStr}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`,
+        access_token
+      );
+
+      const results = ordersData.results || [];
+      allOrders = allOrders.concat(results);
+      totalAvailable = ordersData.paging?.total || 0;
+      offset += PAGE_SIZE;
+
+      // Stop if we got all orders or no more results
+      if (results.length < PAGE_SIZE || offset >= totalAvailable) {
+        break;
+      }
+    }
+
+    const orders = allOrders;
+    console.log(`Fetched ${orders.length} orders of ${totalAvailable} total (period: ${periodDays} days)`);
 
     // 3. Aggregate metrics
     let totalRevenue = 0;
