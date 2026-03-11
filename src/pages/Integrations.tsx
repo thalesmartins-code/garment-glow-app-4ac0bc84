@@ -235,51 +235,88 @@ export default function Integrations() {
     }
   };
 
-  // Check for existing ML tokens on mount (localStorage + DB fallback)
+  // Helper: refresh token via ml-oauth and update DB + localStorage
+  const refreshMLToken = async (refreshToken: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.functions.invoke("ml-oauth", {
+        body: { action: "refresh_token", refresh_token: refreshToken },
+      });
+      if (error || !data?.success) {
+        console.error("ML token refresh failed:", data?.error || error?.message);
+        return false;
+      }
+      await saveMLTokens(data);
+      updateIntegrationStatus("ml", "connected");
+      return true;
+    } catch (e) {
+      console.error("ML token refresh error:", e);
+      return false;
+    }
+  };
+
+  // Check for existing ML tokens on mount (localStorage + DB fallback + auto-refresh)
   useEffect(() => {
     const checkTokens = async () => {
+      let tokens: { access_token?: string; refresh_token?: string; expires_at?: number; user_id?: string } | null = null;
+
       // First check localStorage
       const mlTokens = localStorage.getItem("ml_tokens");
       if (mlTokens) {
+        try { tokens = JSON.parse(mlTokens); } catch (e) { /* ignore */ }
+      }
+
+      // Fallback: check DB
+      if (!tokens?.access_token) {
         try {
-          const tokens = JSON.parse(mlTokens);
-          if (tokens.access_token && tokens.expires_at > Date.now()) {
-            updateIntegrationStatus("ml", "connected");
-            return;
-          } else if (tokens.access_token && tokens.expires_at <= Date.now()) {
-            updateIntegrationStatus("ml", "expired");
-            return;
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { data: dbTokens } = await supabase
+            .from("ml_tokens")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+
+          if (dbTokens?.access_token) {
+            const expiresAt = dbTokens.expires_at ? new Date(dbTokens.expires_at).getTime() : 0;
+            tokens = {
+              access_token: dbTokens.access_token,
+              refresh_token: dbTokens.refresh_token || undefined,
+              expires_at: expiresAt,
+              user_id: dbTokens.ml_user_id || undefined,
+            };
+            localStorage.setItem("ml_tokens", JSON.stringify(tokens));
           }
         } catch (e) { /* ignore */ }
       }
 
-      // Fallback: check DB
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        const { data: dbTokens } = await supabase
-          .from("ml_tokens")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
+      if (!tokens?.access_token) return;
 
-        if (dbTokens?.access_token) {
-          const expiresAt = dbTokens.expires_at ? new Date(dbTokens.expires_at).getTime() : 0;
-          localStorage.setItem("ml_tokens", JSON.stringify({
-            access_token: dbTokens.access_token,
-            refresh_token: dbTokens.refresh_token,
-            expires_at: expiresAt,
-            user_id: dbTokens.ml_user_id,
-          }));
-          if (expiresAt > Date.now()) {
-            updateIntegrationStatus("ml", "connected");
-          } else {
-            updateIntegrationStatus("ml", "expired");
-          }
+      const expiresAt = tokens.expires_at || 0;
+      const thirtyMinutes = 30 * 60 * 1000;
+
+      // If expiring within 30 minutes, auto-refresh
+      if (expiresAt > 0 && expiresAt - Date.now() < thirtyMinutes && tokens.refresh_token) {
+        console.log("ML token expiring soon, auto-refreshing...");
+        const success = await refreshMLToken(tokens.refresh_token);
+        if (!success) {
+          updateIntegrationStatus("ml", "expired");
         }
-      } catch (e) { /* ignore */ }
+        return;
+      }
+
+      if (expiresAt > Date.now()) {
+        updateIntegrationStatus("ml", "connected");
+      } else {
+        // Already expired, try refresh
+        if (tokens.refresh_token) {
+          const success = await refreshMLToken(tokens.refresh_token);
+          if (!success) updateIntegrationStatus("ml", "expired");
+        } else {
+          updateIntegrationStatus("ml", "expired");
+        }
+      }
     };
     checkTokens();
   }, []);
