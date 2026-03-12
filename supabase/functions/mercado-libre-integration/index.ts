@@ -54,8 +54,7 @@ serve(async (req) => {
   }
 
   try {
-    const { access_token, days = 30, user_id } = await req.json();
-    const periodDays = Math.min(Math.max(Number(days) || 30, 1), 90);
+    const { access_token, days = 30, user_id, date_from, date_to } = await req.json();
 
     if (!access_token) {
       return new Response(
@@ -74,25 +73,48 @@ serve(async (req) => {
     const user = await mlFetch("/users/me", access_token);
     const sellerId = user.id;
 
-    // 2. Split period into weekly chunks and fetch sequentially
-    const now = new Date();
+    // 2. Determine date range — either explicit or relative
+    let rangeStart: Date;
+    let rangeEnd: Date;
+
+    if (date_from && date_to) {
+      rangeStart = new Date(date_from);
+      rangeStart.setHours(0, 0, 0, 0);
+      rangeEnd = new Date(date_to);
+      rangeEnd.setHours(23, 59, 59, 999);
+    } else {
+      const periodDays = Math.min(Math.max(Number(days) || 30, 1), 90);
+      rangeEnd = new Date();
+      rangeEnd.setHours(23, 59, 59, 999);
+      rangeStart = new Date();
+      rangeStart.setDate(rangeStart.getDate() - periodDays + 1);
+      rangeStart.setHours(0, 0, 0, 0);
+    }
+
+    // Split into weekly chunks
     const CHUNK_DAYS = 7;
     const chunks: Array<{ from: string; to: string }> = [];
+    const totalMs = rangeEnd.getTime() - rangeStart.getTime();
+    const totalDays = Math.ceil(totalMs / (1000 * 60 * 60 * 24));
 
-    for (let d = 0; d < periodDays; d += CHUNK_DAYS) {
-      const chunkEnd = new Date(now);
-      chunkEnd.setDate(now.getDate() - d);
+    for (let d = 0; d < totalDays; d += CHUNK_DAYS) {
+      const chunkStart = new Date(rangeStart);
+      chunkStart.setDate(rangeStart.getDate() + d);
+      chunkStart.setHours(0, 0, 0, 0);
+
+      const chunkEnd = new Date(rangeStart);
+      chunkEnd.setDate(rangeStart.getDate() + Math.min(d + CHUNK_DAYS - 1, totalDays - 1));
       chunkEnd.setHours(23, 59, 59, 999);
 
-      const chunkStart = new Date(now);
-      chunkStart.setDate(now.getDate() - Math.min(d + CHUNK_DAYS - 1, periodDays - 1));
-      chunkStart.setHours(0, 0, 0, 0);
+      if (chunkEnd > rangeEnd) chunkEnd.setTime(rangeEnd.getTime());
 
       chunks.push({
         from: chunkStart.toISOString(),
         to: chunkEnd.toISOString(),
       });
     }
+
+    console.log(`Fetching orders from ${rangeStart.toISOString()} to ${rangeEnd.toISOString()} in ${chunks.length} chunks`);
 
     let allOrders: any[] = [];
     for (const chunk of chunks) {
