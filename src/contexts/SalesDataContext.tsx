@@ -34,12 +34,14 @@ interface SalesDataContextType {
   findDuplicates: (sellerId: string, newData: ImportedSale[]) => DuplicateCheckResult;
   isLoading: boolean;
   refreshData: () => Promise<void>;
+  lastSyncedAt: string | null;
   // Marketplace quantities
   getMarketplaceQuantity: (sellerId: string, marketplace: string, ano: number, mes: number) => number;
   updateMarketplaceQuantity: (sellerId: string, marketplace: string, ano: number, mes: number, qtdVendas: number) => void;
 }
 
 const QUANTITIES_STORAGE_KEY = "marketplace_quantities";
+const LAST_SYNCED_KEY = "sales_last_synced_at";
 
 const SalesDataContext = createContext<SalesDataContextType | undefined>(undefined);
 
@@ -47,6 +49,7 @@ export function SalesDataProvider({ children }: { children: React.ReactNode }) {
   const [salesData, setSalesData] = useState<ImportedSale[]>([]);
   const [marketplaceQuantities, setMarketplaceQuantities] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => localStorage.getItem(LAST_SYNCED_KEY));
   const hasLoadedRef = useRef(false);
 
   const loadFromDB = useCallback(async () => {
@@ -107,6 +110,9 @@ export function SalesDataProvider({ children }: { children: React.ReactNode }) {
 
   const refreshData = useCallback(async () => {
     await loadFromDB();
+    const now = new Date().toLocaleString("pt-BR");
+    setLastSyncedAt(now);
+    localStorage.setItem(LAST_SYNCED_KEY, now);
   }, [loadFromDB]);
 
   // Load quantities from localStorage
@@ -386,6 +392,7 @@ export function SalesDataProvider({ children }: { children: React.ReactNode }) {
         findDuplicates,
         isLoading,
         refreshData,
+        lastSyncedAt,
         getMarketplaceQuantity,
         updateMarketplaceQuantity,
       }}

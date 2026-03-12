@@ -153,9 +153,13 @@ export function FilterBar({
 
       {/* Refresh */}
       <div className="flex items-center gap-3 shrink-0">
-        {lastUpdate && (
+        {lastUpdate ? (
           <span className="text-xs text-muted-foreground hidden lg:inline">
-            Atualizado: {lastUpdate}
+            Última sinc: {lastUpdate}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground hidden lg:inline">
+            Nunca sincronizado
           </span>
         )}
         <Button
@@ -166,7 +170,7 @@ export function FilterBar({
           className="gap-2"
         >
           <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-          <span className="hidden sm:inline">Atualizar</span>
+          <span className="hidden sm:inline">Sincronizar</span>
         </Button>
       </div>
     </div>

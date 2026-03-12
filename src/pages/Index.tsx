@@ -4,6 +4,7 @@ import { FilterBar } from "@/components/dashboard/FilterBar";
 import { SalesTable } from "@/components/dashboard/SalesTable";
 import { useSeller } from "@/contexts/SellerContext";
 import { useSellerSalesData } from "@/hooks/useSellerSalesData";
+import { useSalesData } from "@/contexts/SalesDataContext";
 import { useMemo, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -33,6 +34,7 @@ const Index = () => {
   const { selectedSeller, getActiveMarketplaces } = useSeller();
   const activeMarketplaces = getActiveMarketplaces();
   const { getMarketplaceSummaryForDateRange, updateMarketplaceQuantity, hasAnyData } = useSellerSalesData();
+  const { refreshData, lastSyncedAt, isLoading: isLoadingData } = useSalesData();
   const { toast } = useToast();
 
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodFilter>("month");
@@ -108,16 +110,24 @@ const Index = () => {
     updateMarketplaceQuantity(marketplaceId, now.getFullYear(), now.getMonth() + 1, qtdVendas);
   }, [updateMarketplaceQuantity]);
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
+    try {
+      await refreshData();
       toast({
         title: "Dados atualizados",
-        description: "O dashboard foi atualizado com sucesso.",
+        description: "O dashboard foi sincronizado com o banco de dados.",
       });
-    }, 500);
-  }, [toast]);
+    } catch {
+      toast({
+        title: "Erro ao atualizar",
+        description: "Não foi possível sincronizar os dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refreshData, toast]);
 
   return (
     <div className="space-y-6">
@@ -128,8 +138,8 @@ const Index = () => {
           onPeriodChange={setSelectedPeriod}
           onMarketplaceChange={setSelectedMarketplace}
           onRefresh={refresh}
-          isRefreshing={isRefreshing}
-          lastUpdate={new Date().toLocaleString("pt-BR")}
+          isRefreshing={isRefreshing || isLoadingData}
+          lastUpdate={lastSyncedAt || undefined}
           marketplaceOptions={marketplaceFilterOptions}
           customDateRange={customDateRange}
           onCustomDateRangeChange={setCustomDateRange}
