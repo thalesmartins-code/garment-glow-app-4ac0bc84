@@ -1,40 +1,59 @@
 
 
-# Submenus do Mercado Livre no Sidebar
+# Mudanca de Paleta de Cores para Tema Financeiro
 
 ## Objetivo
-Transformar o item "Mercado Livre" no sidebar em um grupo expansível com 5 subpáginas: Dashboard, Estoque, Produtos, Pedidos e Anúncios.
+Substituir a paleta atual (rose gold / moda) por uma paleta corporativa financeira baseada em **azul escuro (navy)** com acentos em **verde esmeralda**, transmitindo confianca, profissionalismo e solidez.
 
-## Mudanças
+## Nova Paleta
 
-### 1. Sidebar (`src/components/layout/Sidebar.tsx`)
-- Substituir o item simples "Mercado Livre" por um item com submenu colapsável (usando Collapsible do Radix)
-- Subitens: Dashboard (`/mercado-livre`), Estoque (`/mercado-livre/estoque`), Produtos (`/mercado-livre/produtos`), Pedidos (`/mercado-livre/pedidos`), Anúncios (`/mercado-livre/anuncios`)
-- O grupo abre automaticamente quando a rota ativa é qualquer `/mercado-livre/*`
-- No modo collapsed, mostra tooltip com os subitens
+| Elemento | Atual (Rose Gold) | Novo (Financeiro) |
+|---|---|---|
+| Accent | Rosa dourado (HSL 15 45% 65%) | Azul navy (HSL 217 70% 45%) |
+| Sidebar BG | Cinza escuro quente | Azul muito escuro |
+| Gradient principal | Rosa para rosa escuro | Azul navy para azul royal |
+| Shadow glow | Rosa translucido | Azul translucido |
+| Success | Verde (mantido) | Verde (mantido) |
 
-### 2. Novas páginas (placeholder)
-Criar 4 páginas iniciais com layout básico:
-- `src/pages/mercadolivre/MLEstoque.tsx`
-- `src/pages/mercadolivre/MLProdutos.tsx`
-- `src/pages/mercadolivre/MLPedidos.tsx`
-- `src/pages/mercadolivre/MLAnuncios.tsx`
+## Arquivos a Alterar
 
-Cada uma com título e mensagem "Em breve" por enquanto.
+### 1. `src/index.css` - Variaveis CSS (arquivo principal)
+- Trocar comentario do design system de "Fashion Store" para "Financial Management SaaS"
+- **:root (light mode)**:
+  - `--accent`: de `15 45% 65%` para `217 70% 45%` (azul corporativo)
+  - `--ring`: de `15 45% 65%` para `217 70% 45%`
+  - `--sidebar-background`: de `24 10% 8%` para `217 50% 10%`
+  - `--sidebar-primary`: de `15 45% 65%` para `217 70% 45%`
+  - `--sidebar-accent`: de `24 10% 15%` para `217 40% 18%`
+  - `--sidebar-border`: de `24 10% 18%` para `217 30% 22%`
+  - `--sidebar-ring`: de `15 45% 65%` para `217 70% 45%`
+  - `--gradient-rose` renomear para `--gradient-primary`: gradiente azul navy
+  - `--shadow-glow`: tom azul translucido
+- **Dark mode**: mesmas mudancas adaptadas para tons escuros
 
-### 3. Rotas (`src/App.tsx`)
-Adicionar as 4 novas rotas dentro do layout protegido com RoleRoute.
+### 2. `src/index.css` - Classes utilitarias
+- Renomear `.text-gradient` para usar novo gradiente
+- Renomear `.bg-gradient-rose` para `.bg-gradient-primary` (manter `.bg-gradient-rose` como alias para nao quebrar)
+- Atualizar gradientes para tons azuis
 
-### 4. Controle de acesso (`src/config/roleAccess.ts`)
-Registrar as novas rotas com as mesmas permissões de `/mercado-livre` (admin, editor, viewer).
+### 3. `tailwind.config.ts`
+- Sem alteracoes estruturais necessarias (ja usa variaveis CSS)
 
-### Visual do submenu expandido
-```text
-  🏪 Mercado Livre    ▾
-       Dashboard
-       Estoque
-       Produtos
-       Pedidos
-       Anúncios
-```
+### 4. Componentes que usam `bg-gradient-rose` e `shadow-glow` (atualizacao de referencia)
+Arquivos que referenciam a classe antiga:
+- `src/components/dashboard/MetricCard.tsx` - trocar `bg-gradient-rose` por `bg-gradient-primary`
+- `src/components/dashboard/RecentSales.tsx` - trocar `bg-gradient-rose`
+- `src/components/chat/FloatingChat.tsx` - trocar `bg-gradient-rose` (4 ocorrencias)
+- `src/components/layout/Sidebar.tsx` - trocar `bg-gradient-rose`
+- `src/pages/FinanceiroDashboard.tsx` - verificar e atualizar se necessario
+- Demais paginas que usem a classe
+
+### 5. Graficos (`src/pages/FinanceiroDashboard.tsx`, `FinanceiroDRE.tsx`, `FinanceiroDFC.tsx`)
+- Atualizar cores dos graficos (bars, areas, pies) de tons rosados para tons azuis/verdes corporativos
+
+## Resultado Esperado
+- Sidebar em azul escuro profissional
+- Gradientes e botoes de destaque em azul corporativo
+- Graficos com paleta azul/verde/cinza
+- Visual coerente com um sistema financeiro serio e confiavel
 

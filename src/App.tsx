@@ -21,6 +21,10 @@ import Profile from "./pages/Profile";
 import TVMode from "./pages/TVMode";
 import Integrations from "./pages/Integrations";
 import MercadoLivre from "./pages/MercadoLivre";
+import MLEstoque from "./pages/mercadolivre/MLEstoque";
+import MLProdutos from "./pages/mercadolivre/MLProdutos";
+import MLPedidos from "./pages/mercadolivre/MLPedidos";
+import MLAnuncios from "./pages/mercadolivre/MLAnuncios";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -53,6 +57,10 @@ const App = () => (
                       <Route path="/perfil" element={<Profile />} />
                       <Route path="/integracoes" element={<RoleRoute><Integrations /></RoleRoute>} />
                       <Route path="/mercado-livre" element={<RoleRoute><MercadoLivre /></RoleRoute>} />
+                      <Route path="/mercado-livre/estoque" element={<RoleRoute><MLEstoque /></RoleRoute>} />
+                      <Route path="/mercado-livre/produtos" element={<RoleRoute><MLProdutos /></RoleRoute>} />
+                      <Route path="/mercado-livre/pedidos" element={<RoleRoute><MLPedidos /></RoleRoute>} />
+                      <Route path="/mercado-livre/anuncios" element={<RoleRoute><MLAnuncios /></RoleRoute>} />
                     </Route>
                   </Route>
                   <Route path="*" element={<NotFound />} />
