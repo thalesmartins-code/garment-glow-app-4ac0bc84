@@ -48,7 +48,7 @@ const PERIOD_OPTIONS = [
 
 type DateRange = { from: Date; to: Date } | null;
 
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const LAST_ML_SYNC_KEY = "ml_last_synced_at";
 
 export default function MercadoLivre() {
   const { user } = useAuth();
