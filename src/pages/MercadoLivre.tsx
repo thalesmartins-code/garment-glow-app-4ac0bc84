@@ -6,6 +6,7 @@ import { KPICard } from "@/components/dashboard/KPICard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import {
   DollarSign, ShoppingCart, TrendingUp, Tag, Megaphone, PackageCheck, PackageX, RefreshCw, ExternalLink, Plug,
 } from "lucide-react";
