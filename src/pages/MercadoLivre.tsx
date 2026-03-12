@@ -98,7 +98,6 @@ export default function MercadoLivre() {
   const loadFromCache = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
 
-    // Load user cache
     const { data: userCache } = await supabase
       .from("ml_user_cache")
       .select("*")
@@ -107,10 +106,6 @@ export default function MercadoLivre() {
 
     if (!userCache) return false;
 
-    const syncedAt = new Date(userCache.synced_at).getTime();
-    const isExpired = Date.now() - syncedAt > CACHE_TTL_MS;
-
-    // Load all daily cache (no date limit — includes historical imports)
     const { data: dailyCache } = await supabase
       .from("ml_daily_cache")
       .select("*")
@@ -136,8 +131,7 @@ export default function MercadoLivre() {
       shipped: r.shipped_orders || 0,
     })));
     setConnected(true);
-
-    return !isExpired; // true = cache is fresh, no need to sync
+    return true;
   }, [user]);
 
   const syncFromAPI = useCallback(async () => {
