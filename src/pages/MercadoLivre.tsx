@@ -179,6 +179,10 @@ export default function MercadoLivre() {
         cancelled: d.cancelled || 0,
         shipped: d.shipped || 0,
       })));
+      const now = new Date().toLocaleString("pt-BR");
+      setLastSyncedAt(now);
+      localStorage.setItem(LAST_ML_SYNC_KEY, now);
+      toast({ title: "Sincronizado", description: "Dados atualizados com sucesso." });
     } catch (err: any) {
       toast({ title: "Erro", description: err.message, variant: "destructive" });
     } finally {
