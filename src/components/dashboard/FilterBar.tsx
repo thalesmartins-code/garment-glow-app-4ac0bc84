@@ -170,7 +170,7 @@ export function FilterBar({
           className="gap-2"
         >
           <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-          <span className="hidden sm:inline">Atualizar</span>
+          <span className="hidden sm:inline">Sincronizar</span>
         </Button>
       </div>
     </div>
