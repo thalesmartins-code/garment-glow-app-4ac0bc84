@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { History, Loader2 } from "lucide-react";
@@ -7,9 +7,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
+interface DailyBreakdown {
+  date: string;
+  total: number;
+  approved: number;
+  qty: number;
+  cancelled: number;
+  shipped: number;
+}
+
 interface Props {
   accessToken: string | null;
   onSyncComplete: () => void;
+  saveToCache?: (dailyData: DailyBreakdown[]) => Promise<void>;
 }
 
 const MONTHS = [
@@ -22,7 +32,7 @@ function getYearOptions() {
   return [current, current - 1, current - 2];
 }
 
-export function HistoricalSyncModal({ accessToken, onSyncComplete }: Props) {
+export function HistoricalSyncModal({ accessToken, onSyncComplete, saveToCache }: Props) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -89,6 +99,19 @@ export function HistoricalSyncModal({ accessToken, onSyncComplete }: Props) {
 
         if (error) throw error;
         if (!data?.success) throw new Error(data?.error || `Falha ao importar ${chunk.label}`);
+
+        // Save to cache from frontend (edge function cache write may fail)
+        if (saveToCache && data.daily_breakdown) {
+          const dailyData: DailyBreakdown[] = data.daily_breakdown.map((d: any) => ({
+            date: d.date,
+            total: d.total,
+            approved: d.approved,
+            qty: d.qty,
+            cancelled: d.cancelled || 0,
+            shipped: d.shipped || 0,
+          }));
+          await saveToCache(dailyData);
+        }
       }
 
       toast({ title: "Sucesso", description: `${monthChunks.length} mês(es) importados com sucesso!` });
@@ -112,10 +135,10 @@ export function HistoricalSyncModal({ accessToken, onSyncComplete }: Props) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Importar Dados Históricos</DialogTitle>
+          <DialogDescription>
+            Selecione o período para importar dados retroativos do Mercado Livre. Os dados serão salvos no cache.
+          </DialogDescription>
         </DialogHeader>
-        <p className="text-sm text-muted-foreground">
-          Selecione o período para importar dados retroativos do Mercado Livre. Os dados serão salvos no cache.
-        </p>
 
         <div className="grid grid-cols-2 gap-4 mt-4">
           {/* From */}
