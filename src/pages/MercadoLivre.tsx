@@ -320,7 +320,7 @@ export default function MercadoLivre() {
       {chartData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Vendas Diárias — Últimos {period} dias</CardTitle>
+            <CardTitle className="text-base">Vendas Diárias — {periodLabel}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={320}>
