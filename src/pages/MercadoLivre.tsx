@@ -60,7 +60,7 @@ export default function MercadoLivre() {
   const [cachedAccessToken, setCachedAccessToken] = useState<string | null>(null);
   const [allDaily, setAllDaily] = useState<DailyBreakdown[]>([]);
   const [activeListings, setActiveListings] = useState(0);
-  const [period, setPeriod] = useState(7);
+  const [period, setPeriod] = useState(0); // 0 = today (default)
   const [customRange, setCustomRange] = useState<DateRange>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => localStorage.getItem(LAST_ML_SYNC_KEY));
   const cacheLoadedRef = useRef(false);
