@@ -39,11 +39,11 @@ interface DailyBreakdown {
 const currencyFmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-const PERIOD_OPTIONS = [
+const QUICK_RANGES = [
+  { label: "Hoje", value: 0 },
   { label: "7 dias", value: 7 },
   { label: "15 dias", value: 15 },
   { label: "30 dias", value: 30 },
-  { label: "Personalizado", value: 0 },
 ] as const;
 
 type DateRange = { from: Date; to: Date } | null;
