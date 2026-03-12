@@ -46,6 +46,7 @@ export function KPICard({
   deltaLabel,
   icon,
   loading = false,
+  refreshing = false,
   className,
   variant = "default",
   animateValue = true,
