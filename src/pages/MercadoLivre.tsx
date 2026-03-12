@@ -239,7 +239,7 @@ export default function MercadoLivre() {
             {mlUser ? `Vendedor: ${mlUser.nickname}` : "Dashboard de vendas"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center rounded-lg border border-border bg-muted/30 p-0.5">
             {PERIOD_OPTIONS.map((opt) => (
               <Button
@@ -247,12 +247,46 @@ export default function MercadoLivre() {
                 variant={period === opt.value ? "default" : "ghost"}
                 size="sm"
                 className="h-7 px-3 text-xs"
-                onClick={() => setPeriod(opt.value)}
+                onClick={() => {
+                  setPeriod(opt.value);
+                  if (opt.value !== 0) setCustomRange(null);
+                }}
               >
-                {opt.label}
+                {opt.value === 0 ? (
+                  <><CalendarIcon className="w-3 h-3 mr-1" />{opt.label}</>
+                ) : opt.label}
               </Button>
             ))}
           </div>
+          {period === 0 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-7 text-xs", !customRange && "text-muted-foreground")}>
+                  <CalendarIcon className="w-3.5 h-3.5 mr-1" />
+                  {customRange
+                    ? `${format(customRange.from, "dd/MM/yy")} – ${format(customRange.to, "dd/MM/yy")}`
+                    : "Selecionar período"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  selected={customRange ? { from: customRange.from, to: customRange.to } : undefined}
+                  onSelect={(range) => {
+                    if (range?.from && range?.to) {
+                      setCustomRange({ from: range.from, to: range.to });
+                    } else if (range?.from) {
+                      setCustomRange({ from: range.from, to: range.from });
+                    }
+                  }}
+                  disabled={(date) => date > new Date()}
+                  numberOfMonths={2}
+                  locale={ptBR}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
           {mlUser?.permalink && (
             <Button variant="outline" size="sm" asChild>
               <a href={mlUser.permalink} target="_blank" rel="noopener noreferrer">
