@@ -76,9 +76,9 @@ export default function MercadoLivre() {
     return d.date >= cutoff;
   });
 
-  const periodLabel = period === 0 && customRange
+  const periodLabel = customRange
     ? `${format(customRange.from, "dd/MM/yy")} – ${format(customRange.to, "dd/MM/yy")}`
-    : `Últimos ${period} dias`;
+    : period === 0 ? "Hoje" : `Últimos ${period} dias`;
 
   // Compute metrics from filtered daily data
   const metrics = daily.length > 0 ? {
