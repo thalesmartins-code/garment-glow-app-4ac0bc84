@@ -41,7 +41,7 @@ const baseNavItems = [
 ];
 
 const mlSubItems = [
-  { icon: LayoutDashboard, label: "Vendas", path: "/mercado-livre" },
+  { icon: TrendingUp, label: "Vendas", path: "/mercado-livre" },
   { icon: Package, label: "Estoque", path: "/mercado-livre/estoque" },
   { icon: ShoppingBag, label: "Produtos", path: "/mercado-livre/produtos" },
   { icon: ClipboardList, label: "Pedidos", path: "/mercado-livre/pedidos" },
