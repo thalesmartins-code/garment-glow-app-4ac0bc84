@@ -176,7 +176,12 @@ export default function MercadoLivre() {
     }
   }, [user, toast]);
 
-  // Initial load: cache first, then API if needed
+  // Reload cache after historical import
+  const reloadCache = useCallback(async () => {
+    cacheLoadedRef.current = false;
+    await loadFromCache();
+  }, [loadFromCache]);
+
   useEffect(() => {
     if (!user || cacheLoadedRef.current) return;
     cacheLoadedRef.current = true;
