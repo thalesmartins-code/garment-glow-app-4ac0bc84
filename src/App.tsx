@@ -21,6 +21,10 @@ import Profile from "./pages/Profile";
 import TVMode from "./pages/TVMode";
 import Integrations from "./pages/Integrations";
 import MercadoLivre from "./pages/MercadoLivre";
+import MLEstoque from "./pages/mercadolivre/MLEstoque";
+import MLProdutos from "./pages/mercadolivre/MLProdutos";
+import MLPedidos from "./pages/mercadolivre/MLPedidos";
+import MLAnuncios from "./pages/mercadolivre/MLAnuncios";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
