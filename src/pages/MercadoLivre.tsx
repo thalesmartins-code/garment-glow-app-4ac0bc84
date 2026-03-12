@@ -177,6 +177,7 @@ export default function MercadoLivre() {
           icon={<DollarSign className="w-5 h-5" />}
           variant="info"
           loading={loading}
+          refreshing={syncing}
           subtitle={`Últimos ${period} dias`}
         />
         <KPICard
@@ -185,6 +186,7 @@ export default function MercadoLivre() {
           icon={<TrendingUp className="w-5 h-5" />}
           variant="success"
           loading={loading}
+          refreshing={syncing}
           subtitle={`Últimos ${period} dias`}
         />
         <KPICard
@@ -193,6 +195,7 @@ export default function MercadoLivre() {
           icon={<ShoppingCart className="w-5 h-5" />}
           variant="purple"
           loading={loading}
+          refreshing={syncing}
         />
       </div>
 
@@ -204,6 +207,7 @@ export default function MercadoLivre() {
           icon={<Tag className="w-5 h-5" />}
           variant="orange"
           loading={loading}
+          refreshing={syncing}
         />
         <KPICard
           title="Anúncios Ativos"
@@ -211,6 +215,7 @@ export default function MercadoLivre() {
           icon={<Megaphone className="w-5 h-5" />}
           variant="neutral"
           loading={loading}
+          refreshing={syncing}
         />
         <KPICard
           title="Pedidos Enviados"
@@ -218,6 +223,7 @@ export default function MercadoLivre() {
           icon={<PackageCheck className="w-5 h-5" />}
           variant="success"
           loading={loading}
+          refreshing={syncing}
         />
         <KPICard
           title="Pedidos Cancelados"
@@ -225,6 +231,7 @@ export default function MercadoLivre() {
           icon={<PackageX className="w-5 h-5" />}
           variant="danger"
           loading={loading}
+          refreshing={syncing}
         />
       </div>
 
