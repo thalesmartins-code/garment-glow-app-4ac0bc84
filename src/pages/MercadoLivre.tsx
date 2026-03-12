@@ -6,6 +6,7 @@ import { KPICard } from "@/components/dashboard/KPICard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import {
   DollarSign, ShoppingCart, TrendingUp, Tag, Megaphone, PackageCheck, PackageX, RefreshCw, ExternalLink, Plug,
 } from "lucide-react";
@@ -50,6 +51,7 @@ export default function MercadoLivre() {
   const [syncing, setSyncing] = useState(false);
   const [connected, setConnected] = useState(false);
   const [mlUser, setMlUser] = useState<MLUser | null>(null);
+  const [cachedAccessToken, setCachedAccessToken] = useState<string | null>(null);
   const [allDaily, setAllDaily] = useState<DailyBreakdown[]>([]);
   const [activeListings, setActiveListings] = useState(0);
   const [period, setPeriod] = useState(7);
@@ -146,6 +148,7 @@ export default function MercadoLivre() {
         if (refreshed?.access_token) accessToken = refreshed.access_token;
       }
 
+      setCachedAccessToken(accessToken);
       setConnected(true);
 
       // Always fetch 30 days to populate full cache
@@ -173,7 +176,12 @@ export default function MercadoLivre() {
     }
   }, [user, toast]);
 
-  // Initial load: cache first, then API if needed
+  // Reload cache after historical import
+  const reloadCache = useCallback(async () => {
+    cacheLoadedRef.current = false;
+    await loadFromCache();
+  }, [loadFromCache]);
+
   useEffect(() => {
     if (!user || cacheLoadedRef.current) return;
     cacheLoadedRef.current = true;
@@ -240,6 +248,7 @@ export default function MercadoLivre() {
           <Button variant="outline" size="sm" onClick={syncFromAPI} disabled={syncing}>
             <RefreshCw className={`w-4 h-4 mr-1 ${syncing ? "animate-spin" : ""}`} /> Sincronizar
           </Button>
+          <HistoricalSyncModal accessToken={cachedAccessToken} onSyncComplete={reloadCache} />
         </div>
       </div>
 
