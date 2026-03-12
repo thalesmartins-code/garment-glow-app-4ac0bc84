@@ -245,7 +245,7 @@ export default function MercadoLivre() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Mercado Livre</h1>
           <p className="text-sm text-muted-foreground">
-            {mlUser ? `Vendedor: ${mlUser.nickname}` : "Dashboard de vendas"}
+            {mlUser ? `Vendedor: ${mlUser.nickname}` : "Vendas do Mercado Livre"}
           </p>
           <p className="text-xs text-muted-foreground/70">
             {lastSyncedAt ? `Última sinc: ${lastSyncedAt}` : "Nunca sincronizado"}
