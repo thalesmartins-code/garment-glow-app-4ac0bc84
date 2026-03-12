@@ -75,7 +75,7 @@ export function KPICard({
   }
 
   return (
-    <Card className={cn(styles.card, className)}>
+    <Card className={cn(styles.card, refreshing && "animate-pulse opacity-60 transition-opacity duration-300", className)}>
       <CardContent className="p-4 flex gap-4">
         <div className="flex-1 min-w-0">
           <span className="text-sm font-medium text-muted-foreground">{title}</span>
