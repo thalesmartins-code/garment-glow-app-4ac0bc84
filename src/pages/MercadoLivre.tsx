@@ -4,18 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import {
-  DollarSign, ShoppingCart, TrendingUp, Tag, Megaphone, PackageCheck, PackageX, RefreshCw, ExternalLink, Plug, CalendarIcon,
+  DollarSign, ShoppingCart, TrendingUp, Tag, Megaphone, PackageCheck, PackageX, RefreshCw, ExternalLink, Plug, CalendarIcon, Info,
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { format, parseISO, subDays } from "date-fns";
+import { format, parseISO, subDays, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -50,6 +50,19 @@ type DateRange = { from: Date; to: Date } | null;
 
 const LAST_ML_SYNC_KEY = "ml_last_synced_at";
 
+/** Returns today's date string in yyyy-MM-dd using UTC to match ML API dates */
+function todayUTC() {
+  const now = new Date();
+  return now.toISOString().substring(0, 10);
+}
+
+function cutoffDateStr(daysBack: number) {
+  if (daysBack === 0) return todayUTC();
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - daysBack);
+  return d.toISOString().substring(0, 10);
+}
+
 export default function MercadoLivre() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -62,17 +75,18 @@ export default function MercadoLivre() {
   const [activeListings, setActiveListings] = useState(0);
   const [period, setPeriod] = useState(0); // 0 = today (default)
   const [customRange, setCustomRange] = useState<DateRange>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => localStorage.getItem(LAST_ML_SYNC_KEY));
   const cacheLoadedRef = useRef(false);
 
-  // Filter daily data locally based on period or custom range
+  // Filter daily data locally based on period or custom range (UTC-based)
   const daily = allDaily.filter((d) => {
     if (customRange) {
       const from = format(customRange.from, "yyyy-MM-dd");
       const to = format(customRange.to, "yyyy-MM-dd");
       return d.date >= from && d.date <= to;
     }
-    const cutoff = format(subDays(new Date(), period), "yyyy-MM-dd");
+    const cutoff = cutoffDateStr(period);
     return d.date >= cutoff;
   });
 
@@ -94,6 +108,13 @@ export default function MercadoLivre() {
   if (metrics && metrics.total_orders > 0) {
     metrics.avg_ticket = metrics.total_revenue / metrics.total_orders;
   }
+
+  // Totals for footer
+  const totals = {
+    qty: daily.reduce((s, d) => s + d.qty, 0),
+    total: daily.reduce((s, d) => s + d.total, 0),
+    approved: daily.reduce((s, d) => s + d.approved, 0),
+  };
 
   const loadFromCache = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
@@ -213,6 +234,8 @@ export default function MercadoLivre() {
         return;
       }
 
+      // Bug fix #3: populate cachedAccessToken from DB on load
+      setCachedAccessToken(tokenRow.access_token);
       setConnected(true);
       await loadFromCache();
       setLoading(false);
@@ -239,6 +262,8 @@ export default function MercadoLivre() {
     qty: d.qty,
   }));
 
+  const hasData = allDaily.length > 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -252,7 +277,7 @@ export default function MercadoLivre() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Popover>
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 text-xs">
                 <CalendarIcon className="w-3.5 h-3.5 mr-1" />
@@ -270,6 +295,7 @@ export default function MercadoLivre() {
                     onClick={() => {
                       setPeriod(opt.value);
                       setCustomRange(null);
+                      setPopoverOpen(false);
                     }}
                   >
                     {opt.label}
@@ -282,6 +308,7 @@ export default function MercadoLivre() {
                 onSelect={(range) => {
                   if (range?.from && range?.to) {
                     setCustomRange({ from: range.from, to: range.to });
+                    setPopoverOpen(false);
                   } else if (range?.from) {
                     setCustomRange({ from: range.from, to: range.from });
                   }
@@ -306,6 +333,21 @@ export default function MercadoLivre() {
           <HistoricalSyncModal accessToken={cachedAccessToken} onSyncComplete={reloadCache} />
         </div>
       </div>
+
+      {/* Empty state banner */}
+      {!loading && connected && !hasData && (
+        <Card className="border-dashed">
+          <CardContent className="flex items-center gap-3 py-6">
+            <Info className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-foreground">Nenhum dado no cache</p>
+              <p className="text-xs text-muted-foreground">
+                Clique em <strong>Sincronizar</strong> para carregar os dados pela primeira vez, ou use <strong>Histórico</strong> para importar meses anteriores.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* KPIs - Row 1 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -380,6 +422,14 @@ export default function MercadoLivre() {
                   </TableRow>
                 ))}
               </TableBody>
+              <TableFooter>
+                <TableRow className="font-semibold">
+                  <TableCell>Total</TableCell>
+                  <TableCell className="text-right">{totals.qty}</TableCell>
+                  <TableCell className="text-right">{currencyFmt(totals.total)}</TableCell>
+                  <TableCell className="text-right">{currencyFmt(totals.approved)}</TableCell>
+                </TableRow>
+              </TableFooter>
             </Table>
           </CardContent>
         </Card>

@@ -76,14 +76,16 @@ serve(async (req) => {
     // 2. Determine date range — either explicit or relative
     let rangeStart: Date;
     let rangeEnd: Date;
+    let periodDays: number;
 
     if (date_from && date_to) {
       rangeStart = new Date(date_from);
       rangeStart.setHours(0, 0, 0, 0);
       rangeEnd = new Date(date_to);
       rangeEnd.setHours(23, 59, 59, 999);
+      periodDays = Math.ceil((rangeEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24));
     } else {
-      const periodDays = Math.min(Math.max(Number(days) || 30, 1), 90);
+      periodDays = Math.min(Math.max(Number(days) || 30, 1), 90);
       rangeEnd = new Date();
       rangeEnd.setHours(23, 59, 59, 999);
       rangeStart = new Date();
