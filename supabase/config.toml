@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.ml-token-refresh]
 verify_jwt = false
+
+[functions.ml-inventory]
+verify_jwt = false
