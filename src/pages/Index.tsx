@@ -138,8 +138,8 @@ const Index = () => {
           onPeriodChange={setSelectedPeriod}
           onMarketplaceChange={setSelectedMarketplace}
           onRefresh={refresh}
-          isRefreshing={isRefreshing}
-          lastUpdate={new Date().toLocaleString("pt-BR")}
+          isRefreshing={isRefreshing || isLoadingData}
+          lastUpdate={lastSyncedAt || undefined}
           marketplaceOptions={marketplaceFilterOptions}
           customDateRange={customDateRange}
           onCustomDateRangeChange={setCustomDateRange}
