@@ -34,6 +34,7 @@ const Index = () => {
   const { selectedSeller, getActiveMarketplaces } = useSeller();
   const activeMarketplaces = getActiveMarketplaces();
   const { getMarketplaceSummaryForDateRange, updateMarketplaceQuantity, hasAnyData } = useSellerSalesData();
+  const { refreshData, lastSyncedAt, isLoading: isLoadingData } = useSalesData();
   const { toast } = useToast();
 
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodFilter>("month");
