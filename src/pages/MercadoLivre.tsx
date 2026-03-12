@@ -119,13 +119,22 @@ export default function MercadoLivre() {
   const loadFromCache = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
 
+    // Load user cache (optional — don't block on it)
     const { data: userCache } = await supabase
       .from("ml_user_cache")
       .select("*")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (!userCache) return false;
+    if (userCache) {
+      setMlUser({
+        id: userCache.ml_user_id,
+        nickname: userCache.nickname,
+        country: userCache.country,
+        permalink: userCache.permalink,
+      });
+      setActiveListings(userCache.active_listings || 0);
+    }
 
     const { data: dailyCache } = await supabase
       .from("ml_daily_cache")
@@ -134,15 +143,7 @@ export default function MercadoLivre() {
       .order("date", { ascending: false })
       .limit(1000);
 
-    if (!dailyCache || dailyCache.length === 0) return false;
-
-    setMlUser({
-      id: userCache.ml_user_id,
-      nickname: userCache.nickname,
-      country: userCache.country,
-      permalink: userCache.permalink,
-    });
-    setActiveListings(userCache.active_listings || 0);
+    if (!dailyCache || dailyCache.length === 0) return !!userCache;
     setAllDaily(dailyCache.map((r: any) => ({
       date: r.date,
       total: Number(r.total_revenue),
