@@ -156,6 +156,52 @@ export default function MercadoLivre() {
     return true;
   }, [user]);
 
+  /** Write daily breakdown + user info to cache from frontend (fallback for edge function) */
+  const saveToCache = useCallback(async (
+    dailyData: DailyBreakdown[],
+    mlUserInfo?: MLUser | null,
+    listings?: number,
+  ) => {
+    if (!user || dailyData.length === 0) return;
+    try {
+      const dailyRows = dailyData.map((d) => ({
+        user_id: user.id,
+        date: d.date,
+        total_revenue: d.total,
+        approved_revenue: d.approved,
+        qty_orders: d.qty,
+        cancelled_orders: d.cancelled || 0,
+        shipped_orders: d.shipped || 0,
+        synced_at: new Date().toISOString(),
+      }));
+
+      // Upsert in batches of 200
+      for (let i = 0; i < dailyRows.length; i += 200) {
+        const batch = dailyRows.slice(i, i + 200);
+        await supabase
+          .from("ml_daily_cache")
+          .upsert(batch, { onConflict: "user_id,date" });
+      }
+
+      if (mlUserInfo) {
+        await supabase
+          .from("ml_user_cache")
+          .upsert({
+            user_id: user.id,
+            ml_user_id: mlUserInfo.id,
+            nickname: mlUserInfo.nickname,
+            country: mlUserInfo.country,
+            permalink: mlUserInfo.permalink,
+            active_listings: listings || 0,
+            synced_at: new Date().toISOString(),
+          }, { onConflict: "user_id" });
+      }
+      console.log(`Frontend cache saved: ${dailyRows.length} daily rows`);
+    } catch (err) {
+      console.error("Frontend cache save error:", err);
+    }
+  }, [user]);
+
   const syncFromAPI = useCallback(async () => {
     if (!user) return;
     setSyncing(true);
@@ -191,16 +237,24 @@ export default function MercadoLivre() {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Sync failed");
 
-      setMlUser(data.user);
-      setActiveListings(data.metrics?.active_listings || 0);
-      setAllDaily((data.daily_breakdown || []).map((d: any) => ({
+      const userInfo: MLUser = data.user;
+      const listings = data.metrics?.active_listings || 0;
+      const dailyData: DailyBreakdown[] = (data.daily_breakdown || []).map((d: any) => ({
         date: d.date,
         total: d.total,
         approved: d.approved,
         qty: d.qty,
         cancelled: d.cancelled || 0,
         shipped: d.shipped || 0,
-      })));
+      }));
+
+      setMlUser(userInfo);
+      setActiveListings(listings);
+      setAllDaily(dailyData);
+
+      // Save to cache from frontend (edge function cache may fail silently)
+      await saveToCache(dailyData, userInfo, listings);
+
       const now = new Date().toLocaleString("pt-BR");
       setLastSyncedAt(now);
       localStorage.setItem(LAST_ML_SYNC_KEY, now);
@@ -210,7 +264,7 @@ export default function MercadoLivre() {
     } finally {
       setSyncing(false);
     }
-  }, [user, toast]);
+  }, [user, toast, saveToCache]);
 
   // Reload cache after historical import
   const reloadCache = useCallback(async () => {
