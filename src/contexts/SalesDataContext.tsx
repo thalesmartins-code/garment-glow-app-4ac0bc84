@@ -49,6 +49,7 @@ export function SalesDataProvider({ children }: { children: React.ReactNode }) {
   const [salesData, setSalesData] = useState<ImportedSale[]>([]);
   const [marketplaceQuantities, setMarketplaceQuantities] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => localStorage.getItem(LAST_SYNCED_KEY));
   const hasLoadedRef = useRef(false);
 
   const loadFromDB = useCallback(async () => {
