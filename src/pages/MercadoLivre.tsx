@@ -81,9 +81,9 @@ export default function MercadoLivre() {
 
   // Filter daily data locally based on period or custom range (UTC-based)
   const daily = allDaily.filter((d) => {
-    if (customRange) {
-      const from = format(customRange.from, "yyyy-MM-dd");
-      const to = format(customRange.to, "yyyy-MM-dd");
+    if (customRange?.from) {
+      const from = format(startOfDay(customRange.from), "yyyy-MM-dd");
+      const to = format(startOfDay(customRange.to ?? customRange.from), "yyyy-MM-dd");
       return d.date >= from && d.date <= to;
     }
     const cutoff = cutoffDateStr(period);
