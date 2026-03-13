@@ -76,6 +76,7 @@ export default function MercadoLivre() {
   const [period, setPeriod] = useState(0); // 0 = today (default)
   const [customRange, setCustomRange] = useState<DateRange>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [pendingRange, setPendingRange] = useState<DateRange>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => localStorage.getItem(LAST_ML_SYNC_KEY));
   const cacheLoadedRef = useRef(false);
 
