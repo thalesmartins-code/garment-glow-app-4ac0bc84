@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import {
-  DollarSign, ShoppingCart, TrendingUp, Tag, Megaphone, PackageCheck, PackageX, RefreshCw, ExternalLink, Plug, CalendarIcon, Info,
+  DollarSign, ShoppingCart, TrendingUp, Tag, Megaphone, PackageCheck, PackageX, RefreshCw, ExternalLink, Plug, CalendarIcon, Info, Check, X,
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
@@ -76,6 +76,7 @@ export default function MercadoLivre() {
   const [period, setPeriod] = useState(0); // 0 = today (default)
   const [customRange, setCustomRange] = useState<DateRange>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [pendingRange, setPendingRange] = useState<DateRange>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => localStorage.getItem(LAST_ML_SYNC_KEY));
   const cacheLoadedRef = useRef(false);
 
@@ -334,7 +335,10 @@ export default function MercadoLivre() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+          <Popover open={popoverOpen} onOpenChange={(open) => {
+            setPopoverOpen(open);
+            if (open) setPendingRange(customRange);
+          }}>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 text-xs">
                 <CalendarIcon className="w-3.5 h-3.5 mr-1" />
@@ -352,6 +356,7 @@ export default function MercadoLivre() {
                     onClick={() => {
                       setPeriod(opt.value);
                       setCustomRange(null);
+                      setPendingRange(null);
                       setPopoverOpen(false);
                     }}
                   >
@@ -361,29 +366,52 @@ export default function MercadoLivre() {
               </div>
               <Calendar
                 mode="range"
-                selected={customRange ?? undefined}
+                selected={pendingRange ?? undefined}
                 onSelect={(range) => {
                   if (!range?.from) {
-                    setCustomRange(null);
+                    setPendingRange(null);
                     return;
                   }
-
-                  const normalizedRange = {
+                  setPendingRange({
                     from: startOfDay(range.from),
                     to: range.to ? startOfDay(range.to) : undefined,
-                  };
-
-                  setCustomRange(normalizedRange);
-
-                  if (normalizedRange.to) {
-                    setPopoverOpen(false);
-                  }
+                  });
                 }}
                 disabled={(date) => date > new Date()}
                 numberOfMonths={2}
                 locale={ptBR}
                 className="pointer-events-auto"
               />
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-muted-foreground"
+                  onClick={() => {
+                    setCustomRange(null);
+                    setPendingRange(null);
+                    setPeriod(0);
+                    setPopoverOpen(false);
+                  }}
+                >
+                  <X className="w-3.5 h-3.5 mr-1" />
+                  Limpar
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-7 text-xs"
+                  disabled={!pendingRange?.from || !pendingRange?.to}
+                  onClick={() => {
+                    if (pendingRange?.from && pendingRange?.to) {
+                      setCustomRange(pendingRange);
+                      setPopoverOpen(false);
+                    }
+                  }}
+                >
+                  <Check className="w-3.5 h-3.5 mr-1" />
+                  Confirmar
+                </Button>
+              </div>
             </PopoverContent>
           </Popover>
           {mlUser?.permalink && (
