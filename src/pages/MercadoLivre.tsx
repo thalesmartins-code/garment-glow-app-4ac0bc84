@@ -46,7 +46,7 @@ const QUICK_RANGES = [
   { label: "30 dias", value: 30 },
 ] as const;
 
-type DateRange = { from: Date; to: Date } | null;
+type DateRange = { from?: Date; to?: Date } | null;
 
 const LAST_ML_SYNC_KEY = "ml_last_synced_at";
 
