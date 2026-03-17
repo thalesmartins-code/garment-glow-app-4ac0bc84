@@ -1,59 +1,130 @@
 
+Objetivo
 
-# Mudanca de Paleta de Cores para Tema Financeiro
+Melhorar o gráfico de “Vendas Diárias” na página Mercado Livre para incluir um modo “Venda/Hora”. Pelo que você definiu, esse modo deve:
+- aparecer para Hoje e 7 dias
+- exibir ambos: valor vendido e quantidade de pedidos
+- relacionar as vendas com a hora do dia
 
-## Objetivo
-Substituir a paleta atual (rose gold / moda) por uma paleta corporativa financeira baseada em **azul escuro (navy)** com acentos em **verde esmeralda**, transmitindo confianca, profissionalismo e solidez.
+Leitura do que existe hoje
 
-## Nova Paleta
+- A página `src/pages/MercadoLivre.tsx` carrega e exibe apenas dados diários (`allDaily` / `daily`).
+- O gráfico atual é um `AreaChart` com duas séries:
+  - Venda Total
+  - Venda Aprovada
+- A Edge Function `supabase/functions/mercado-libre-integration/index.ts` agrega só por dia e persiste apenas em `ml_daily_cache`.
+- Hoje não existe cache por hora, então o frontend não tem como montar essa visão sem uma nova fonte de dados.
 
-| Elemento | Atual (Rose Gold) | Novo (Financeiro) |
-|---|---|---|
-| Accent | Rosa dourado (HSL 15 45% 65%) | Azul navy (HSL 217 70% 45%) |
-| Sidebar BG | Cinza escuro quente | Azul muito escuro |
-| Gradient principal | Rosa para rosa escuro | Azul navy para azul royal |
-| Shadow glow | Rosa translucido | Azul translucido |
-| Success | Verde (mantido) | Verde (mantido) |
+Abordagem proposta
 
-## Arquivos a Alterar
+1. Adicionar cache horário no Supabase
+- Criar uma nova tabela, por exemplo `ml_hourly_cache`, com colunas no padrão do cache diário:
+  - `user_id`
+  - `date`
+  - `hour`
+  - `total_revenue`
+  - `approved_revenue`
+  - `qty_orders`
+  - `synced_at`
+- Aplicar RLS igual ao padrão já usado em `ml_daily_cache`:
+  - usuário vê/insere/atualiza/exclui apenas os próprios dados
+- Garantir unicidade por `user_id + date + hour`
 
-### 1. `src/index.css` - Variaveis CSS (arquivo principal)
-- Trocar comentario do design system de "Fashion Store" para "Financial Management SaaS"
-- **:root (light mode)**:
-  - `--accent`: de `15 45% 65%` para `217 70% 45%` (azul corporativo)
-  - `--ring`: de `15 45% 65%` para `217 70% 45%`
-  - `--sidebar-background`: de `24 10% 8%` para `217 50% 10%`
-  - `--sidebar-primary`: de `15 45% 65%` para `217 70% 45%`
-  - `--sidebar-accent`: de `24 10% 15%` para `217 40% 18%`
-  - `--sidebar-border`: de `24 10% 18%` para `217 30% 22%`
-  - `--sidebar-ring`: de `15 45% 65%` para `217 70% 45%`
-  - `--gradient-rose` renomear para `--gradient-primary`: gradiente azul navy
-  - `--shadow-glow`: tom azul translucido
-- **Dark mode**: mesmas mudancas adaptadas para tons escuros
+2. Estender a Edge Function para agregar por hora
+- Reaproveitar os pedidos já buscados em `mercado-libre-integration`.
+- Durante a agregação, montar também um mapa horário com:
+  - valor total vendido por hora
+  - valor aprovado por hora
+  - quantidade de pedidos por hora
+- Persistir esse agregado em `ml_hourly_cache`.
+- Incluir `hourly_breakdown` na resposta da function, além do `daily_breakdown`.
 
-### 2. `src/index.css` - Classes utilitarias
-- Renomear `.text-gradient` para usar novo gradiente
-- Renomear `.bg-gradient-rose` para `.bg-gradient-primary` (manter `.bg-gradient-rose` como alias para nao quebrar)
-- Atualizar gradientes para tons azuis
+3. Tratar corretamente o horário
+- Para evitar distorção de fuso, o bucket por hora deve ser derivado de `order.date_created` preservando a hora do próprio timestamp retornado pelo Mercado Livre.
+- Isso evita deslocamentos de hora por conversão UTC/local do navegador.
 
-### 3. `tailwind.config.ts`
-- Sem alteracoes estruturais necessarias (ja usa variaveis CSS)
+4. Atualizar o fluxo de sincronização no frontend
+- Em `MercadoLivre.tsx`, além do cache diário, carregar dados horários quando o modo “Venda/Hora” estiver ativo.
+- Não carregar histórico horário completo sem necessidade:
+  - Hoje: buscar somente o dia atual
+  - 7 dias: buscar apenas os últimos 7 dias
+- Isso evita excesso de linhas e risco de limite de consulta.
+- Em `HistoricalSyncModal.tsx`, salvar também o `hourly_breakdown` quando a importação histórica retornar esses dados.
 
-### 4. Componentes que usam `bg-gradient-rose` e `shadow-glow` (atualizacao de referencia)
-Arquivos que referenciam a classe antiga:
-- `src/components/dashboard/MetricCard.tsx` - trocar `bg-gradient-rose` por `bg-gradient-primary`
-- `src/components/dashboard/RecentSales.tsx` - trocar `bg-gradient-rose`
-- `src/components/chat/FloatingChat.tsx` - trocar `bg-gradient-rose` (4 ocorrencias)
-- `src/components/layout/Sidebar.tsx` - trocar `bg-gradient-rose`
-- `src/pages/FinanceiroDashboard.tsx` - verificar e atualizar se necessario
-- Demais paginas que usem a classe
+5. Trocar o gráfico por uma visualização que suporte 2 métricas
+- Substituir o `AreaChart` atual por um `ComposedChart` no bloco do gráfico do Mercado Livre.
+- No modo diário:
+  - manter a experiência atual, com receita como destaque
+- No modo “Venda/Hora”:
+  - eixo X: horas do dia (`00h` a `23h`)
+  - série de receita: linha/área
+  - série de pedidos: barras ou linha secundária
+  - usar dois eixos Y:
+    - um para moeda
+    - um para quantidade de pedidos
 
-### 5. Graficos (`src/pages/FinanceiroDashboard.tsx`, `FinanceiroDRE.tsx`, `FinanceiroDFC.tsx`)
-- Atualizar cores dos graficos (bars, areas, pies) de tons rosados para tons azuis/verdes corporativos
+Comportamento da nova opção
 
-## Resultado Esperado
-- Sidebar em azul escuro profissional
-- Gradientes e botoes de destaque em azul corporativo
-- Graficos com paleta azul/verde/cinza
-- Visual coerente com um sistema financeiro serio e confiavel
+- Adicionar um controle no cabeçalho do card do gráfico:
+  - `Diário`
+  - `Venda/Hora`
+- Regras:
+  - Hoje: “Venda/Hora” disponível
+  - 7 dias: “Venda/Hora” disponível
+  - períodos maiores/customizados: desabilitar ou esconder a opção e manter gráfico diário
+- Para 7 dias, a leitura mais útil é:
+  - agregar por faixa horária somando todos os dias do período
+  - exemplo: todas as vendas feitas às 10h nos últimos 7 dias entram no bucket `10h`
+- Isso mantém o eixo limpo e realmente mostra a “relação entre vendas e hora”.
 
+UX prevista
+
+- Título dinâmico:
+  - `Vendas Diárias — Hoje`
+  - `Venda por Hora — Hoje`
+  - `Venda por Hora — Últimos 7 dias`
+- Tooltip adaptado:
+  - em modo horário, mostrar hora + receita + pedidos
+- Legenda clara:
+  - `Venda Total`
+  - `Venda Aprovada`
+  - `Pedidos`
+- Se não houver cache horário ainda:
+  - mostrar estado vazio orientando a sincronizar novamente
+
+Arquivos que provavelmente serão envolvidos
+
+- `src/pages/MercadoLivre.tsx`
+- `src/components/mercadolivre/HistoricalSyncModal.tsx`
+- `supabase/functions/mercado-libre-integration/index.ts`
+- `supabase/migrations/...` para criar `ml_hourly_cache` e políticas RLS
+
+Detalhes técnicos importantes
+
+- Não faz sentido tentar montar “Venda/Hora” só no frontend com o estado atual, porque os dados armazenados hoje são apenas diários.
+- A solução mais sólida é persistir agregado horário no backend no mesmo momento em que os pedidos já são processados.
+- Para o período de 7 dias, agregar por “hora do dia” é melhor do que usar um eixo com `data + hora`, que ficaria poluído e difícil de ler.
+- Como o gráfico misturará moeda e quantidade, `ComposedChart` com eixo duplo é a opção mais adequada.
+
+Plano de implementação
+
+1. Criar a tabela `ml_hourly_cache` com RLS e chave única por usuário/data/hora.
+2. Atualizar `mercado-libre-integration` para:
+   - agregar por dia e por hora
+   - persistir os dois caches
+   - retornar `hourly_breakdown`
+3. Atualizar o fallback de cache do frontend para suportar os dados horários.
+4. Adicionar o toggle `Diário / Venda-Hora` no card do gráfico.
+5. Trocar o gráfico atual por um `ComposedChart` com modo diário e modo horário.
+6. Restringir o modo horário para Hoje e 7 dias.
+7. Ajustar tooltip, legenda, título e empty states.
+8. Validar manualmente os cenários:
+   - Hoje em modo diário
+   - Hoje em modo horário
+   - 7 dias em modo diário
+   - 7 dias em modo horário
+   - período maior que 7 dias com modo horário indisponível
+
+Resultado esperado
+
+Você terá o mesmo dashboard atual, mas com uma leitura adicional muito mais útil para operação: identificar em quais horas do dia o Mercado Livre vende mais, tanto em faturamento quanto em número de pedidos, para Hoje e para os últimos 7 dias.
