@@ -163,6 +163,7 @@ export default function MercadoLivre() {
     : null;
 
   const isHourlyAvailable = period === 0 || !!singleDayRange;
+  const hourlyTargetDate = singleDayRange ?? (period === 0 ? todayUTC() : null);
   const activeFilterKey = customRange?.from
     ? `${format(startOfDay(customRange.from), "yyyy-MM-dd")}:${format(startOfDay(customRange.to ?? customRange.from), "yyyy-MM-dd")}`
     : `period:${period}`;
