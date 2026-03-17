@@ -48,6 +48,60 @@ async function fetchOrdersChunk(
   return allOrders;
 }
 
+/** Fetch visits per day using the ML items_visits API */
+async function fetchVisits(
+  sellerId: number,
+  dateFrom: string,
+  dateTo: string,
+  accessToken: string
+): Promise<Record<string, number>> {
+  const visitsMap: Record<string, number> = {};
+  try {
+    const data = await mlFetch(
+      `/users/${sellerId}/items_visits?date_from=${dateFrom}&date_to=${dateTo}`,
+      accessToken
+    );
+    // API returns array of { date, total } or similar structure
+    if (Array.isArray(data)) {
+      for (const entry of data) {
+        if (entry.date && typeof entry.total === "number") {
+          visitsMap[entry.date.substring(0, 10)] = entry.total;
+        }
+      }
+    } else if (data.results && Array.isArray(data.results)) {
+      for (const entry of data.results) {
+        if (entry.date && typeof entry.total === "number") {
+          visitsMap[entry.date.substring(0, 10)] = entry.total;
+        }
+      }
+    } else if (typeof data.total_visits === "number") {
+      // Fallback: single total — can't split by day
+      console.log(`Visits API returned total_visits=${data.total_visits} (no daily breakdown)`);
+    }
+  } catch (err) {
+    console.error("Visits API error (non-critical):", err);
+  }
+  return visitsMap;
+}
+
+/** Count unique buyers per day from orders */
+function countUniqueBuyers(orders: any[]): Record<string, number> {
+  const dailyBuyers: Record<string, Set<number>> = {};
+  for (const order of orders) {
+    const date = order.date_created ? order.date_created.substring(0, 10) : null;
+    const buyerId = order.buyer?.id;
+    if (date && buyerId) {
+      if (!dailyBuyers[date]) dailyBuyers[date] = new Set();
+      dailyBuyers[date].add(buyerId);
+    }
+  }
+  const result: Record<string, number> = {};
+  for (const [date, buyers] of Object.entries(dailyBuyers)) {
+    result[date] = buyers.size;
+  }
+  return result;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -63,7 +117,6 @@ serve(async (req) => {
       );
     }
 
-    // Create supabase admin client for cache writes
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -73,7 +126,7 @@ serve(async (req) => {
     const user = await mlFetch("/users/me", access_token);
     const sellerId = user.id;
 
-    // 2. Determine date range — either explicit or relative
+    // 2. Determine date range
     let rangeStart: Date;
     let rangeEnd: Date;
     let periodDays: number;
@@ -140,7 +193,7 @@ serve(async (req) => {
     let approvedRevenue = 0;
     let cancelledOrders = 0;
     let shippedOrders = 0;
-    const dailySales: Record<string, { total: number; approved: number; qty: number; cancelled: number; shipped: number }> = {};
+    const dailySales: Record<string, { total: number; approved: number; qty: number; cancelled: number; shipped: number; unique_visits: number; unique_buyers: number }> = {};
 
     for (const order of orders) {
       const amount = order.total_amount || 0;
@@ -161,7 +214,7 @@ serve(async (req) => {
 
       if (date) {
         if (!dailySales[date]) {
-          dailySales[date] = { total: 0, approved: 0, qty: 0, cancelled: 0, shipped: 0 };
+          dailySales[date] = { total: 0, approved: 0, qty: 0, cancelled: 0, shipped: 0, unique_visits: 0, unique_buyers: 0 };
         }
         dailySales[date].total += amount;
         dailySales[date].qty += 1;
@@ -177,7 +230,28 @@ serve(async (req) => {
       }
     }
 
-    // 4. Get active listings count
+    // 4. Count unique buyers per day
+    const dailyBuyers = countUniqueBuyers(orders);
+    for (const [date, count] of Object.entries(dailyBuyers)) {
+      if (dailySales[date]) {
+        dailySales[date].unique_buyers = count;
+      }
+    }
+    const totalUniqueBuyers = new Set(orders.map(o => o.buyer?.id).filter(Boolean)).size;
+
+    // 5. Fetch visits
+    const rangeFromStr = rangeStart.toISOString().substring(0, 10);
+    const rangeToStr = rangeEnd.toISOString().substring(0, 10);
+    const dailyVisits = await fetchVisits(sellerId, rangeFromStr, rangeToStr, access_token);
+    let totalVisits = 0;
+    for (const [date, visits] of Object.entries(dailyVisits)) {
+      totalVisits += visits;
+      if (dailySales[date]) {
+        dailySales[date].unique_visits = visits;
+      }
+    }
+
+    // 6. Get active listings count
     let activeListings = 0;
     try {
       const itemsSearch = await mlFetch(
@@ -189,10 +263,9 @@ serve(async (req) => {
       // non-critical
     }
 
-    // 5. Save to cache if user_id provided
+    // 7. Save to cache if user_id provided
     if (user_id) {
       try {
-        // Upsert daily cache
         const dailyRows = Object.entries(dailySales).map(([date, data]) => ({
           user_id,
           date,
@@ -201,6 +274,8 @@ serve(async (req) => {
           qty_orders: data.qty,
           cancelled_orders: data.cancelled,
           shipped_orders: data.shipped,
+          unique_visits: data.unique_visits,
+          unique_buyers: data.unique_buyers,
           synced_at: new Date().toISOString(),
         }));
 
@@ -211,7 +286,6 @@ serve(async (req) => {
           if (cacheErr) console.error("Cache upsert error:", cacheErr);
         }
 
-        // Upsert user cache
         const { error: userCacheErr } = await supabaseAdmin
           .from("ml_user_cache")
           .upsert({
@@ -231,10 +305,12 @@ serve(async (req) => {
       }
     }
 
-    // 6. Build daily breakdown
+    // 8. Build daily breakdown
     const dailyBreakdown = Object.entries(dailySales)
       .map(([date, data]) => ({ date, ...data }))
       .sort((a, b) => b.date.localeCompare(a.date));
+
+    const conversionRate = totalVisits > 0 ? (totalUniqueBuyers / totalVisits) * 100 : 0;
 
     const response = {
       success: true,
@@ -252,6 +328,9 @@ serve(async (req) => {
         shipped_orders: shippedOrders,
         active_listings: activeListings,
         avg_ticket: totalOrders > 0 ? totalRevenue / totalOrders : 0,
+        unique_visits: totalVisits,
+        unique_buyers: totalUniqueBuyers,
+        conversion_rate: conversionRate,
         period: `last_${periodDays}_days`,
       },
       daily_breakdown: dailyBreakdown,
