@@ -242,7 +242,6 @@ export default function MercadoLivre() {
         country: userCache.country,
         permalink: userCache.permalink,
       });
-      setActiveListings(userCache.active_listings || 0);
     }
 
     const { data: dailyCache } = await supabase
