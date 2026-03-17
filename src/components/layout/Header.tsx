@@ -1,4 +1,4 @@
-import { Bell, Check, ChevronDown, Store, User, LogOut, SlidersHorizontal } from "lucide-react";
+import { Bell, Check, ChevronDown, LogOut, SlidersHorizontal, Store, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,9 +16,10 @@ import { useAuth } from "@/contexts/AuthContext";
 interface HeaderProps {
   title: string;
   subtitle?: string;
+  showSellerSwitcher?: boolean;
 }
 
-export function Header({ title, subtitle }: HeaderProps) {
+export function Header({ title, subtitle, showSellerSwitcher = true }: HeaderProps) {
   const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
   const { profile, role, signOut } = useAuth();
   const navigate = useNavigate();
@@ -33,88 +34,78 @@ export function Header({ title, subtitle }: HeaderProps) {
   const roleLabel = role === "admin" ? "Admin" : role === "editor" ? "Editor" : "Viewer";
 
   return (
-    <header className="flex items-center justify-between px-8 py-6 bg-card border-b border-border">
+    <header className="flex items-center justify-between border-b border-border bg-card px-8 py-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          {title}
-        </h1>
-        {subtitle && (
-          <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
-        )}
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+        {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Seller Switcher */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="gap-2.5 h-10 px-3 rounded-xl bg-secondary/50 hover:bg-secondary border-0"
-            >
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-accent-foreground text-[11px] font-bold"
-                style={{ background: "var(--gradient-primary)" }}
+        {showSellerSwitcher && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-10 gap-2.5 rounded-xl border-0 bg-secondary/50 px-3 hover:bg-secondary"
               >
-                {selectedSeller.initials}
-              </div>
-              <span className="text-sm font-medium text-foreground hidden sm:inline">
-                {selectedSeller.name}
-              </span>
-              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground ml-0.5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52 rounded-xl p-1.5">
-            <DropdownMenuLabel className="flex items-center gap-2 text-xs text-muted-foreground px-2 py-1.5">
-              <Store className="w-3.5 h-3.5" />
-              Trocar Seller
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {activeSellers.map((seller) => {
-              const isActive = seller.id === selectedSeller.id;
-              return (
-                <DropdownMenuItem
-                  key={seller.id}
-                  onClick={() => setSelectedSeller(seller.id)}
-                  className={`gap-2.5 rounded-lg px-2 py-2 cursor-pointer ${
-                    isActive ? "bg-accent/10" : ""
-                  }`}
+                <div
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-accent-foreground"
+                  style={{ background: "var(--gradient-primary)" }}
                 >
-                  <div
-                    className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                      isActive
-                        ? "text-accent-foreground"
-                        : "bg-secondary text-secondary-foreground"
-                    }`}
-                    style={isActive ? { background: "var(--gradient-primary)" } : undefined}
-                  >
-                    {seller.initials}
-                  </div>
-                  <span className={`text-sm flex-1 ${isActive ? "font-semibold" : "font-medium"}`}>
-                    {seller.name}
-                  </span>
-                  {isActive && <Check className="w-4 h-4 text-accent shrink-0" />}
-                </DropdownMenuItem>
-              );
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                  {selectedSeller.initials}
+                </div>
+                <span className="hidden text-sm font-medium text-foreground sm:inline">{selectedSeller.name}</span>
+                <ChevronDown className="ml-0.5 h-3.5 w-3.5 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52 rounded-xl p-1.5">
+              <DropdownMenuLabel className="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground">
+                <Store className="h-3.5 w-3.5" />
+                Trocar Seller
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {activeSellers.map((seller) => {
+                const isActive = seller.id === selectedSeller.id;
 
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative hover:bg-secondary/50 rounded-xl">
-          <Bell className="w-5 h-5 text-muted-foreground" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full" />
+                return (
+                  <DropdownMenuItem
+                    key={seller.id}
+                    onClick={() => setSelectedSeller(seller.id)}
+                    className={`cursor-pointer gap-2.5 rounded-lg px-2 py-2 ${isActive ? "bg-accent/10" : ""}`}
+                  >
+                    <div
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${
+                        isActive ? "text-accent-foreground" : "bg-secondary text-secondary-foreground"
+                      }`}
+                      style={isActive ? { background: "var(--gradient-primary)" } : undefined}
+                    >
+                      {seller.initials}
+                    </div>
+                    <span className={`flex-1 text-sm ${isActive ? "font-semibold" : "font-medium"}`}>
+                      {seller.name}
+                    </span>
+                    {isActive && <Check className="h-4 w-4 shrink-0 text-accent" />}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        <Button variant="ghost" size="icon" className="relative rounded-xl hover:bg-secondary/50">
+          <Bell className="h-5 w-5 text-muted-foreground" />
+          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-accent" />
         </Button>
 
-        {/* User menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-3 pl-2 pr-4 hover:bg-secondary/50 hover:text-foreground rounded-xl">
-              <Avatar className="w-8 h-8">
-                <AvatarFallback className="bg-accent text-accent-foreground text-sm font-medium">
+            <Button variant="ghost" className="gap-3 rounded-xl pl-2 pr-4 hover:bg-secondary/50 hover:text-foreground">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-accent text-sm font-medium text-accent-foreground">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="text-left hidden sm:block">
+              <div className="hidden text-left sm:block">
                 <p className="text-sm font-medium">{displayName}</p>
                 <p className="text-xs text-muted-foreground">{roleLabel}</p>
               </div>
@@ -124,16 +115,16 @@ export function Header({ title, subtitle }: HeaderProps) {
             <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/perfil")}>
-              <User className="w-4 h-4 mr-2" />
+              <User className="mr-2 h-4 w-4" />
               Perfil
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
-              <SlidersHorizontal className="w-4 h-4 mr-2" />
+              <SlidersHorizontal className="mr-2 h-4 w-4" />
               Configurações
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive" onClick={signOut}>
-              <LogOut className="w-4 h-4 mr-2" />
+              <LogOut className="mr-2 h-4 w-4" />
               Sair
             </DropdownMenuItem>
           </DropdownMenuContent>
