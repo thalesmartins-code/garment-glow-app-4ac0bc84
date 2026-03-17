@@ -584,7 +584,7 @@ export default function MercadoLivre() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard title="Ticket Médio" value={metrics ? currencyFmt(metrics.avg_ticket) : "—"} icon={<Tag className="w-5 h-5" />} variant="orange" loading={loading} refreshing={syncing} />
+        <KPICard title="Ticket Médio" value={metrics ? metrics.avg_ticket.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 }) : "—"} icon={<Tag className="w-5 h-5" />} variant="orange" loading={loading} refreshing={syncing} />
         <KPICard title="Anúncios Ativos" value={String(activeListings)} icon={<Tag className="w-5 h-5" />} variant="neutral" loading={loading} refreshing={syncing} />
         <KPICard title="Pedidos Enviados" value={String(daily.reduce((s, d) => s + d.shipped, 0))} icon={<TrendingUp className="w-5 h-5" />} variant="success" loading={loading} refreshing={syncing} />
         <KPICard title="Pedidos Cancelados" value={String(daily.reduce((s, d) => s + d.cancelled, 0))} icon={<X className="w-5 h-5" />} variant="danger" loading={loading} refreshing={syncing} />
