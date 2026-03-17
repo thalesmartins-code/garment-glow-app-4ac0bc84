@@ -18,10 +18,18 @@ interface DailyBreakdown {
   unique_buyers: number;
 }
 
+interface HourlyBreakdown {
+  date: string;
+  hour: number;
+  total: number;
+  approved: number;
+  qty: number;
+}
+
 interface Props {
   accessToken: string | null;
   onSyncComplete: () => void;
-  saveToCache?: (dailyData: DailyBreakdown[]) => Promise<void>;
+  saveToCache?: (dailyData: DailyBreakdown[], hourlyData?: HourlyBreakdown[]) => Promise<void>;
 }
 
 const MONTHS = [
@@ -53,7 +61,7 @@ export function HistoricalSyncModal({ accessToken, onSyncComplete, saveToCache }
     const from = new Date(Number(fromYear), Number(fromMonth), 1);
     const toMonthNum = Number(toMonth);
     const toYearNum = Number(toYear);
-    const to = new Date(toYearNum, toMonthNum + 1, 0); // last day of month
+    const to = new Date(toYearNum, toMonthNum + 1, 0);
 
     if (from > to) {
       toast({ title: "Erro", description: "O período inicial deve ser anterior ao final.", variant: "destructive" });
@@ -67,7 +75,6 @@ export function HistoricalSyncModal({ accessToken, onSyncComplete, saveToCache }
 
     setSyncing(true);
 
-    // Split into monthly chunks to avoid timeouts
     const monthChunks: Array<{ date_from: string; date_to: string; label: string }> = [];
     let cursor = new Date(from);
 
@@ -102,19 +109,27 @@ export function HistoricalSyncModal({ accessToken, onSyncComplete, saveToCache }
         if (error) throw error;
         if (!data?.success) throw new Error(data?.error || `Falha ao importar ${chunk.label}`);
 
-        // Save to cache from frontend (edge function cache write may fail)
-        if (saveToCache && data.daily_breakdown) {
-          const dailyData: DailyBreakdown[] = data.daily_breakdown.map((d: any) => ({
+        if (saveToCache && (data.daily_breakdown || data.hourly_breakdown)) {
+          const dailyData: DailyBreakdown[] = (data.daily_breakdown || []).map((d: any) => ({
             date: d.date,
-            total: d.total,
-            approved: d.approved,
-            qty: d.qty,
-            cancelled: d.cancelled || 0,
-            shipped: d.shipped || 0,
-            unique_visits: d.unique_visits || 0,
-            unique_buyers: d.unique_buyers || 0,
+            total: Number(d.total ?? 0),
+            approved: Number(d.approved ?? 0),
+            qty: Number(d.qty ?? 0),
+            cancelled: Number(d.cancelled || 0),
+            shipped: Number(d.shipped || 0),
+            unique_visits: Number(d.unique_visits || 0),
+            unique_buyers: Number(d.unique_buyers || 0),
           }));
-          await saveToCache(dailyData);
+
+          const hourlyData: HourlyBreakdown[] = (data.hourly_breakdown || []).map((d: any) => ({
+            date: d.date,
+            hour: Number(d.hour ?? 0),
+            total: Number(d.total ?? 0),
+            approved: Number(d.approved ?? 0),
+            qty: Number(d.qty ?? 0),
+          }));
+
+          await saveToCache(dailyData, hourlyData);
         }
       }
 
@@ -145,7 +160,6 @@ export function HistoricalSyncModal({ accessToken, onSyncComplete, saveToCache }
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4 mt-4">
-          {/* From */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">De</label>
             <Select value={fromMonth} onValueChange={setFromMonth}>
@@ -166,7 +180,6 @@ export function HistoricalSyncModal({ accessToken, onSyncComplete, saveToCache }
             </Select>
           </div>
 
-          {/* To */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Até</label>
             <Select value={toMonth} onValueChange={setToMonth}>

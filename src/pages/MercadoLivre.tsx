@@ -10,15 +10,37 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import {
-  DollarSign, ShoppingCart, TrendingUp, Tag, Eye, Users, Percent, RefreshCw, ExternalLink, Plug, CalendarIcon, Info, Check, X,
+  DollarSign,
+  ShoppingCart,
+  TrendingUp,
+  Tag,
+  Eye,
+  Users,
+  Percent,
+  RefreshCw,
+  ExternalLink,
+  Plug,
+  CalendarIcon,
+  Info,
+  Check,
+  X,
+  Clock3,
 } from "lucide-react";
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
+  ComposedChart,
+  Area,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Legend,
 } from "recharts";
-import { format, parseISO, subDays, startOfDay } from "date-fns";
+import { format, parseISO, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 
 interface MLUser {
   id: number;
@@ -38,6 +60,17 @@ interface DailyBreakdown {
   unique_buyers: number;
 }
 
+interface HourlyBreakdown {
+  date: string;
+  hour: number;
+  total: number;
+  approved: number;
+  qty: number;
+}
+
+type ChartMode = "daily" | "hourly";
+type DateRange = { from: Date; to?: Date } | null;
+
 const currencyFmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -48,11 +81,8 @@ const QUICK_RANGES = [
   { label: "30 dias", value: 30 },
 ] as const;
 
-type DateRange = { from: Date; to?: Date } | null;
-
 const LAST_ML_SYNC_KEY = "ml_last_synced_at";
 
-/** Returns today's date string in yyyy-MM-dd using UTC to match ML API dates */
 function todayUTC() {
   const now = new Date();
   return now.toISOString().substring(0, 10);
@@ -65,6 +95,49 @@ function cutoffDateStr(daysBack: number) {
   return d.toISOString().substring(0, 10);
 }
 
+function mapDailyRow(row: any): DailyBreakdown {
+  return {
+    date: row.date,
+    total: Number(row.total_revenue ?? row.total ?? 0),
+    approved: Number(row.approved_revenue ?? row.approved ?? 0),
+    qty: Number(row.qty_orders ?? row.qty ?? 0),
+    cancelled: Number(row.cancelled_orders ?? row.cancelled ?? 0),
+    shipped: Number(row.shipped_orders ?? row.shipped ?? 0),
+    unique_visits: Number(row.unique_visits ?? 0),
+    unique_buyers: Number(row.unique_buyers ?? 0),
+  };
+}
+
+function mapHourlyRow(row: any): HourlyBreakdown {
+  return {
+    date: row.date,
+    hour: Number(row.hour ?? 0),
+    total: Number(row.total_revenue ?? row.total ?? 0),
+    approved: Number(row.approved_revenue ?? row.approved ?? 0),
+    qty: Number(row.qty_orders ?? row.qty ?? 0),
+  };
+}
+
+function buildHourlyChartData(hourlyRows: HourlyBreakdown[]) {
+  const buckets = Array.from({ length: 24 }, (_, hour) => ({
+    label: `${String(hour).padStart(2, "0")}h`,
+    hour,
+    "Venda Total": 0,
+    "Venda Aprovada": 0,
+    Pedidos: 0,
+  }));
+
+  hourlyRows.forEach((row) => {
+    const bucket = buckets[row.hour];
+    if (!bucket) return;
+    bucket["Venda Total"] += row.total;
+    bucket["Venda Aprovada"] += row.approved;
+    bucket.Pedidos += row.qty;
+  });
+
+  return buckets;
+}
+
 export default function MercadoLivre() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -74,15 +147,24 @@ export default function MercadoLivre() {
   const [mlUser, setMlUser] = useState<MLUser | null>(null);
   const [cachedAccessToken, setCachedAccessToken] = useState<string | null>(null);
   const [allDaily, setAllDaily] = useState<DailyBreakdown[]>([]);
+  const [allHourly, setAllHourly] = useState<HourlyBreakdown[]>([]);
   const [activeListings, setActiveListings] = useState(0);
-  const [period, setPeriod] = useState(0); // 0 = today (default)
+  const [period, setPeriod] = useState(0);
   const [customRange, setCustomRange] = useState<DateRange>(null);
+  const [chartMode, setChartMode] = useState<ChartMode>("daily");
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [pendingRange, setPendingRange] = useState<DateRange>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => localStorage.getItem(LAST_ML_SYNC_KEY));
   const cacheLoadedRef = useRef(false);
 
-  // Filter daily data locally based on period or custom range (UTC-based)
+  const isHourlyAvailable = !customRange && (period === 0 || period === 7);
+
+  useEffect(() => {
+    if (!isHourlyAvailable && chartMode === "hourly") {
+      setChartMode("daily");
+    }
+  }, [isHourlyAvailable, chartMode]);
+
   const daily = allDaily.filter((d) => {
     if (customRange?.from) {
       const from = format(startOfDay(customRange.from), "yyyy-MM-dd");
@@ -93,13 +175,20 @@ export default function MercadoLivre() {
     return d.date >= cutoff;
   });
 
+  const hourly = allHourly.filter((d) => {
+    if (!isHourlyAvailable) return false;
+    const cutoff = cutoffDateStr(period);
+    return d.date >= cutoff;
+  });
+
   const periodLabel = customRange?.from
     ? customRange.to
       ? `${format(customRange.from, "dd/MM/yy")} – ${format(customRange.to, "dd/MM/yy")}`
       : `Início: ${format(customRange.from, "dd/MM/yy")}`
-    : period === 0 ? "Hoje" : `Últimos ${period} dias`;
+    : period === 0
+      ? "Hoje"
+      : `Últimos ${period} dias`;
 
-  // Compute metrics from filtered daily data
   const metrics = daily.length > 0 ? {
     total_revenue: daily.reduce((s, d) => s + d.total, 0),
     approved_revenue: daily.reduce((s, d) => s + d.approved, 0),
@@ -115,17 +204,32 @@ export default function MercadoLivre() {
     if (metrics.unique_visits > 0) metrics.conversion_rate = (metrics.unique_buyers / metrics.unique_visits) * 100;
   }
 
-  // Totals for footer
   const totals = {
     qty: daily.reduce((s, d) => s + d.qty, 0),
     total: daily.reduce((s, d) => s + d.total, 0),
     approved: daily.reduce((s, d) => s + d.approved, 0),
   };
 
+  const loadHourlyCache = useCallback(async () => {
+    if (!user) return [] as HourlyBreakdown[];
+
+    const { data } = await (supabase as any)
+      .from("ml_hourly_cache")
+      .select("*")
+      .eq("user_id", user.id)
+      .gte("date", cutoffDateStr(7))
+      .order("date", { ascending: false })
+      .order("hour", { ascending: true })
+      .limit(500);
+
+    const mapped = (data || []).map(mapHourlyRow);
+    setAllHourly(mapped);
+    return mapped;
+  }, [user]);
+
   const loadFromCache = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
 
-    // Load user cache (optional — don't block on it)
     const { data: userCache } = await supabase
       .from("ml_user_cache")
       .select("*")
@@ -149,29 +253,26 @@ export default function MercadoLivre() {
       .order("date", { ascending: false })
       .limit(1000);
 
-    if (!dailyCache || dailyCache.length === 0) return !!userCache;
-    setAllDaily(dailyCache.map((r: any) => ({
-      date: r.date,
-      total: Number(r.total_revenue),
-      approved: Number(r.approved_revenue),
-      qty: r.qty_orders,
-      cancelled: r.cancelled_orders || 0,
-      shipped: r.shipped_orders || 0,
-      unique_visits: r.unique_visits || 0,
-      unique_buyers: r.unique_buyers || 0,
-    })));
+    if (!dailyCache || dailyCache.length === 0) {
+      setAllDaily([]);
+      return !!userCache;
+    }
+
+    setAllDaily(dailyCache.map(mapDailyRow));
     setConnected(true);
     return true;
   }, [user]);
 
-  /** Write daily breakdown + user info to cache from frontend (fallback for edge function) */
   const saveToCache = useCallback(async (
     dailyData: DailyBreakdown[],
+    hourlyData: HourlyBreakdown[] = [],
     mlUserInfo?: MLUser | null,
     listings?: number,
   ) => {
     if (!user || dailyData.length === 0) return;
+
     try {
+      const syncedAt = new Date().toISOString();
       const dailyRows = dailyData.map((d) => ({
         user_id: user.id,
         date: d.date,
@@ -182,15 +283,33 @@ export default function MercadoLivre() {
         shipped_orders: d.shipped || 0,
         unique_visits: d.unique_visits || 0,
         unique_buyers: d.unique_buyers || 0,
-        synced_at: new Date().toISOString(),
+        synced_at: syncedAt,
       }));
 
-      // Upsert in batches of 200
       for (let i = 0; i < dailyRows.length; i += 200) {
         const batch = dailyRows.slice(i, i + 200);
         await supabase
           .from("ml_daily_cache")
           .upsert(batch, { onConflict: "user_id,date" });
+      }
+
+      if (hourlyData.length > 0) {
+        const hourlyRows = hourlyData.map((h) => ({
+          user_id: user.id,
+          date: h.date,
+          hour: h.hour,
+          total_revenue: h.total,
+          approved_revenue: h.approved,
+          qty_orders: h.qty,
+          synced_at: syncedAt,
+        }));
+
+        for (let i = 0; i < hourlyRows.length; i += 200) {
+          const batch = hourlyRows.slice(i, i + 200);
+          await (supabase as any)
+            .from("ml_hourly_cache")
+            .upsert(batch, { onConflict: "user_id,date,hour" });
+        }
       }
 
       if (mlUserInfo) {
@@ -203,10 +322,9 @@ export default function MercadoLivre() {
             country: mlUserInfo.country,
             permalink: mlUserInfo.permalink,
             active_listings: listings || 0,
-            synced_at: new Date().toISOString(),
+            synced_at: syncedAt,
           }, { onConflict: "user_id" });
       }
-      console.log(`Frontend cache saved: ${dailyRows.length} daily rows`);
     } catch (err) {
       console.error("Frontend cache save error:", err);
     }
@@ -215,6 +333,7 @@ export default function MercadoLivre() {
   const syncFromAPI = useCallback(async () => {
     if (!user) return;
     setSyncing(true);
+
     try {
       const { data: tokenRow } = await supabase
         .from("ml_tokens")
@@ -239,7 +358,6 @@ export default function MercadoLivre() {
       setCachedAccessToken(accessToken);
       setConnected(true);
 
-      // Always fetch 30 days to populate full cache
       const { data, error } = await supabase.functions.invoke("mercado-libre-integration", {
         body: { access_token: accessToken, days: 30, user_id: user.id },
       });
@@ -249,23 +367,15 @@ export default function MercadoLivre() {
 
       const userInfo: MLUser = data.user;
       const listings = data.metrics?.active_listings || 0;
-      const dailyData: DailyBreakdown[] = (data.daily_breakdown || []).map((d: any) => ({
-        date: d.date,
-        total: d.total,
-        approved: d.approved,
-        qty: d.qty,
-        cancelled: d.cancelled || 0,
-        shipped: d.shipped || 0,
-        unique_visits: d.unique_visits || 0,
-        unique_buyers: d.unique_buyers || 0,
-      }));
+      const dailyData: DailyBreakdown[] = (data.daily_breakdown || []).map(mapDailyRow);
+      const hourlyData: HourlyBreakdown[] = (data.hourly_breakdown || []).map(mapHourlyRow);
 
       setMlUser(userInfo);
       setActiveListings(listings);
       setAllDaily(dailyData);
+      setAllHourly(hourlyData);
 
-      // Save to cache from frontend (edge function cache may fail silently)
-      await saveToCache(dailyData, userInfo, listings);
+      await saveToCache(dailyData, hourlyData, userInfo, listings);
 
       const now = new Date().toLocaleString("pt-BR");
       setLastSyncedAt(now);
@@ -278,11 +388,10 @@ export default function MercadoLivre() {
     }
   }, [user, toast, saveToCache]);
 
-  // Reload cache after historical import
   const reloadCache = useCallback(async () => {
     cacheLoadedRef.current = false;
-    await loadFromCache();
-  }, [loadFromCache]);
+    await Promise.all([loadFromCache(), loadHourlyCache()]);
+  }, [loadFromCache, loadHourlyCache]);
 
   useEffect(() => {
     if (!user || cacheLoadedRef.current) return;
@@ -301,13 +410,21 @@ export default function MercadoLivre() {
         return;
       }
 
-      // Bug fix #3: populate cachedAccessToken from DB on load
       setCachedAccessToken(tokenRow.access_token);
       setConnected(true);
-      await loadFromCache();
+      await Promise.all([loadFromCache(), loadHourlyCache()]);
       setLoading(false);
     })();
-  }, [user, loadFromCache]);
+  }, [user, loadFromCache, loadHourlyCache]);
+
+  useEffect(() => {
+    if (!user || !isHourlyAvailable) {
+      setAllHourly((current) => (current.length > 0 && !isHourlyAvailable ? [] : current));
+      return;
+    }
+
+    void loadHourlyCache();
+  }, [user, isHourlyAvailable, period, loadHourlyCache]);
 
   if (!loading && !connected) {
     return (
@@ -322,14 +439,19 @@ export default function MercadoLivre() {
     );
   }
 
-  const chartData = [...daily].reverse().map((d) => ({
-    date: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
+  const dailyChartData = [...daily].reverse().map((d) => ({
+    label: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
     "Venda Total": d.total,
     "Venda Aprovada": d.approved,
-    qty: d.qty,
+    Pedidos: d.qty,
   }));
 
+  const hourlyChartData = buildHourlyChartData(hourly);
+  const showHourlyChart = isHourlyAvailable && chartMode === "hourly";
+  const chartData = showHourlyChart ? hourlyChartData : dailyChartData;
   const hasData = allDaily.length > 0;
+  const hasHourlyData = hourly.length > 0;
+  const chartTitle = showHourlyChart ? `Venda por Hora — ${periodLabel}` : `Vendas Diárias — ${periodLabel}`;
 
   return (
     <div className="space-y-6">
@@ -433,11 +555,14 @@ export default function MercadoLivre() {
           <Button variant="outline" size="sm" onClick={syncFromAPI} disabled={syncing}>
             <RefreshCw className={`w-4 h-4 mr-1 ${syncing ? "animate-spin" : ""}`} /> Sincronizar
           </Button>
-          <HistoricalSyncModal accessToken={cachedAccessToken} onSyncComplete={reloadCache} saveToCache={saveToCache} />
+          <HistoricalSyncModal
+            accessToken={cachedAccessToken}
+            onSyncComplete={reloadCache}
+            saveToCache={(dailyData, hourlyData) => saveToCache(dailyData, hourlyData)}
+          />
         </div>
       </div>
 
-      {/* Empty state banner */}
       {!loading && connected && !hasData && (
         <Card className="border-dashed">
           <CardContent className="flex items-center gap-3 py-6">
@@ -452,54 +577,113 @@ export default function MercadoLivre() {
         </Card>
       )}
 
-      {/* KPIs - Row 1 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KPICard title="Receita Total" value={metrics ? currencyFmt(metrics.total_revenue) : "—"} icon={<DollarSign className="w-5 h-5" />} variant="info" loading={loading} refreshing={syncing} subtitle={periodLabel} />
         <KPICard title="Receita Aprovada" value={metrics ? currencyFmt(metrics.approved_revenue) : "—"} icon={<TrendingUp className="w-5 h-5" />} variant="success" loading={loading} refreshing={syncing} subtitle={periodLabel} />
         <KPICard title="Total de Pedidos" value={metrics ? String(metrics.total_orders) : "—"} icon={<ShoppingCart className="w-5 h-5" />} variant="purple" loading={loading} refreshing={syncing} />
       </div>
 
-      {/* KPIs - Row 2 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard title="Ticket Médio" value={metrics ? currencyFmt(metrics.avg_ticket) : "—"} icon={<Tag className="w-5 h-5" />} variant="orange" loading={loading} refreshing={syncing} />
+        <KPICard title="Anúncios Ativos" value={String(activeListings)} icon={<Tag className="w-5 h-5" />} variant="neutral" loading={loading} refreshing={syncing} />
+        <KPICard title="Pedidos Enviados" value={String(daily.reduce((s, d) => s + d.shipped, 0))} icon={<TrendingUp className="w-5 h-5" />} variant="success" loading={loading} refreshing={syncing} />
+        <KPICard title="Pedidos Cancelados" value={String(daily.reduce((s, d) => s + d.cancelled, 0))} icon={<X className="w-5 h-5" />} variant="danger" loading={loading} refreshing={syncing} />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KPICard title="Visitas Únicas" value={metrics ? metrics.unique_visits.toLocaleString("pt-BR") : "—"} icon={<Eye className="w-5 h-5" />} variant="neutral" loading={loading} refreshing={syncing} />
         <KPICard title="Total de Compradores" value={metrics ? metrics.unique_buyers.toLocaleString("pt-BR") : "—"} icon={<Users className="w-5 h-5" />} variant="success" loading={loading} refreshing={syncing} />
         <KPICard title="Conversão" value={metrics ? `${metrics.conversion_rate.toFixed(2)}%` : "—"} icon={<Percent className="w-5 h-5" />} variant="info" loading={loading} refreshing={syncing} />
       </div>
 
-      {/* Chart */}
-      {chartData.length > 0 && (
+      {(dailyChartData.length > 0 || showHourlyChart) && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Vendas Diárias — {periodLabel}</CardTitle>
+          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle className="text-base">{chartTitle}</CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant={chartMode === "daily" ? "default" : "outline"}
+                onClick={() => setChartMode("daily")}
+              >
+                Diário
+              </Button>
+              {isHourlyAvailable && (
+                <Button
+                  size="sm"
+                  variant={chartMode === "hourly" ? "default" : "outline"}
+                  onClick={() => setChartMode("hourly")}
+                >
+                  <Clock3 className="mr-1 h-4 w-4" /> Venda / Hora
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={320}>
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="mlTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(217,70%,45%)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(217,70%,45%)" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="mlApproved" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(142,70%,45%)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(142,70%,45%)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(210,10%,90%)" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="hsl(217,5%,45%)" />
-                <YAxis tick={{ fontSize: 12 }} stroke="hsl(217,5%,45%)" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                <RechartsTooltip formatter={(value: number) => currencyFmt(value)} contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,.1)" }} />
-                <Legend />
-                <Area type="monotone" dataKey="Venda Total" stroke="hsl(217,70%,45%)" fill="url(#mlTotal)" strokeWidth={2} />
-                <Area type="monotone" dataKey="Venda Aprovada" stroke="hsl(142,70%,45%)" fill="url(#mlApproved)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+            {showHourlyChart && !hasHourlyData ? (
+              <div className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center">
+                <p className="text-sm font-medium text-foreground">Sem dados horários para este período</p>
+                <p className="mt-1 text-xs text-muted-foreground">Sincronize novamente para carregar a visão de venda por hora de Hoje ou dos últimos 7 dias.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={320}>
+                <ComposedChart data={chartData}>
+                  <defs>
+                    <linearGradient id="mlTotal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="mlApproved" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="label" tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" />
+                  <YAxis
+                    yAxisId="revenue"
+                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    stroke="hsl(var(--muted-foreground))"
+                    tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                  />
+                  {showHourlyChart && (
+                    <YAxis
+                      yAxisId="orders"
+                      orientation="right"
+                      allowDecimals={false}
+                      tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                      stroke="hsl(var(--muted-foreground))"
+                    />
+                  )}
+                  <RechartsTooltip
+                    formatter={(value: number, name: string) => name === "Pedidos" ? [value, name] : [currencyFmt(Number(value)), name]}
+                    contentStyle={{
+                      borderRadius: 12,
+                      border: "1px solid hsl(var(--border))",
+                      backgroundColor: "hsl(var(--card))",
+                      color: "hsl(var(--card-foreground))",
+                    }}
+                  />
+                  <Legend />
+                  {showHourlyChart ? (
+                    <>
+                      <Bar yAxisId="orders" dataKey="Pedidos" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} maxBarSize={28} />
+                      <Area yAxisId="revenue" type="monotone" dataKey="Venda Total" stroke="hsl(var(--accent))" fill="url(#mlTotal)" strokeWidth={2.5} />
+                      <Line yAxisId="revenue" type="monotone" dataKey="Venda Aprovada" stroke="hsl(var(--success))" strokeWidth={2} dot={false} />
+                    </>
+                  ) : (
+                    <>
+                      <Area yAxisId="revenue" type="monotone" dataKey="Venda Total" stroke="hsl(var(--accent))" fill="url(#mlTotal)" strokeWidth={2.5} />
+                      <Area yAxisId="revenue" type="monotone" dataKey="Venda Aprovada" stroke="hsl(var(--success))" fill="url(#mlApproved)" strokeWidth={2} />
+                    </>
+                  )}
+                </ComposedChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Table */}
       {daily.length > 0 && (
         <Card>
           <CardHeader>

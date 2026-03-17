@@ -56,6 +56,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ml_hourly_cache: {
+        Row: {
+          approved_revenue: number
+          date: string
+          hour: number
+          id: string
+          qty_orders: number
+          synced_at: string
+          total_revenue: number
+          user_id: string
+        }
+        Insert: {
+          approved_revenue?: number
+          date: string
+          hour: number
+          id?: string
+          qty_orders?: number
+          synced_at?: string
+          total_revenue?: number
+          user_id: string
+        }
+        Update: {
+          approved_revenue?: number
+          date?: string
+          hour?: number
+          id?: string
+          qty_orders?: number
+          synced_at?: string
+          total_revenue?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       ml_tokens: {
         Row: {
           access_token: string | null

@@ -29,7 +29,7 @@ async function fetchOrdersChunk(
   dateFrom: string,
   dateTo: string,
   accessToken: string,
-  maxOrders = 5000
+  maxOrders = 5000,
 ): Promise<any[]> {
   const PAGE_SIZE = 50;
   let allOrders: any[] = [];
@@ -48,12 +48,11 @@ async function fetchOrdersChunk(
   return allOrders;
 }
 
-/** Fetch visits per day using the ML time_window endpoint */
 async function fetchVisits(
   sellerId: number,
   dateFrom: string,
   dateTo: string,
-  accessToken: string
+  accessToken: string,
 ): Promise<Record<string, number>> {
   const visitsMap: Record<string, number> = {};
   try {
@@ -64,7 +63,7 @@ async function fetchVisits(
 
     const data = await mlFetch(
       `/users/${sellerId}/items_visits/time_window?last=${last}&unit=day&ending=${dateTo}`,
-      accessToken
+      accessToken,
     );
 
     if (data.results && Array.isArray(data.results)) {
@@ -82,7 +81,6 @@ async function fetchVisits(
   return visitsMap;
 }
 
-/** Count unique buyers per day from orders */
 function countUniqueBuyers(orders: any[]): Record<string, number> {
   const dailyBuyers: Record<string, Set<number>> = {};
   for (const order of orders) {
@@ -109,22 +107,20 @@ serve(async (req) => {
     const { access_token, days = 30, user_id, date_from, date_to } = await req.json();
 
     if (!access_token) {
-      return new Response(
-        JSON.stringify({ error: "Missing access_token" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Missing access_token" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // 1. Get user info
     const user = await mlFetch("/users/me", access_token);
     const sellerId = user.id;
 
-    // 2. Determine date range
     let rangeStart: Date;
     let rangeEnd: Date;
     let periodDays: number;
@@ -144,7 +140,6 @@ serve(async (req) => {
       rangeStart.setHours(0, 0, 0, 0);
     }
 
-    // Split into weekly chunks
     const CHUNK_DAYS = 7;
     const chunks: Array<{ from: string; to: string }> = [];
     const totalMs = rangeEnd.getTime() - rangeStart.getTime();
@@ -175,7 +170,6 @@ serve(async (req) => {
       allOrders = allOrders.concat(chunkOrders);
     }
 
-    // Deduplicate by order ID
     const seen = new Set<number>();
     const orders = allOrders.filter((o) => {
       if (seen.has(o.id)) return false;
@@ -185,17 +179,19 @@ serve(async (req) => {
 
     console.log(`Fetched ${orders.length} unique orders in ${chunks.length} chunks (period: ${periodDays} days)`);
 
-    // 3. Aggregate metrics
     let totalRevenue = 0;
-    let totalOrders = orders.length;
+    const totalOrders = orders.length;
     let approvedRevenue = 0;
     let cancelledOrders = 0;
     let shippedOrders = 0;
     const dailySales: Record<string, { total: number; approved: number; qty: number; cancelled: number; shipped: number; unique_visits: number; unique_buyers: number }> = {};
+    const hourlySales: Record<string, { date: string; hour: number; total: number; approved: number; qty: number }> = {};
 
     for (const order of orders) {
-      const amount = order.total_amount || 0;
-      const date = order.date_created ? order.date_created.substring(0, 10) : null;
+      const amount = Number(order.total_amount || 0);
+      const dateCreated = order.date_created || null;
+      const date = dateCreated ? dateCreated.substring(0, 10) : null;
+      const hour = dateCreated ? Number(dateCreated.substring(11, 13)) : null;
       const status = order.status;
 
       totalRevenue += amount;
@@ -226,9 +222,20 @@ serve(async (req) => {
           dailySales[date].shipped += 1;
         }
       }
+
+      if (date && hour !== null && Number.isFinite(hour)) {
+        const hourlyKey = `${date}-${String(hour).padStart(2, "0")}`;
+        if (!hourlySales[hourlyKey]) {
+          hourlySales[hourlyKey] = { date, hour, total: 0, approved: 0, qty: 0 };
+        }
+        hourlySales[hourlyKey].total += amount;
+        hourlySales[hourlyKey].qty += 1;
+        if (status === "paid" || status === "confirmed") {
+          hourlySales[hourlyKey].approved += amount;
+        }
+      }
     }
 
-    // 4. Count unique buyers per day
     const dailyBuyers = countUniqueBuyers(orders);
     for (const [date, count] of Object.entries(dailyBuyers)) {
       if (!dailySales[date]) {
@@ -238,7 +245,6 @@ serve(async (req) => {
     }
     const totalUniqueBuyers = new Set(orders.map((o) => o.buyer?.id).filter(Boolean)).size;
 
-    // 5. Fetch visits
     const rangeFromStr = rangeStart.toISOString().substring(0, 10);
     const rangeToStr = rangeEnd.toISOString().substring(0, 10);
     const dailyVisits = await fetchVisits(sellerId, rangeFromStr, rangeToStr, access_token);
@@ -253,21 +259,17 @@ serve(async (req) => {
 
     console.log(`Unique buyers: ${totalUniqueBuyers}, daily visit rows: ${Object.keys(dailyVisits).length}, total visits: ${totalVisits}`);
 
-    // 6. Get active listings count
     let activeListings = 0;
     try {
-      const itemsSearch = await mlFetch(
-        `/users/${sellerId}/items/search?status=active&limit=0`,
-        access_token
-      );
+      const itemsSearch = await mlFetch(`/users/${sellerId}/items/search?status=active&limit=0`, access_token);
       activeListings = itemsSearch.paging?.total || 0;
     } catch {
       // non-critical
     }
 
-    // 7. Save to cache if user_id provided
     if (user_id) {
       try {
+        const syncedAt = new Date().toISOString();
         const dailyRows = Object.entries(dailySales).map(([date, data]) => ({
           user_id,
           date,
@@ -278,7 +280,17 @@ serve(async (req) => {
           shipped_orders: data.shipped,
           unique_visits: data.unique_visits,
           unique_buyers: data.unique_buyers,
-          synced_at: new Date().toISOString(),
+          synced_at: syncedAt,
+        }));
+
+        const hourlyRows = Object.values(hourlySales).map((data) => ({
+          user_id,
+          date: data.date,
+          hour: data.hour,
+          total_revenue: data.total,
+          approved_revenue: data.approved,
+          qty_orders: data.qty,
+          synced_at: syncedAt,
         }));
 
         if (dailyRows.length > 0) {
@@ -286,6 +298,13 @@ serve(async (req) => {
             .from("ml_daily_cache")
             .upsert(dailyRows, { onConflict: "user_id,date" });
           if (cacheErr) console.error("Cache upsert error:", cacheErr);
+        }
+
+        if (hourlyRows.length > 0) {
+          const { error: hourlyCacheErr } = await supabaseAdmin
+            .from("ml_hourly_cache")
+            .upsert(hourlyRows, { onConflict: "user_id,date,hour" });
+          if (hourlyCacheErr) console.error("Hourly cache upsert error:", hourlyCacheErr);
         }
 
         const { error: userCacheErr } = await supabaseAdmin
@@ -297,20 +316,26 @@ serve(async (req) => {
             country: user.country_id,
             permalink: user.permalink,
             active_listings: activeListings,
-            synced_at: new Date().toISOString(),
+            synced_at: syncedAt,
           }, { onConflict: "user_id" });
         if (userCacheErr) console.error("User cache upsert error:", userCacheErr);
 
-        console.log(`Cache updated: ${dailyRows.length} daily rows, user cache saved`);
+        console.log(`Cache updated: ${dailyRows.length} daily rows, ${hourlyRows.length} hourly rows, user cache saved`);
       } catch (cacheError) {
         console.error("Cache save error:", cacheError);
       }
     }
 
-    // 8. Build daily breakdown
     const dailyBreakdown = Object.entries(dailySales)
       .map(([date, data]) => ({ date, ...data }))
       .sort((a, b) => b.date.localeCompare(a.date));
+
+    const hourlyBreakdown = Object.values(hourlySales)
+      .sort((a, b) => {
+        const dateCompare = b.date.localeCompare(a.date);
+        if (dateCompare !== 0) return dateCompare;
+        return b.hour - a.hour;
+      });
 
     const conversionRate = totalVisits > 0 ? (totalUniqueBuyers / totalVisits) * 100 : 0;
 
@@ -336,6 +361,7 @@ serve(async (req) => {
         period: `last_${periodDays}_days`,
       },
       daily_breakdown: dailyBreakdown,
+      hourly_breakdown: hourlyBreakdown,
       paging: { total: totalOrders, fetched: totalOrders },
     };
 
@@ -346,7 +372,7 @@ serve(async (req) => {
     console.error("ML Integration error:", error);
     return new Response(
       JSON.stringify({ success: false, error: error.message || "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
