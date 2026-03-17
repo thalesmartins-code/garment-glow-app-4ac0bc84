@@ -256,6 +256,8 @@ export default function MercadoLivre() {
         qty: d.qty,
         cancelled: d.cancelled || 0,
         shipped: d.shipped || 0,
+        unique_visits: d.unique_visits || 0,
+        unique_buyers: d.unique_buyers || 0,
       }));
 
       setMlUser(userInfo);
