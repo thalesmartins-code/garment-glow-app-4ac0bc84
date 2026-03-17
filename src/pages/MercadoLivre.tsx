@@ -163,12 +163,13 @@ export default function MercadoLivre() {
     : null;
 
   const isHourlyAvailable = period === 0 || !!singleDayRange;
+  const activeFilterKey = customRange?.from
+    ? `${format(startOfDay(customRange.from), "yyyy-MM-dd")}:${format(startOfDay(customRange.to ?? customRange.from), "yyyy-MM-dd")}`
+    : `period:${period}`;
 
   useEffect(() => {
-    if (!isHourlyAvailable && chartMode === "hourly") {
-      setChartMode("daily");
-    }
-  }, [isHourlyAvailable, chartMode]);
+    setChartMode(isHourlyAvailable ? "hourly" : "daily");
+  }, [activeFilterKey, isHourlyAvailable]);
 
   const daily = allDaily.filter((d) => {
     if (customRange?.from) {
