@@ -1,105 +1,59 @@
 
-Objetivo
 
-Separar o app em 2 ambientes visuais, mantendo o mesmo header:
-1. Ambiente principal: Dashboard, Vendas, Importação, Sellers, Integrações e Usuários
-2. Ambiente Mercado Livre: apenas Vendas, Estoque, Produtos, Pedidos e Anúncios
+# Mudanca de Paleta de Cores para Tema Financeiro
 
-Regras definidas
-- Entrada no ambiente ML: por um item dedicado no menu principal
-- Saída do ambiente ML: por um item no menu do próprio ambiente
-- No ambiente ML, o header continua igual, mas sem alternador de seller
+## Objetivo
+Substituir a paleta atual (rose gold / moda) por uma paleta corporativa financeira baseada em **azul escuro (navy)** com acentos em **verde esmeralda**, transmitindo confianca, profissionalismo e solidez.
 
-O que identifiquei no código atual
+## Nova Paleta
 
-- Hoje existe um único `AppLayout` com:
-  - `Sidebar`
-  - `Header`
-  - `Outlet`
-- O `Sidebar` mistura navegação principal com o grupo “Mercado Livre”
-- O `Header` sempre usa `useSeller()` e sempre renderiza o alternador
-- As rotas de ambos os contextos estão todas agrupadas sob o mesmo layout em `src/App.tsx`
+| Elemento | Atual (Rose Gold) | Novo (Financeiro) |
+|---|---|---|
+| Accent | Rosa dourado (HSL 15 45% 65%) | Azul navy (HSL 217 70% 45%) |
+| Sidebar BG | Cinza escuro quente | Azul muito escuro |
+| Gradient principal | Rosa para rosa escuro | Azul navy para azul royal |
+| Shadow glow | Rosa translucido | Azul translucido |
+| Success | Verde (mantido) | Verde (mantido) |
 
-Abordagem proposta
+## Arquivos a Alterar
 
-1. Separar o layout em dois ambientes
-- Transformar o layout atual em dois layouts distintos:
-  - `MainAppLayout`: menu principal
-  - `MercadoLivreLayout`: menu exclusivo do ML
-- Ambos reutilizam o mesmo `Header`
+### 1. `src/index.css` - Variaveis CSS (arquivo principal)
+- Trocar comentario do design system de "Fashion Store" para "Financial Management SaaS"
+- **:root (light mode)**:
+  - `--accent`: de `15 45% 65%` para `217 70% 45%` (azul corporativo)
+  - `--ring`: de `15 45% 65%` para `217 70% 45%`
+  - `--sidebar-background`: de `24 10% 8%` para `217 50% 10%`
+  - `--sidebar-primary`: de `15 45% 65%` para `217 70% 45%`
+  - `--sidebar-accent`: de `24 10% 15%` para `217 40% 18%`
+  - `--sidebar-border`: de `24 10% 18%` para `217 30% 22%`
+  - `--sidebar-ring`: de `15 45% 65%` para `217 70% 45%`
+  - `--gradient-rose` renomear para `--gradient-primary`: gradiente azul navy
+  - `--shadow-glow`: tom azul translucido
+- **Dark mode**: mesmas mudancas adaptadas para tons escuros
 
-2. Tornar o Header configurável
-- Adicionar uma prop no `Header`, algo como:
-  - `showSellerSwitcher?: boolean`
-- No ambiente principal: `true`
-- No ambiente Mercado Livre: `false`
-- Isso evita duplicar o header e mantém a mesma identidade visual
+### 2. `src/index.css` - Classes utilitarias
+- Renomear `.text-gradient` para usar novo gradiente
+- Renomear `.bg-gradient-rose` para `.bg-gradient-primary` (manter `.bg-gradient-rose` como alias para nao quebrar)
+- Atualizar gradientes para tons azuis
 
-3. Separar a sidebar em duas navegações
-- Extrair a navegação atual para componentes mais específicos:
-  - `MainSidebar`: Dashboard, Vendas, Importação, Sellers, Integrações, Usuários + item “Mercado Livre”
-  - `MercadoLivreSidebar`: Vendas, Estoque, Produtos, Pedidos, Anúncios + item “Voltar ao painel principal”
-- Preservar o comportamento atual de colapso da sidebar
+### 3. `tailwind.config.ts`
+- Sem alteracoes estruturais necessarias (ja usa variaveis CSS)
 
-4. Reorganizar as rotas
-- Em `src/App.tsx`, dividir as rotas protegidas em dois grupos:
-  - Grupo com `MainAppLayout`
-  - Grupo com `MercadoLivreLayout`
-- Exemplo conceitual:
-  - `/`, `/vendas-diarias`, `/importacao`, `/sellers`, `/usuarios`, `/integracoes`, `/perfil` → layout principal
-  - `/mercado-livre`, `/mercado-livre/estoque`, `/mercado-livre/produtos`, `/mercado-livre/pedidos`, `/mercado-livre/anuncios` → layout ML
+### 4. Componentes que usam `bg-gradient-rose` e `shadow-glow` (atualizacao de referencia)
+Arquivos que referenciam a classe antiga:
+- `src/components/dashboard/MetricCard.tsx` - trocar `bg-gradient-rose` por `bg-gradient-primary`
+- `src/components/dashboard/RecentSales.tsx` - trocar `bg-gradient-rose`
+- `src/components/chat/FloatingChat.tsx` - trocar `bg-gradient-rose` (4 ocorrencias)
+- `src/components/layout/Sidebar.tsx` - trocar `bg-gradient-rose`
+- `src/pages/FinanceiroDashboard.tsx` - verificar e atualizar se necessario
+- Demais paginas que usem a classe
 
-5. Ajustar títulos por ambiente
-- Hoje o `AppLayout` centraliza os títulos via `routeTitles`
-- Vou mover isso para uma estrutura reutilizável, para que ambos os layouts consigam resolver título/subtítulo corretamente sem duplicação desnecessária
+### 5. Graficos (`src/pages/FinanceiroDashboard.tsx`, `FinanceiroDRE.tsx`, `FinanceiroDFC.tsx`)
+- Atualizar cores dos graficos (bars, areas, pies) de tons rosados para tons azuis/verdes corporativos
 
-Arquivos que devem ser envolvidos
+## Resultado Esperado
+- Sidebar em azul escuro profissional
+- Gradientes e botoes de destaque em azul corporativo
+- Graficos com paleta azul/verde/cinza
+- Visual coerente com um sistema financeiro serio e confiavel
 
-- `src/App.tsx`
-- `src/components/layout/AppLayout.tsx`
-- `src/components/layout/Header.tsx`
-- `src/components/layout/Sidebar.tsx`
-
-Provável criação de novos componentes
-- `src/components/layout/MainAppLayout.tsx`
-- `src/components/layout/MercadoLivreLayout.tsx`
-- possivelmente:
-  - `src/components/layout/MainSidebar.tsx`
-  - `src/components/layout/MercadoLivreSidebar.tsx`
-
-Detalhes de UX previstos
-
-Ambiente principal
-- Menu limpo, sem o grupo expansível do Mercado Livre
-- Novo item dedicado “Mercado Livre” para entrar no ambiente ML
-
-Ambiente Mercado Livre
-- Sidebar só com itens do ML
-- Item adicional “Voltar ao painel principal”
-- Header igual ao atual, mas sem seller switcher
-- Notificações e menu do usuário permanecem
-
-Cuidados técnicos
-
-- O `Header` hoje depende diretamente de `useSeller()`, então a mudança principal é desacoplar a renderização do alternador
-- As páginas de Mercado Livre que já existem não parecem depender do seller selecionado, então a remoção do alternador no header não deve quebrar o fluxo
-- As permissões atuais via `RoleRoute` e `canAccess()` podem continuar iguais; a mudança é estrutural/visual de layout, não de autorização
-
-Plano de implementação
-
-1. Criar dois layouts protegidos separados
-2. Refatorar o `Header` para aceitar ocultação do alternador de seller
-3. Dividir a sidebar em navegação principal e navegação ML
-4. Adicionar o item dedicado “Mercado Livre” no ambiente principal
-5. Adicionar o item “Voltar ao painel principal” no ambiente ML
-6. Reorganizar as rotas em `App.tsx` para usar o layout correto por grupo
-7. Validar títulos, estados ativos e colapso das sidebars
-8. Revisar navegação entre ambientes e acesso por perfil
-
-Resultado esperado
-
-O usuário perceberá dois contextos claros dentro do mesmo produto:
-- um ambiente operacional geral
-- um ambiente dedicado ao Mercado Livre
-
-Sem alterar o header visual, mas com a experiência do ML mais focada e sem o alternador de seller.

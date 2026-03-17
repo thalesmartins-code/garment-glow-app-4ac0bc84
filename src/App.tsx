@@ -2,8 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { MainAppLayout } from "@/components/layout/MainAppLayout";
+import { MercadoLivreLayout } from "@/components/layout/MercadoLivreLayout";
 import { SellerProvider } from "@/contexts/SellerContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { SalesDataProvider } from "@/contexts/SalesDataContext";
@@ -41,30 +42,103 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <OAuthCodeRedirect>
-                <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/tv" element={<ProtectedRoute />}>
-                    <Route index element={<TVMode />} />
-                  </Route>
-                  <Route element={<ProtectedRoute />}>
-                    <Route element={<AppLayout />}>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/vendas-diarias" element={<DailySales />} />
-                      <Route path="/importacao" element={<RoleRoute><Import /></RoleRoute>} />
-                      <Route path="/configuracoes" element={<RoleRoute><Settings /></RoleRoute>} />
-                      <Route path="/sellers" element={<RoleRoute><Sellers /></RoleRoute>} />
-                      <Route path="/usuarios" element={<RoleRoute><UserManagement /></RoleRoute>} />
-                      <Route path="/perfil" element={<Profile />} />
-                      <Route path="/integracoes" element={<RoleRoute><Integrations /></RoleRoute>} />
-                      <Route path="/mercado-livre" element={<RoleRoute><MercadoLivre /></RoleRoute>} />
-                      <Route path="/mercado-livre/estoque" element={<RoleRoute><MLEstoque /></RoleRoute>} />
-                      <Route path="/mercado-livre/produtos" element={<RoleRoute><MLProdutos /></RoleRoute>} />
-                      <Route path="/mercado-livre/pedidos" element={<RoleRoute><MLPedidos /></RoleRoute>} />
-                      <Route path="/mercado-livre/anuncios" element={<RoleRoute><MLAnuncios /></RoleRoute>} />
+                  <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/tv" element={<ProtectedRoute />}>
+                      <Route index element={<TVMode />} />
                     </Route>
-                  </Route>
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                    <Route element={<ProtectedRoute />}>
+                      <Route element={<MainAppLayout />}>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/vendas-diarias" element={<DailySales />} />
+                        <Route
+                          path="/importacao"
+                          element={
+                            <RoleRoute>
+                              <Import />
+                            </RoleRoute>
+                          }
+                        />
+                        <Route
+                          path="/configuracoes"
+                          element={
+                            <RoleRoute>
+                              <Settings />
+                            </RoleRoute>
+                          }
+                        />
+                        <Route
+                          path="/sellers"
+                          element={
+                            <RoleRoute>
+                              <Sellers />
+                            </RoleRoute>
+                          }
+                        />
+                        <Route
+                          path="/usuarios"
+                          element={
+                            <RoleRoute>
+                              <UserManagement />
+                            </RoleRoute>
+                          }
+                        />
+                        <Route path="/perfil" element={<Profile />} />
+                        <Route
+                          path="/integracoes"
+                          element={
+                            <RoleRoute>
+                              <Integrations />
+                            </RoleRoute>
+                          }
+                        />
+                      </Route>
+
+                      <Route element={<MercadoLivreLayout />}>
+                        <Route
+                          path="/mercado-livre"
+                          element={
+                            <RoleRoute>
+                              <MercadoLivre />
+                            </RoleRoute>
+                          }
+                        />
+                        <Route
+                          path="/mercado-livre/estoque"
+                          element={
+                            <RoleRoute>
+                              <MLEstoque />
+                            </RoleRoute>
+                          }
+                        />
+                        <Route
+                          path="/mercado-livre/produtos"
+                          element={
+                            <RoleRoute>
+                              <MLProdutos />
+                            </RoleRoute>
+                          }
+                        />
+                        <Route
+                          path="/mercado-livre/pedidos"
+                          element={
+                            <RoleRoute>
+                              <MLPedidos />
+                            </RoleRoute>
+                          }
+                        />
+                        <Route
+                          path="/mercado-livre/anuncios"
+                          element={
+                            <RoleRoute>
+                              <MLAnuncios />
+                            </RoleRoute>
+                          }
+                        />
+                      </Route>
+                    </Route>
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
                 </OAuthCodeRedirect>
               </BrowserRouter>
             </SalesDataProvider>
