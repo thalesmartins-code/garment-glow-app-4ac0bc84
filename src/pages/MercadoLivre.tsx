@@ -150,7 +150,7 @@ export default function MercadoLivre() {
   const [allHourly, setAllHourly] = useState<HourlyBreakdown[]>([]);
   const [period, setPeriod] = useState(0);
   const [customRange, setCustomRange] = useState<DateRange>(null);
-  const [chartMode, setChartMode] = useState<ChartMode>("daily");
+  const [chartMode, setChartMode] = useState<ChartMode>("hourly");
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [pendingRange, setPendingRange] = useState<DateRange>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => localStorage.getItem(LAST_ML_SYNC_KEY));
