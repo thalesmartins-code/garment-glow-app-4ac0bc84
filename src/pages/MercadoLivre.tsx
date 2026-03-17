@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import {
-  DollarSign, ShoppingCart, TrendingUp, Tag, Megaphone, PackageCheck, PackageX, RefreshCw, ExternalLink, Plug, CalendarIcon, Info, Check, X,
+  DollarSign, ShoppingCart, TrendingUp, Tag, Eye, Users, Percent, RefreshCw, ExternalLink, Plug, CalendarIcon, Info, Check, X,
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
