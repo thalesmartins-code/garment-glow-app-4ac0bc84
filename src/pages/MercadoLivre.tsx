@@ -180,6 +180,8 @@ export default function MercadoLivre() {
         qty_orders: d.qty,
         cancelled_orders: d.cancelled || 0,
         shipped_orders: d.shipped || 0,
+        unique_visits: d.unique_visits || 0,
+        unique_buyers: d.unique_buyers || 0,
         synced_at: new Date().toISOString(),
       }));
 
