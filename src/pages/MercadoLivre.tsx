@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import {
-  DollarSign, ShoppingCart, TrendingUp, Tag, Megaphone, PackageCheck, PackageX, RefreshCw, ExternalLink, Plug, CalendarIcon, Info, Check, X,
+  DollarSign, ShoppingCart, TrendingUp, Tag, Eye, Users, Percent, RefreshCw, ExternalLink, Plug, CalendarIcon, Info, Check, X,
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
@@ -34,6 +34,8 @@ interface DailyBreakdown {
   qty: number;
   cancelled: number;
   shipped: number;
+  unique_visits: number;
+  unique_buyers: number;
 }
 
 const currencyFmt = (v: number) =>
@@ -102,14 +104,15 @@ export default function MercadoLivre() {
     total_revenue: daily.reduce((s, d) => s + d.total, 0),
     approved_revenue: daily.reduce((s, d) => s + d.approved, 0),
     total_orders: daily.reduce((s, d) => s + d.qty, 0),
-    cancelled_orders: daily.reduce((s, d) => s + (d.cancelled || 0), 0),
-    shipped_orders: daily.reduce((s, d) => s + (d.shipped || 0), 0),
-    active_listings: activeListings,
+    unique_visits: daily.reduce((s, d) => s + (d.unique_visits || 0), 0),
+    unique_buyers: daily.reduce((s, d) => s + (d.unique_buyers || 0), 0),
     avg_ticket: 0,
+    conversion_rate: 0,
   } : null;
 
-  if (metrics && metrics.total_orders > 0) {
-    metrics.avg_ticket = metrics.total_revenue / metrics.total_orders;
+  if (metrics) {
+    if (metrics.total_orders > 0) metrics.avg_ticket = metrics.total_revenue / metrics.total_orders;
+    if (metrics.unique_visits > 0) metrics.conversion_rate = (metrics.unique_buyers / metrics.unique_visits) * 100;
   }
 
   // Totals for footer
@@ -154,6 +157,8 @@ export default function MercadoLivre() {
       qty: r.qty_orders,
       cancelled: r.cancelled_orders || 0,
       shipped: r.shipped_orders || 0,
+      unique_visits: r.unique_visits || 0,
+      unique_buyers: r.unique_buyers || 0,
     })));
     setConnected(true);
     return true;
@@ -175,6 +180,8 @@ export default function MercadoLivre() {
         qty_orders: d.qty,
         cancelled_orders: d.cancelled || 0,
         shipped_orders: d.shipped || 0,
+        unique_visits: d.unique_visits || 0,
+        unique_buyers: d.unique_buyers || 0,
         synced_at: new Date().toISOString(),
       }));
 
@@ -249,6 +256,8 @@ export default function MercadoLivre() {
         qty: d.qty,
         cancelled: d.cancelled || 0,
         shipped: d.shipped || 0,
+        unique_visits: d.unique_visits || 0,
+        unique_buyers: d.unique_buyers || 0,
       }));
 
       setMlUser(userInfo);
@@ -453,9 +462,9 @@ export default function MercadoLivre() {
       {/* KPIs - Row 2 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard title="Ticket Médio" value={metrics ? currencyFmt(metrics.avg_ticket) : "—"} icon={<Tag className="w-5 h-5" />} variant="orange" loading={loading} refreshing={syncing} />
-        <KPICard title="Anúncios Ativos" value={metrics ? String(metrics.active_listings) : "—"} icon={<Megaphone className="w-5 h-5" />} variant="neutral" loading={loading} refreshing={syncing} />
-        <KPICard title="Pedidos Enviados" value={metrics ? String(metrics.shipped_orders) : "—"} icon={<PackageCheck className="w-5 h-5" />} variant="success" loading={loading} refreshing={syncing} />
-        <KPICard title="Pedidos Cancelados" value={metrics ? String(metrics.cancelled_orders) : "—"} icon={<PackageX className="w-5 h-5" />} variant="danger" loading={loading} refreshing={syncing} />
+        <KPICard title="Visitas Únicas" value={metrics ? metrics.unique_visits.toLocaleString("pt-BR") : "—"} icon={<Eye className="w-5 h-5" />} variant="neutral" loading={loading} refreshing={syncing} />
+        <KPICard title="Total de Compradores" value={metrics ? metrics.unique_buyers.toLocaleString("pt-BR") : "—"} icon={<Users className="w-5 h-5" />} variant="success" loading={loading} refreshing={syncing} />
+        <KPICard title="Conversão" value={metrics ? `${metrics.conversion_rate.toFixed(1)}%` : "—"} icon={<Percent className="w-5 h-5" />} variant="info" loading={loading} refreshing={syncing} />
       </div>
 
       {/* Chart */}

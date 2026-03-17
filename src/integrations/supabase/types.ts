@@ -24,6 +24,8 @@ export type Database = {
           shipped_orders: number
           synced_at: string
           total_revenue: number
+          unique_buyers: number
+          unique_visits: number
           user_id: string
         }
         Insert: {
@@ -35,6 +37,8 @@ export type Database = {
           shipped_orders?: number
           synced_at?: string
           total_revenue?: number
+          unique_buyers?: number
+          unique_visits?: number
           user_id: string
         }
         Update: {
@@ -46,6 +50,8 @@ export type Database = {
           shipped_orders?: number
           synced_at?: string
           total_revenue?: number
+          unique_buyers?: number
+          unique_visits?: number
           user_id?: string
         }
         Relationships: []
