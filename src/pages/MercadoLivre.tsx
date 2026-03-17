@@ -156,7 +156,13 @@ export default function MercadoLivre() {
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => localStorage.getItem(LAST_ML_SYNC_KEY));
   const cacheLoadedRef = useRef(false);
 
-  const isHourlyAvailable = !customRange && (period === 0 || period === 7);
+  const singleDayRange = customRange?.from && customRange?.to
+    ? format(startOfDay(customRange.from), "yyyy-MM-dd") === format(startOfDay(customRange.to), "yyyy-MM-dd")
+      ? format(startOfDay(customRange.from), "yyyy-MM-dd")
+      : null
+    : null;
+
+  const isHourlyAvailable = period === 0 || !!singleDayRange;
 
   useEffect(() => {
     if (!isHourlyAvailable && chartMode === "hourly") {
@@ -176,8 +182,8 @@ export default function MercadoLivre() {
 
   const hourly = allHourly.filter((d) => {
     if (!isHourlyAvailable) return false;
-    const cutoff = cutoffDateStr(period);
-    return d.date >= cutoff;
+    if (singleDayRange) return d.date === singleDayRange;
+    return d.date === todayUTC();
   });
 
   const periodLabel = customRange?.from
