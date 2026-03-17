@@ -299,6 +299,7 @@ serve(async (req) => {
     }
 
     const { spreadsheetId, sellerId, year, tabs } = await req.json();
+    if (!spreadsheetId || !sellerId) {
       return new Response(
         JSON.stringify({ success: false, error: "spreadsheetId and sellerId are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -308,7 +309,8 @@ serve(async (req) => {
     // Use separate env vars for client email and private key
     const clientEmail = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_EMAIL") || Deno.env.get("GOOGLE_CLIENT_EMAIL");
     const privateKey = Deno.env.get("GOOGLE_PRIVATE_KEY");
-    
+    let accessToken: string;
+
     if (!clientEmail || !privateKey) {
       // Fallback: try GOOGLE_SERVICE_ACCOUNT_JSON
       const saJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
@@ -318,10 +320,9 @@ serve(async (req) => {
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      // Try parsing the JSON
       try {
         const sa = JSON.parse(saJson);
-        var accessToken = await getAccessToken(sa.client_email, sa.private_key);
+        accessToken = await getAccessToken(sa.client_email, sa.private_key);
       } catch (e) {
         return new Response(
           JSON.stringify({ success: false, error: `Failed to parse service account JSON: ${(e as Error).message}` }),
@@ -329,9 +330,8 @@ serve(async (req) => {
         );
       }
     } else {
-      // Fix private key: replace literal \n with actual newlines
-      const fixedKey = privateKey.replace(/\\n/g, '\n');
-      var accessToken = await getAccessToken(clientEmail, fixedKey);
+      const fixedKey = privateKey.replace(/\\n/g, "\n");
+      accessToken = await getAccessToken(clientEmail, fixedKey);
     }
     const targetYear = year || new Date().getFullYear();
 
