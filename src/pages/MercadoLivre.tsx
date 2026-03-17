@@ -425,13 +425,13 @@ export default function MercadoLivre() {
   }, [user, loadFromCache, loadHourlyCache]);
 
   useEffect(() => {
-    if (!user || !isHourlyAvailable) {
-      setAllHourly((current) => (current.length > 0 && !isHourlyAvailable ? [] : current));
+    if (!user) {
+      setAllHourly([]);
       return;
     }
 
     void loadHourlyCache();
-  }, [user, isHourlyAvailable, period, loadHourlyCache]);
+  }, [user, loadHourlyCache, activeFilterKey]);
 
   if (!loading && !connected) {
     return (
