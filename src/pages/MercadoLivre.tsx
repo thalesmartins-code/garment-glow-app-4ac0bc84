@@ -186,9 +186,18 @@ export default function MercadoLivre() {
   });
 
   const hourly = allHourly.filter((d) => {
-    if (!isHourlyAvailable) return false;
-    if (singleDayRange) return d.date === singleDayRange;
-    return d.date === todayUTC();
+    if (isHourlyAvailable) {
+      if (singleDayRange) return d.date === singleDayRange;
+      return d.date === todayUTC();
+    }
+    // Multi-day: filter by same criteria as daily
+    if (customRange?.from) {
+      const from = format(startOfDay(customRange.from), "yyyy-MM-dd");
+      const to = customRange.to ? format(startOfDay(customRange.to), "yyyy-MM-dd") : from;
+      return d.date >= from && d.date <= to;
+    }
+    const cutoff = cutoffDateStr(period);
+    return d.date >= cutoff;
   });
 
   const periodLabel = customRange?.from
