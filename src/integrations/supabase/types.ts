@@ -95,6 +95,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ml_product_daily_cache: {
+        Row: {
+          date: string
+          id: string
+          item_id: string
+          qty_sold: number
+          revenue: number
+          synced_at: string
+          thumbnail: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          date: string
+          id?: string
+          item_id: string
+          qty_sold?: number
+          revenue?: number
+          synced_at?: string
+          thumbnail?: string | null
+          title?: string
+          user_id: string
+        }
+        Update: {
+          date?: string
+          id?: string
+          item_id?: string
+          qty_sold?: number
+          revenue?: number
+          synced_at?: string
+          thumbnail?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ml_tokens: {
         Row: {
           access_token: string | null
