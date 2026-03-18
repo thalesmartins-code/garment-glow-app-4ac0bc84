@@ -102,6 +102,10 @@ export function TopSellingProducts({ accessToken, connected }: Props) {
                     </span>
                     <span className="text-xs text-muted-foreground">·</span>
                     <span className="text-xs font-medium">{currencyFmt(product.price)}</span>
+                    <span className="text-xs text-muted-foreground">·</span>
+                    <span className="text-xs font-semibold text-primary">
+                      {currencyFmt(product.sold_quantity * product.price)}
+                    </span>
                   </div>
                 </div>
                 <Badge
