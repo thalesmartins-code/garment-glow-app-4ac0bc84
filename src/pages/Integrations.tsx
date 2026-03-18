@@ -499,8 +499,9 @@ export default function Integrations() {
 
       const { access_token } = JSON.parse(tokens);
 
+      const today = new Date().toISOString().substring(0, 10);
       const { data, error } = await supabase.functions.invoke("mercado-libre-integration", {
-        body: { access_token },
+        body: { access_token, date_from: today, date_to: today },
       });
 
       if (error || !data?.success) {
