@@ -202,19 +202,23 @@ export default function MercadoLivre() {
     total_revenue: daily.reduce((s, d) => s + d.total, 0),
     approved_revenue: daily.reduce((s, d) => s + d.approved, 0),
     total_orders: daily.reduce((s, d) => s + d.qty, 0),
+    units_sold: daily.reduce((s, d) => s + (d.units || 0), 0),
     unique_visits: daily.reduce((s, d) => s + (d.unique_visits || 0), 0),
     unique_buyers: daily.reduce((s, d) => s + (d.unique_buyers || 0), 0),
     avg_ticket: 0,
+    avg_ticket_unit: 0,
     conversion_rate: 0,
   } : null;
 
   if (metrics) {
     if (metrics.total_orders > 0) metrics.avg_ticket = metrics.total_revenue / metrics.total_orders;
+    if (metrics.units_sold > 0) metrics.avg_ticket_unit = metrics.total_revenue / metrics.units_sold;
     if (metrics.unique_visits > 0) metrics.conversion_rate = (metrics.unique_buyers / metrics.unique_visits) * 100;
   }
 
   const totals = {
     qty: daily.reduce((s, d) => s + d.qty, 0),
+    units: daily.reduce((s, d) => s + (d.units || 0), 0),
     total: daily.reduce((s, d) => s + d.total, 0),
     approved: daily.reduce((s, d) => s + d.approved, 0),
   };
