@@ -231,19 +231,25 @@ export default function MercadoLivre() {
   };
 
   const loadHourlyCache = useCallback(async () => {
-    if (!user || !isHourlyAvailable || !hourlyTargetDate) {
+    if (!user) {
       setAllHourly([]);
       return [] as HourlyBreakdown[];
     }
 
-    const { data } = await (supabase as any)
+    let query = (supabase as any)
       .from("ml_hourly_cache")
       .select("*")
       .eq("user_id", user.id)
-      .eq("date", hourlyTargetDate)
-      .order("hour", { ascending: true })
-      .limit(24);
+      .order("date", { ascending: false })
+      .order("hour", { ascending: true });
 
+    if (isHourlyAvailable && hourlyTargetDate) {
+      query = query.eq("date", hourlyTargetDate).limit(24);
+    } else {
+      query = query.limit(1000);
+    }
+
+    const { data } = await query;
     const mapped = (data || []).map(mapHourlyRow);
     setAllHourly(mapped);
     return mapped;
