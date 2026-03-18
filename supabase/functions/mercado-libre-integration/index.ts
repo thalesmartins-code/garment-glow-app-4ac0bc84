@@ -276,7 +276,7 @@ serve(async (req) => {
     const dailyBuyers = countUniqueBuyers(orders);
     for (const [date, count] of Object.entries(dailyBuyers)) {
       if (!dailySales[date]) {
-        dailySales[date] = { total: 0, approved: 0, qty: 0, cancelled: 0, shipped: 0, unique_visits: 0, unique_buyers: 0 };
+        dailySales[date] = { total: 0, approved: 0, qty: 0, units_sold: 0, cancelled: 0, shipped: 0, unique_visits: 0, unique_buyers: 0 };
       }
       dailySales[date].unique_buyers = count;
     }
@@ -289,7 +289,7 @@ serve(async (req) => {
     for (const [date, visits] of Object.entries(dailyVisits)) {
       totalVisits += visits;
       if (!dailySales[date]) {
-        dailySales[date] = { total: 0, approved: 0, qty: 0, cancelled: 0, shipped: 0, unique_visits: 0, unique_buyers: 0 };
+        dailySales[date] = { total: 0, approved: 0, qty: 0, units_sold: 0, cancelled: 0, shipped: 0, unique_visits: 0, unique_buyers: 0 };
       }
       dailySales[date].unique_visits = visits;
     }
@@ -359,14 +359,21 @@ serve(async (req) => {
         }));
 
         if (productRows.length > 0) {
-          // Batch upsert in chunks of 200
-          for (let i = 0; i < productRows.length; i += 200) {
-            const batch = productRows.slice(i, i + 200);
-            const { error: prodCacheErr } = await supabaseAdmin
-              .from("ml_product_daily_cache")
-              .upsert(batch, { onConflict: "user_id,date,item_id" });
-            if (prodCacheErr) console.error("Product cache upsert error:", prodCacheErr);
-          }
+          // Fire-and-forget product cache upsert to avoid timeout
+          (async () => {
+            try {
+              for (let i = 0; i < productRows.length; i += 200) {
+                const batch = productRows.slice(i, i + 200);
+                const { error: prodCacheErr } = await supabaseAdmin
+                  .from("ml_product_daily_cache")
+                  .upsert(batch, { onConflict: "user_id,date,item_id" });
+                if (prodCacheErr) console.error("Product cache upsert error:", prodCacheErr);
+              }
+              console.log(`Product cache: ${productRows.length} rows saved`);
+            } catch (e) {
+              console.error("Product cache async error:", e);
+            }
+          })();
         }
 
         const { error: userCacheErr } = await supabaseAdmin
