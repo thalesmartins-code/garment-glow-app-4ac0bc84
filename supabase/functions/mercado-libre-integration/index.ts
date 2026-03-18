@@ -193,6 +193,7 @@ serve(async (req) => {
     let shippedOrders = 0;
   const dailySales: Record<string, { total: number; approved: number; qty: number; units_sold: number; cancelled: number; shipped: number; unique_visits: number; unique_buyers: number }> = {};
   const hourlySales: Record<string, { date: string; hour: number; total: number; approved: number; qty: number; units_sold: number }> = {};
+  const productSales: Record<string, { item_id: string; date: string; title: string; thumbnail: string | null; qty_sold: number; revenue: number }> = {};
 
     for (const order of orders) {
       const amount = Number(order.total_amount || 0);
@@ -245,6 +246,29 @@ serve(async (req) => {
         hourlySales[hourlyKey].units_sold += orderUnits;
         if (status === "paid" || status === "confirmed") {
           hourlySales[hourlyKey].approved += amount;
+        }
+      }
+
+      // Aggregate product-level sales per day
+      if (date && order.order_items) {
+        for (const item of order.order_items) {
+          const itemId = item.item?.id;
+          if (!itemId) continue;
+          const prodKey = `${date}::${itemId}`;
+          const itemQty = Number(item.quantity) || 1;
+          const itemRevenue = Number(item.unit_price || 0) * itemQty;
+          if (!productSales[prodKey]) {
+            productSales[prodKey] = {
+              item_id: itemId,
+              date,
+              title: item.item?.title || "",
+              thumbnail: null,
+              qty_sold: 0,
+              revenue: 0,
+            };
+          }
+          productSales[prodKey].qty_sold += itemQty;
+          productSales[prodKey].revenue += itemRevenue;
         }
       }
     }
@@ -322,6 +346,29 @@ serve(async (req) => {
           if (hourlyCacheErr) console.error("Hourly cache upsert error:", hourlyCacheErr);
         }
 
+        // Upsert product daily cache
+        const productRows = Object.values(productSales).map((p) => ({
+          user_id,
+          date: p.date,
+          item_id: p.item_id,
+          title: p.title,
+          thumbnail: p.thumbnail,
+          qty_sold: p.qty_sold,
+          revenue: p.revenue,
+          synced_at: syncedAt,
+        }));
+
+        if (productRows.length > 0) {
+          // Batch upsert in chunks of 200
+          for (let i = 0; i < productRows.length; i += 200) {
+            const batch = productRows.slice(i, i + 200);
+            const { error: prodCacheErr } = await supabaseAdmin
+              .from("ml_product_daily_cache")
+              .upsert(batch, { onConflict: "user_id,date,item_id" });
+            if (prodCacheErr) console.error("Product cache upsert error:", prodCacheErr);
+          }
+        }
+
         const { error: userCacheErr } = await supabaseAdmin
           .from("ml_user_cache")
           .upsert({
@@ -335,7 +382,7 @@ serve(async (req) => {
           }, { onConflict: "user_id" });
         if (userCacheErr) console.error("User cache upsert error:", userCacheErr);
 
-        console.log(`Cache updated: ${dailyRows.length} daily rows, ${hourlyRows.length} hourly rows, user cache saved`);
+        console.log(`Cache updated: ${dailyRows.length} daily rows, ${hourlyRows.length} hourly rows, ${productRows.length} product rows, user cache saved`);
       } catch (cacheError) {
         console.error("Cache save error:", cacheError);
       }

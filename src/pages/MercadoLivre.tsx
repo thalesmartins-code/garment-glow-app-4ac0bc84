@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
-import { TopSellingProducts } from "@/components/mercadolivre/TopSellingProducts";
+import { TopSellingProducts, type ProductSalesRow } from "@/components/mercadolivre/TopSellingProducts";
 import {
   DollarSign,
   ShoppingCart,
@@ -151,6 +151,8 @@ export default function MercadoLivre() {
   const [cachedAccessToken, setCachedAccessToken] = useState<string | null>(null);
   const [allDaily, setAllDaily] = useState<DailyBreakdown[]>([]);
   const [allHourly, setAllHourly] = useState<HourlyBreakdown[]>([]);
+  const [allProductSales, setAllProductSales] = useState<(ProductSalesRow & { date: string })[]>([]);
+  const [productStockMap, setProductStockMap] = useState<Record<string, number>>({});
   const [period, setPeriod] = useState(0);
   const [customRange, setCustomRange] = useState<DateRange>(null);
   const [chartMode, setChartMode] = useState<ChartMode>("hourly");
@@ -231,6 +233,24 @@ export default function MercadoLivre() {
     approved: daily.reduce((s, d) => s + d.approved, 0),
   };
 
+  // Compute top products filtered by the same date range as daily
+  const filteredTopProducts = (() => {
+    const dateSet = new Set(daily.map((d) => d.date));
+    const filtered = allProductSales.filter((p) => dateSet.has(p.date));
+    const agg: Record<string, ProductSalesRow> = {};
+    for (const p of filtered) {
+      if (!agg[p.item_id]) {
+        agg[p.item_id] = { item_id: p.item_id, title: p.title, thumbnail: p.thumbnail, qty_sold: 0, revenue: 0 };
+      }
+      agg[p.item_id].qty_sold += p.qty_sold;
+      agg[p.item_id].revenue += p.revenue;
+    }
+    return Object.values(agg)
+      .map((p) => ({ ...p, available_quantity: productStockMap[p.item_id] }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 7);
+  })();
+
   const loadHourlyCache = useCallback(async () => {
     if (!user) {
       setAllHourly([]);
@@ -288,6 +308,26 @@ export default function MercadoLivre() {
 
     setAllDaily(dailyCache.map(mapDailyRow));
     setConnected(true);
+
+    // Load product daily cache
+    const { data: productCache } = await (supabase as any)
+      .from("ml_product_daily_cache")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("revenue", { ascending: false })
+      .limit(1000);
+
+    if (productCache && productCache.length > 0) {
+      setAllProductSales(productCache.map((r: any) => ({
+        item_id: r.item_id,
+        date: r.date,
+        title: r.title || "",
+        thumbnail: r.thumbnail,
+        qty_sold: Number(r.qty_sold || 0),
+        revenue: Number(r.revenue || 0),
+      })));
+    }
+
     return true;
   }, [user]);
 
@@ -440,6 +480,21 @@ export default function MercadoLivre() {
       setCachedAccessToken(tokenRow.access_token);
       setConnected(true);
       await Promise.all([loadFromCache(), loadHourlyCache()]);
+
+      // Load stock data for product ranking
+      try {
+        const { data: invData } = await supabase.functions.invoke("ml-inventory", {
+          body: { access_token: tokenRow.access_token },
+        });
+        if (invData?.items) {
+          const stockMap: Record<string, number> = {};
+          for (const item of invData.items) {
+            stockMap[item.id] = item.available_quantity ?? 0;
+          }
+          setProductStockMap(stockMap);
+        }
+      } catch { /* non-critical */ }
+
       setLoading(false);
     })();
   }, [user, loadFromCache, loadHourlyCache]);
@@ -747,7 +802,7 @@ export default function MercadoLivre() {
           </Card>
         )}
 
-        <TopSellingProducts accessToken={cachedAccessToken} connected={connected} />
+        <TopSellingProducts products={filteredTopProducts} loading={loading} />
       </div>
     </div>
   );
