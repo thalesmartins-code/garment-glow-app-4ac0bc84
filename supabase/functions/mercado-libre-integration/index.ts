@@ -346,6 +346,29 @@ serve(async (req) => {
           if (hourlyCacheErr) console.error("Hourly cache upsert error:", hourlyCacheErr);
         }
 
+        // Upsert product daily cache
+        const productRows = Object.values(productSales).map((p) => ({
+          user_id,
+          date: p.date,
+          item_id: p.item_id,
+          title: p.title,
+          thumbnail: p.thumbnail,
+          qty_sold: p.qty_sold,
+          revenue: p.revenue,
+          synced_at: syncedAt,
+        }));
+
+        if (productRows.length > 0) {
+          // Batch upsert in chunks of 200
+          for (let i = 0; i < productRows.length; i += 200) {
+            const batch = productRows.slice(i, i + 200);
+            const { error: prodCacheErr } = await supabaseAdmin
+              .from("ml_product_daily_cache")
+              .upsert(batch, { onConflict: "user_id,date,item_id" });
+            if (prodCacheErr) console.error("Product cache upsert error:", prodCacheErr);
+          }
+        }
+
         const { error: userCacheErr } = await supabaseAdmin
           .from("ml_user_cache")
           .upsert({
@@ -359,7 +382,7 @@ serve(async (req) => {
           }, { onConflict: "user_id" });
         if (userCacheErr) console.error("User cache upsert error:", userCacheErr);
 
-        console.log(`Cache updated: ${dailyRows.length} daily rows, ${hourlyRows.length} hourly rows, user cache saved`);
+        console.log(`Cache updated: ${dailyRows.length} daily rows, ${hourlyRows.length} hourly rows, ${productRows.length} product rows, user cache saved`);
       } catch (cacheError) {
         console.error("Cache save error:", cacheError);
       }
