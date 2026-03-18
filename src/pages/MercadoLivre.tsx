@@ -102,6 +102,7 @@ function mapDailyRow(row: any): DailyBreakdown {
     total: Number(row.total_revenue ?? row.total ?? 0),
     approved: Number(row.approved_revenue ?? row.approved ?? 0),
     qty: Number(row.qty_orders ?? row.qty ?? 0),
+    units_sold: Number(row.units_sold ?? row.qty_orders ?? row.qty ?? 0),
     cancelled: Number(row.cancelled_orders ?? row.cancelled ?? 0),
     shipped: Number(row.shipped_orders ?? row.shipped ?? 0),
     unique_visits: Number(row.unique_visits ?? 0),
