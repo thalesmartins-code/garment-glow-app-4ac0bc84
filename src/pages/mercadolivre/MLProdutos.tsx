@@ -205,55 +205,68 @@ export default function MLProdutos() {
           ) : (
             <div className="max-h-[500px] overflow-auto">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12"></TableHead>
-                    <TableHead>Produto</TableHead>
-                    <TableHead className="text-right w-28">Preço</TableHead>
-                    <TableHead className="text-center w-24">Estoque</TableHead>
-                    <TableHead className="text-center w-24">Vendidos</TableHead>
-                    <TableHead className="text-center w-28">Tipo</TableHead>
-                    <TableHead className="text-center w-24">Saúde</TableHead>
-                    <TableHead className="w-10"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="p-2">
-                        {item.thumbnail ? (
-                          <img src={item.thumbnail.replace("http://", "https://")} alt="" className="w-10 h-10 rounded object-cover" loading="lazy" />
-                        ) : (
-                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                            <Package className="w-4 h-4 text-muted-foreground" />
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <p className="text-sm font-medium line-clamp-2 leading-tight">{item.title}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{item.id}</p>
-                      </TableCell>
-                      <TableCell className="text-right text-sm font-medium">{currencyFmt(item.price)}</TableCell>
-                      <TableCell className="text-center">
-                        <span className={`text-sm font-semibold ${item.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
-                          {item.available_quantity}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-center text-sm text-muted-foreground">{item.sold_quantity}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="secondary" className="text-xs">
-                          {listingTypeLabel[item.listing_type_id || ""] || item.listing_type_id || "—"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">{healthBadge(item.health)}</TableCell>
-                      <TableCell>
-                        <a href={`https://www.mercadolivre.com.br/p/${item.id}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                 <TableHeader>
+                   <TableRow>
+                     <TableHead className="w-12"></TableHead>
+                     <TableHead>Produto</TableHead>
+                     <TableHead className="text-right w-24">Preço</TableHead>
+                     <TableHead className="text-center w-20">Estoque</TableHead>
+                     <TableHead className="text-center w-20">Vendidos</TableHead>
+                     <TableHead className="text-right w-28">Vendidos R$</TableHead>
+                     <TableHead className="text-center w-20">% Part.</TableHead>
+                     <TableHead className="text-center w-20">Visitas</TableHead>
+                     <TableHead className="text-center w-20">Conv.</TableHead>
+                     <TableHead className="text-center w-24">Tipo</TableHead>
+                     <TableHead className="text-center w-20">Saúde</TableHead>
+                     <TableHead className="w-10"></TableHead>
+                   </TableRow>
+                 </TableHeader>
+                 <TableBody>
+                   {filtered.map((item) => {
+                     const soldRevenue = item.sold_quantity * item.price;
+                     const participation = totalSoldRevenue > 0 ? (soldRevenue / totalSoldRevenue) * 100 : 0;
+                     const conversion = item.visits > 0 ? (item.sold_quantity / item.visits) * 100 : 0;
+                     return (
+                       <TableRow key={item.id}>
+                         <TableCell className="p-2">
+                           {item.thumbnail ? (
+                             <img src={item.thumbnail.replace("http://", "https://")} alt="" className="w-10 h-10 rounded object-cover" loading="lazy" />
+                           ) : (
+                             <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                               <Package className="w-4 h-4 text-muted-foreground" />
+                             </div>
+                           )}
+                         </TableCell>
+                         <TableCell>
+                           <p className="text-sm font-medium line-clamp-2 leading-tight">{item.title}</p>
+                           <p className="text-xs text-muted-foreground mt-0.5">{item.id}</p>
+                         </TableCell>
+                         <TableCell className="text-right text-sm font-medium">{currencyFmt(item.price)}</TableCell>
+                         <TableCell className="text-center">
+                           <span className={`text-sm font-semibold ${item.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
+                             {item.available_quantity}
+                           </span>
+                         </TableCell>
+                         <TableCell className="text-center text-sm text-muted-foreground">{item.sold_quantity}</TableCell>
+                         <TableCell className="text-right text-sm font-medium">{currencyFmt(soldRevenue)}</TableCell>
+                         <TableCell className="text-center text-sm text-muted-foreground">{participation.toFixed(1)}%</TableCell>
+                         <TableCell className="text-center text-sm text-muted-foreground">{item.visits.toLocaleString("pt-BR")}</TableCell>
+                         <TableCell className="text-center text-sm text-muted-foreground">{conversion.toFixed(1)}%</TableCell>
+                         <TableCell className="text-center">
+                           <Badge variant="secondary" className="text-xs">
+                             {listingTypeLabel[item.listing_type_id || ""] || item.listing_type_id || "—"}
+                           </Badge>
+                         </TableCell>
+                         <TableCell className="text-center">{healthBadge(item.health)}</TableCell>
+                         <TableCell>
+                           <a href={`https://www.mercadolivre.com.br/p/${item.id}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+                             <ExternalLink className="w-4 h-4" />
+                           </a>
+                         </TableCell>
+                       </TableRow>
+                     );
+                   })}
+                 </TableBody>
               </Table>
             </div>
           )}
