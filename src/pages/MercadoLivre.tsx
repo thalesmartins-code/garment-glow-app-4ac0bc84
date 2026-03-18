@@ -472,7 +472,6 @@ export default function MercadoLivre() {
         if (!data?.success) throw new Error(data?.error || "Sync failed");
 
         if (data.user) lastUserInfo = data.user as MLUser;
-        if (data.metrics?.active_listings) lastListings = Number(data.metrics.active_listings || 0);
       }
 
       await Promise.all([loadFromCache(), loadHourlyCache()]);
