@@ -190,8 +190,8 @@ serve(async (req) => {
     let approvedRevenue = 0;
     let cancelledOrders = 0;
     let shippedOrders = 0;
-    const dailySales: Record<string, { total: number; approved: number; qty: number; cancelled: number; shipped: number; unique_visits: number; unique_buyers: number }> = {};
-    const hourlySales: Record<string, { date: string; hour: number; total: number; approved: number; qty: number }> = {};
+  const dailySales: Record<string, { total: number; approved: number; qty: number; units_sold: number; cancelled: number; shipped: number; unique_visits: number; unique_buyers: number }> = {};
+  const hourlySales: Record<string, { date: string; hour: number; total: number; approved: number; qty: number; units_sold: number }> = {};
 
     for (const order of orders) {
       const amount = Number(order.total_amount || 0);
