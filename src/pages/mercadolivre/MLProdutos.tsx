@@ -94,6 +94,7 @@ export default function MLProdutos() {
   const totalRevenuePotential = items.reduce((s, i) => s + i.price * i.available_quantity, 0);
   const avgPrice = items.length > 0 ? items.reduce((s, i) => s + i.price, 0) / items.length : 0;
   const totalSold = items.reduce((s, i) => s + i.sold_quantity, 0);
+  const totalSoldRevenue = items.reduce((s, i) => s + i.sold_quantity * i.price, 0);
 
   // Filter + sort
   const filtered = items
