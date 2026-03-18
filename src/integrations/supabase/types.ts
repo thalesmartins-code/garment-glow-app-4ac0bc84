@@ -26,6 +26,7 @@ export type Database = {
           total_revenue: number
           unique_buyers: number
           unique_visits: number
+          units_sold: number
           user_id: string
         }
         Insert: {
@@ -39,6 +40,7 @@ export type Database = {
           total_revenue?: number
           unique_buyers?: number
           unique_visits?: number
+          units_sold?: number
           user_id: string
         }
         Update: {
@@ -52,6 +54,7 @@ export type Database = {
           total_revenue?: number
           unique_buyers?: number
           unique_visits?: number
+          units_sold?: number
           user_id?: string
         }
         Relationships: []
@@ -65,6 +68,7 @@ export type Database = {
           qty_orders: number
           synced_at: string
           total_revenue: number
+          units_sold: number
           user_id: string
         }
         Insert: {
@@ -75,6 +79,7 @@ export type Database = {
           qty_orders?: number
           synced_at?: string
           total_revenue?: number
+          units_sold?: number
           user_id: string
         }
         Update: {
@@ -85,6 +90,7 @@ export type Database = {
           qty_orders?: number
           synced_at?: string
           total_revenue?: number
+          units_sold?: number
           user_id?: string
         }
         Relationships: []
