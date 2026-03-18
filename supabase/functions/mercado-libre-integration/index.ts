@@ -276,7 +276,7 @@ serve(async (req) => {
     const dailyBuyers = countUniqueBuyers(orders);
     for (const [date, count] of Object.entries(dailyBuyers)) {
       if (!dailySales[date]) {
-        dailySales[date] = { total: 0, approved: 0, qty: 0, cancelled: 0, shipped: 0, unique_visits: 0, unique_buyers: 0 };
+        dailySales[date] = { total: 0, approved: 0, qty: 0, units_sold: 0, cancelled: 0, shipped: 0, unique_visits: 0, unique_buyers: 0 };
       }
       dailySales[date].unique_buyers = count;
     }
