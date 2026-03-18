@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
-import { TopSellingProducts } from "@/components/mercadolivre/TopSellingProducts";
+import { TopSellingProducts, type ProductSalesRow } from "@/components/mercadolivre/TopSellingProducts";
 import {
   DollarSign,
   ShoppingCart,
