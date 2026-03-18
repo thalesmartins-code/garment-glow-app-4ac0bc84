@@ -248,7 +248,7 @@ export default function MercadoLivre() {
     return Object.values(agg)
       .map((p) => ({ ...p, available_quantity: productStockMap[p.item_id] }))
       .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 7);
+      .slice(0, 8);
   })();
 
   const loadHourlyCache = useCallback(async () => {
