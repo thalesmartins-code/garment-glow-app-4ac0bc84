@@ -1,4 +1,4 @@
-import { ArrowLeft, ClipboardList, Megaphone, Package, ShoppingBag, TrendingUp } from "lucide-react";
+import { ArrowLeft, ClipboardList, Megaphone, Package, Plug, ShoppingBag, TrendingUp } from "lucide-react";
 import { EnvironmentSidebar } from "./EnvironmentSidebar";
 
 const mercadoLivreItems = [
@@ -7,6 +7,7 @@ const mercadoLivreItems = [
   { icon: ShoppingBag, label: "Produtos", path: "/mercado-livre/produtos" },
   { icon: ClipboardList, label: "Pedidos", path: "/mercado-livre/pedidos" },
   { icon: Megaphone, label: "Anúncios", path: "/mercado-livre/anuncios" },
+  { icon: Plug, label: "Integrações", path: "/integracoes" },
 ];
 
 const backToMainItem = {
