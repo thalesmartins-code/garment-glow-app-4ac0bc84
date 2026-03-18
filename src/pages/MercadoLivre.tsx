@@ -202,6 +202,7 @@ export default function MercadoLivre() {
     total_revenue: daily.reduce((s, d) => s + d.total, 0),
     approved_revenue: daily.reduce((s, d) => s + d.approved, 0),
     total_orders: daily.reduce((s, d) => s + d.qty, 0),
+    units_sold: daily.reduce((s, d) => s + d.units_sold, 0),
     unique_visits: daily.reduce((s, d) => s + (d.unique_visits || 0), 0),
     unique_buyers: daily.reduce((s, d) => s + (d.unique_buyers || 0), 0),
     avg_ticket: 0,
