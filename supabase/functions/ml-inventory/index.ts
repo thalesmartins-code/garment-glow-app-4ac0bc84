@@ -85,15 +85,35 @@ serve(async (req) => {
             category_id: b.category_id ?? null,
             listing_type_id: b.listing_type_id ?? null,
             health: b.health ?? null,
+            visits: 0,
           });
         }
       }
     }
 
-    // 4. Sort: low stock first (available_quantity ascending), then by sold_quantity descending
+    // 4. Fetch visits per item in batches of 50
+    try {
+      for (let i = 0; i < allItemIds.length; i += 50) {
+        const batch = allItemIds.slice(i, i + 50);
+        const idsParam = batch.join(",");
+        const visitsData = await mlFetch(`/items/visits?ids=${idsParam}`, access_token);
+        // visitsData is an object { "MLB123": 500, "MLB456": 200, ... }
+        if (visitsData && typeof visitsData === "object") {
+          for (const item of items) {
+            if (visitsData[item.id] !== undefined) {
+              item.visits = Number(visitsData[item.id]) || 0;
+            }
+          }
+        }
+      }
+    } catch (visitErr) {
+      console.error("Visits fetch error (non-critical):", visitErr);
+    }
+
+    // 5. Sort: low stock first, then by sold_quantity descending
     items.sort((a, b) => a.available_quantity - b.available_quantity || b.sold_quantity - a.sold_quantity);
 
-    // 5. Summary stats
+    // 6. Summary stats
     const totalItems = items.length;
     const totalStock = items.reduce((s, i) => s + i.available_quantity, 0);
     const outOfStock = items.filter((i) => i.available_quantity === 0).length;
