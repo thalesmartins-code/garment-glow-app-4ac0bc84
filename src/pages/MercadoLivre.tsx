@@ -688,37 +688,40 @@ export default function MercadoLivre() {
         </Card>
       )}
 
-      {daily.length > 0 && (
+      {hourly.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Detalhamento Diário</CardTitle>
+            <CardTitle className="text-base">Venda por Hora</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead className="text-right">Pedidos</TableHead>
-                  <TableHead className="text-right">Venda Total</TableHead>
-                  <TableHead className="text-right">Venda Aprovada</TableHead>
+                  <TableHead>Hora</TableHead>
+                  <TableHead className="text-right">Receita</TableHead>
+                  <TableHead className="text-right">Vendas Totais</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {daily.map((d) => (
-                  <TableRow key={d.date}>
-                    <TableCell>{format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR })}</TableCell>
-                    <TableCell className="text-right">{d.qty}</TableCell>
-                    <TableCell className="text-right">{currencyFmt(d.total)}</TableCell>
-                    <TableCell className="text-right">{currencyFmt(d.approved)}</TableCell>
-                  </TableRow>
-                ))}
+                {Array.from({ length: 24 }, (_, h) => {
+                  const hourData = hourly.filter((d) => d.hour === h);
+                  const revenue = hourData.reduce((s, d) => s + d.total, 0);
+                  const sales = hourData.reduce((s, d) => s + d.qty, 0);
+                  if (revenue === 0 && sales === 0) return null;
+                  return (
+                    <TableRow key={h}>
+                      <TableCell>{String(h).padStart(2, "0")}:00 – {String(h).padStart(2, "0")}:59</TableCell>
+                      <TableCell className="text-right">{currencyFmt(revenue)}</TableCell>
+                      <TableCell className="text-right">{sales}</TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
               <TableFooter>
                 <TableRow className="font-semibold">
                   <TableCell>Total</TableCell>
-                  <TableCell className="text-right">{totals.qty}</TableCell>
-                  <TableCell className="text-right">{currencyFmt(totals.total)}</TableCell>
-                  <TableCell className="text-right">{currencyFmt(totals.approved)}</TableCell>
+                  <TableCell className="text-right">{currencyFmt(hourly.reduce((s, d) => s + d.total, 0))}</TableCell>
+                  <TableCell className="text-right">{hourly.reduce((s, d) => s + d.qty, 0)}</TableCell>
                 </TableRow>
               </TableFooter>
             </Table>
