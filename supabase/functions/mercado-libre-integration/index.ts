@@ -146,7 +146,7 @@ serve(async (req) => {
       rangeStart.setHours(0, 0, 0, 0);
     }
 
-    const CHUNK_DAYS = 7;
+    const CHUNK_DAYS = 1;
     const chunks: Array<{ from: string; to: string }> = [];
     const totalMs = rangeEnd.getTime() - rangeStart.getTime();
     const totalDays = Math.ceil(totalMs / (1000 * 60 * 60 * 24));
