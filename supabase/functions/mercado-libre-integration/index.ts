@@ -187,6 +187,7 @@ serve(async (req) => {
 
     let totalRevenue = 0;
     const totalOrders = orders.length;
+    let totalUnitsSold = 0;
     let approvedRevenue = 0;
     let cancelledOrders = 0;
     let shippedOrders = 0;
