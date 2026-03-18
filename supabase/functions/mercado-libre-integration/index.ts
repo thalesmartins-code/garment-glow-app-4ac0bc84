@@ -248,6 +248,29 @@ serve(async (req) => {
           hourlySales[hourlyKey].approved += amount;
         }
       }
+
+      // Aggregate product-level sales per day
+      if (date && order.order_items) {
+        for (const item of order.order_items) {
+          const itemId = item.item?.id;
+          if (!itemId) continue;
+          const prodKey = `${date}::${itemId}`;
+          const itemQty = Number(item.quantity) || 1;
+          const itemRevenue = Number(item.unit_price || 0) * itemQty;
+          if (!productSales[prodKey]) {
+            productSales[prodKey] = {
+              item_id: itemId,
+              date,
+              title: item.item?.title || "",
+              thumbnail: null,
+              qty_sold: 0,
+              revenue: 0,
+            };
+          }
+          productSales[prodKey].qty_sold += itemQty;
+          productSales[prodKey].revenue += itemRevenue;
+        }
+      }
     }
 
     const dailyBuyers = countUniqueBuyers(orders);
