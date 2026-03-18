@@ -302,6 +302,7 @@ serve(async (req) => {
           total_revenue: data.total,
           approved_revenue: data.approved,
           qty_orders: data.qty,
+          units_sold: data.units_sold,
           synced_at: syncedAt,
         }));
 
