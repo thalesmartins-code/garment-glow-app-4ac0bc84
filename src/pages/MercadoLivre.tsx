@@ -850,10 +850,6 @@ export default function MercadoLivre() {
                           <TableCell className="py-0.5 px-2 text-right">{isEmpty ? "—" : sales}</TableCell>
                         </TableRow>
                       );
-                    });
-                        </TableRow>
-                      );
-                    });
                   })()}
                 </TableBody>
                 <TableFooter>
