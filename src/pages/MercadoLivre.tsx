@@ -831,20 +831,21 @@ export default function MercadoLivre() {
                       .sort((a, b) => b.revenue - a.revenue)
                       .slice(0, 6);
                     const gradientColors = [
-                      "bg-emerald-500/15", // 1st - green
-                      "bg-emerald-400/12", // 2nd
-                      "bg-yellow-400/12",  // 3rd
-                      "bg-amber-400/12",   // 4th
-                      "bg-orange-400/12",  // 5th
-                      "bg-red-400/12",     // 6th - red
+                      "rgba(16,185,129,0.18)",  // 1st - emerald
+                      "rgba(52,211,153,0.14)",  // 2nd - emerald lighter
+                      "rgba(250,204,21,0.14)",  // 3rd - yellow
+                      "rgba(251,191,36,0.14)",  // 4th - amber
+                      "rgba(251,146,60,0.14)",  // 5th - orange
+                      "rgba(248,113,113,0.14)", // 6th - red
                     ];
                     const rankMap = new Map(ranked.map((r, i) => [r.h, i]));
                     return hourRows.map(({ h, revenue, sales }) => {
                       const isEmpty = revenue === 0 && sales === 0;
                       const rankIdx = rankMap.get(h);
-                      const bgClass = rankIdx !== undefined ? `${gradientColors[rankIdx]}${rankIdx === 0 ? " font-semibold" : ""}` : isEmpty ? "text-muted-foreground" : "";
+                      const rowStyle = rankIdx !== undefined ? { backgroundColor: gradientColors[rankIdx] } : undefined;
+                      const extraClass = rankIdx === 0 ? "font-semibold" : isEmpty ? "text-muted-foreground" : "";
                       return (
-                        <TableRow key={h} className={`h-7 ${bgClass}`}>
+                        <TableRow key={h} className={`h-7 ${extraClass}`} style={rowStyle}>
                           <TableCell className="py-0.5 px-2">{String(h).padStart(2, "0")}:00–{String(h).padStart(2, "0")}:59</TableCell>
                           <TableCell className="py-0.5 px-2 text-right">{isEmpty ? "—" : currencyFmt(revenue)}</TableCell>
                           <TableCell className="py-0.5 px-2 text-right">{isEmpty ? "—" : sales}</TableCell>
