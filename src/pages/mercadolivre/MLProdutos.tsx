@@ -130,7 +130,7 @@ export default function MLProdutos() {
           {loading && items.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
-              <p className="text-sm">Carregando produtos...</p>
+              <p className="text-sm">Carregando anúncios...</p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
