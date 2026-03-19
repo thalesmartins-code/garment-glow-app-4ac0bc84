@@ -809,19 +809,20 @@ export default function MercadoLivre() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Array.from({ length: 24 }, (_, h) => {
-                    const hourData = hourly.filter((d) => d.hour === h);
-                    const revenue = hourData.reduce((s, d) => s + d.total, 0);
-                    const sales = hourData.reduce((s, d) => s + d.qty, 0);
-                    if (revenue === 0 && sales === 0) return null;
-                    return (
-                      <TableRow key={h} className="h-7">
+                  {(() => {
+                    const hourRows = Array.from({ length: 24 }, (_, h) => {
+                      const hourData = hourly.filter((d) => d.hour === h);
+                      return { h, revenue: hourData.reduce((s, d) => s + d.total, 0), sales: hourData.reduce((s, d) => s + d.qty, 0) };
+                    }).filter((r) => r.revenue > 0 || r.sales > 0);
+                    const maxRevenue = Math.max(...hourRows.map((r) => r.revenue), 0);
+                    return hourRows.map(({ h, revenue, sales }) => (
+                      <TableRow key={h} className={`h-7 ${revenue > 0 && revenue === maxRevenue ? "bg-primary/10 font-semibold" : ""}`}>
                         <TableCell className="py-0.5 px-2">{String(h).padStart(2, "0")}:00–{String(h).padStart(2, "0")}:59</TableCell>
                         <TableCell className="py-0.5 px-2 text-right">{currencyFmt(revenue)}</TableCell>
                         <TableCell className="py-0.5 px-2 text-right">{sales}</TableCell>
                       </TableRow>
-                    );
-                  })}
+                    ));
+                  })()}
                 </TableBody>
                 <TableFooter>
                   <TableRow className="font-semibold h-7">
