@@ -859,7 +859,7 @@ export default function MercadoLivre() {
                       const extraClass = rankIdx === 0 ? "font-semibold" : isEmpty ? "text-muted-foreground" : "";
                       return (
                         <TableRow key={h} className={`h-8 ${extraClass}`} style={rowStyle}>
-                          <TableCell className="py-0.5 px-2 font-mono tabular-nums">{String(h).padStart(2, "0")}:00–{String(h).padStart(2, "0")}:59</TableCell>
+                          <TableCell className="py-0.5 px-2">{String(h).padStart(2, "0")}:00–{String(h).padStart(2, "0")}:59</TableCell>
                           <TableCell className="py-0.5 px-2 text-right">{isEmpty ? "—" : currencyFmt(revenue)}</TableCell>
                           <TableCell className="py-0.5 px-2 text-right">{isEmpty ? "—" : sales}</TableCell>
                         </TableRow>
