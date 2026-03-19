@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, Trophy, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useMediaQuery } from "@/hooks/use-mobile";
+import * as React from "react";
 
 export interface ProductSalesRow {
   item_id: string;
