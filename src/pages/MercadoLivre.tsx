@@ -669,9 +669,6 @@ export default function MercadoLivre() {
               </a>
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={syncFromAPI} disabled={syncing}>
-            <RefreshCw className={`w-4 h-4 mr-1 ${syncing ? "animate-spin" : ""}`} /> Sincronizar
-          </Button>
           <HistoricalSyncModal
             accessToken={cachedAccessToken}
             onSyncComplete={reloadCache}
