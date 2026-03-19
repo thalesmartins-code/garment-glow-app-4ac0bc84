@@ -231,7 +231,7 @@ export default function MLEstoque() {
                       </TableCell>
                       <TableCell>
                         <a
-                          href={`https://www.mercadolivre.com.br/p/${item.id}`}
+                          href={`https://produto.mercadolivre.com.br/${item.id.replace(/^(MLB)(\d+)$/, '$1-$2')}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-muted-foreground hover:text-foreground transition-colors"
