@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Trophy } from "lucide-react";
+import { Package, Trophy, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export interface ProductSalesRow {
