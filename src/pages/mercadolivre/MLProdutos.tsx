@@ -14,6 +14,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
 
 interface ProductItem {
   id: string;
