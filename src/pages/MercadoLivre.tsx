@@ -26,6 +26,7 @@ import {
   Check,
   X,
   Clock3,
+  ArrowUpDown,
 } from "lucide-react";
 import {
   ComposedChart,
@@ -145,6 +146,7 @@ export default function MercadoLivre() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [hourlySortByRevenue, setHourlySortByRevenue] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [connected, setConnected] = useState(false);
   const [mlUser, setMlUser] = useState<MLUser | null>(null);
@@ -815,7 +817,9 @@ export default function MercadoLivre() {
                 <TableHeader>
                   <TableRow className="h-7">
                     <TableHead className="py-1 px-2 text-xs">Hora</TableHead>
-                    <TableHead className="py-1 px-2 text-xs text-right">Receita</TableHead>
+                    <TableHead className="py-1 px-2 text-xs text-right cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => setHourlySortByRevenue((p) => !p)}>
+                      <span className="inline-flex items-center gap-1 justify-end">Receita <ArrowUpDown className="w-3 h-3" /></span>
+                    </TableHead>
                     <TableHead className="py-1 px-2 text-xs text-right">Vendas</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -845,7 +849,10 @@ export default function MercadoLivre() {
                       "rgba(168,85,247,0.12)",  // 12th - purple
                     ];
                     const rankMap = new Map(ranked.map((r, i) => [r.h, i]));
-                    return hourRows.map(({ h, revenue, sales }) => {
+                    const displayRows = hourlySortByRevenue
+                      ? [...hourRows].sort((a, b) => b.revenue - a.revenue)
+                      : hourRows;
+                    return displayRows.map(({ h, revenue, sales }) => {
                       const isEmpty = revenue === 0 && sales === 0;
                       const rankIdx = rankMap.get(h);
                       const rowStyle = rankIdx !== undefined ? { backgroundColor: gradientColors[rankIdx] } : undefined;
