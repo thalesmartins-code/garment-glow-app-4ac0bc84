@@ -52,6 +52,7 @@ export default function MLProdutos() {
   const [items, setItems] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasToken, setHasToken] = useState<boolean | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [search, setSearch] = useState("");
   const [stockFilter, setStockFilter] = useState<StockFilter>("all");
   const [sortBy, setSortBy] = useState<"price_desc" | "price_asc" | "sold" | "title">("sold");
