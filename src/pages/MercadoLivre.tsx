@@ -795,7 +795,7 @@ export default function MercadoLivre() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-end">
         {hourly.length > 0 && (
           <Card className="flex flex-col">
             <CardHeader className="py-3 px-4">
