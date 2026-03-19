@@ -47,10 +47,8 @@ async function fetchOrdersChunk(
   let offset = 0;
 
   while (offset < 10000 && allOrders.length < maxOrders) {
-    // FIX: Usar date_last_updated em vez de date_created para capturar pedidos
-    // que foram atualizados (pagos, enviados, cancelados) dentro da janela,
-    // mesmo que tenham sido criados antes do período.
-    const url = `/orders/search?seller=${sellerId}&order.date_last_updated.from=${dateFrom}&order.date_last_updated.to=${dateTo}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`;
+    // Usar date_created para consistência: buscamos e classificamos pelo mesmo campo
+    const url = `/orders/search?seller=${sellerId}&order.date_created.from=${dateFrom}&order.date_created.to=${dateTo}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`;
     const data = await mlFetch(url, accessToken);
     const results = data.results || [];
     allOrders = allOrders.concat(results);
