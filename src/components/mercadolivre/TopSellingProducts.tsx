@@ -23,7 +23,7 @@ export function TopSellingProducts({ products, loading }: Props) {
   const visibleProducts = products.slice(0, 10);
   if (loading) {
     return (
-      <Card className="h-full">
+      <Card className="h-full flex flex-col">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Trophy className="w-4 h-4 text-[hsl(45,93%,47%)]" />
