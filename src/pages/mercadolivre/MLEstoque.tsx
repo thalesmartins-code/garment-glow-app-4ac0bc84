@@ -100,7 +100,7 @@ export default function MLEstoque() {
           ) : filtered.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">{search ? "Nenhum produto encontrado" : "Nenhum produto ativo"}</p>
+              <p className="text-sm">{search ? "Nenhum anúncio encontrado" : "Nenhum anúncio ativo"}</p>
             </div>
           ) : (
             <div className="max-h-[500px] overflow-auto">
