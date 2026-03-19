@@ -868,7 +868,7 @@ export default function MercadoLivre() {
                   })()}
                 </TableBody>
                 <TableFooter>
-                  <TableRow className="font-semibold h-7">
+                  <TableRow className="font-semibold h-8">
                     <TableCell className="py-0.5 px-2">Total</TableCell>
                     <TableCell className="py-0.5 px-2 text-right">{currencyFmt(hourly.reduce((s, d) => s + d.total, 0))}</TableCell>
                     <TableCell className="py-0.5 px-2 text-right">{hourly.reduce((s, d) => s + d.qty, 0)}</TableCell>
