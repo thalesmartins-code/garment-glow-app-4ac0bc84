@@ -36,7 +36,10 @@ async function fetchOrdersChunk(
   let offset = 0;
 
   while (offset < 10000 && allOrders.length < maxOrders) {
-    const url = `/orders/search?seller=${sellerId}&order.date_created.from=${dateFrom}&order.date_created.to=${dateTo}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`;
+    // FIX: Usar date_last_updated em vez de date_created para capturar pedidos
+    // que foram atualizados (pagos, enviados, cancelados) dentro da janela,
+    // mesmo que tenham sido criados antes do período.
+    const url = `/orders/search?seller=${sellerId}&order.date_last_updated.from=${dateFrom}&order.date_last_updated.to=${dateTo}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`;
     const data = await mlFetch(url, accessToken);
     const results = data.results || [];
     allOrders = allOrders.concat(results);
@@ -46,9 +49,10 @@ async function fetchOrdersChunk(
   }
 
   // Log truncation warning if we couldn't fetch all orders
-  const firstPageTotal = allOrders.length > 0 ? offset : 0;
   if (offset >= 10000 || allOrders.length >= maxOrders) {
-    console.warn(`⚠️ TRUNCATION: fetched ${allOrders.length} orders but paging may have more. offset=${offset}, maxOrders=${maxOrders}`);
+    console.warn(
+      `⚠️ TRUNCATION: fetched ${allOrders.length} orders but paging may have more. offset=${offset}, maxOrders=${maxOrders}`,
+    );
   }
 
   return allOrders;
@@ -119,10 +123,7 @@ serve(async (req) => {
       });
     }
 
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     const user = await mlFetch("/users/me", access_token);
     const sellerId = user.id;
@@ -168,7 +169,9 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Fetching orders from ${rangeStart.toISOString()} to ${rangeEnd.toISOString()} in ${chunks.length} chunks`);
+    console.log(
+      `Fetching orders from ${rangeStart.toISOString()} to ${rangeEnd.toISOString()} in ${chunks.length} chunks`,
+    );
 
     let allOrders: any[] = [];
     for (const chunk of chunks) {
@@ -191,9 +194,27 @@ serve(async (req) => {
     let approvedRevenue = 0;
     let cancelledOrders = 0;
     let shippedOrders = 0;
-  const dailySales: Record<string, { total: number; approved: number; qty: number; units_sold: number; cancelled: number; shipped: number; unique_visits: number; unique_buyers: number }> = {};
-  const hourlySales: Record<string, { date: string; hour: number; total: number; approved: number; qty: number; units_sold: number }> = {};
-  const productSales: Record<string, { item_id: string; date: string; title: string; thumbnail: string | null; qty_sold: number; revenue: number }> = {};
+    const dailySales: Record<
+      string,
+      {
+        total: number;
+        approved: number;
+        qty: number;
+        units_sold: number;
+        cancelled: number;
+        shipped: number;
+        unique_visits: number;
+        unique_buyers: number;
+      }
+    > = {};
+    const hourlySales: Record<
+      string,
+      { date: string; hour: number; total: number; approved: number; qty: number; units_sold: number }
+    > = {};
+    const productSales: Record<
+      string,
+      { item_id: string; date: string; title: string; thumbnail: string | null; qty_sold: number; revenue: number }
+    > = {};
 
     for (const order of orders) {
       const amount = Number(order.total_amount || 0);
@@ -203,7 +224,8 @@ serve(async (req) => {
       const status = order.status;
 
       // Count units sold (each different product in a cart = 1 sale)
-      const orderUnits = (order.order_items || []).reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0) || 1;
+      const orderUnits =
+        (order.order_items || []).reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0) || 1;
 
       totalRevenue += amount;
       totalUnitsSold += orderUnits;
@@ -220,7 +242,16 @@ serve(async (req) => {
 
       if (date) {
         if (!dailySales[date]) {
-          dailySales[date] = { total: 0, approved: 0, qty: 0, units_sold: 0, cancelled: 0, shipped: 0, unique_visits: 0, unique_buyers: 0 };
+          dailySales[date] = {
+            total: 0,
+            approved: 0,
+            qty: 0,
+            units_sold: 0,
+            cancelled: 0,
+            shipped: 0,
+            unique_visits: 0,
+            unique_buyers: 0,
+          };
         }
         dailySales[date].total += amount;
         dailySales[date].qty += 1;
@@ -279,10 +310,7 @@ serve(async (req) => {
       for (let i = 0; i < uniqueItemIds.length; i += 20) {
         const batch = uniqueItemIds.slice(i, i + 20);
         const idsParam = batch.join(",");
-        const multiGet = await mlFetch(
-          `/items?ids=${idsParam}&attributes=id,thumbnail`,
-          access_token
-        );
+        const multiGet = await mlFetch(`/items?ids=${idsParam}&attributes=id,thumbnail`, access_token);
         for (const entry of multiGet) {
           if (entry.code === 200 && entry.body?.thumbnail) {
             for (const ps of Object.values(productSales)) {
@@ -301,7 +329,16 @@ serve(async (req) => {
     const dailyBuyers = countUniqueBuyers(orders);
     for (const [date, count] of Object.entries(dailyBuyers)) {
       if (!dailySales[date]) {
-        dailySales[date] = { total: 0, approved: 0, qty: 0, units_sold: 0, cancelled: 0, shipped: 0, unique_visits: 0, unique_buyers: 0 };
+        dailySales[date] = {
+          total: 0,
+          approved: 0,
+          qty: 0,
+          units_sold: 0,
+          cancelled: 0,
+          shipped: 0,
+          unique_visits: 0,
+          unique_buyers: 0,
+        };
       }
       dailySales[date].unique_buyers = count;
     }
@@ -314,12 +351,23 @@ serve(async (req) => {
     for (const [date, visits] of Object.entries(dailyVisits)) {
       totalVisits += visits;
       if (!dailySales[date]) {
-        dailySales[date] = { total: 0, approved: 0, qty: 0, units_sold: 0, cancelled: 0, shipped: 0, unique_visits: 0, unique_buyers: 0 };
+        dailySales[date] = {
+          total: 0,
+          approved: 0,
+          qty: 0,
+          units_sold: 0,
+          cancelled: 0,
+          shipped: 0,
+          unique_visits: 0,
+          unique_buyers: 0,
+        };
       }
       dailySales[date].unique_visits = visits;
     }
 
-    console.log(`Unique buyers: ${totalUniqueBuyers}, daily visit rows: ${Object.keys(dailyVisits).length}, total visits: ${totalVisits}`);
+    console.log(
+      `Unique buyers: ${totalUniqueBuyers}, daily visit rows: ${Object.keys(dailyVisits).length}, total visits: ${totalVisits}`,
+    );
 
     let activeListings = 0;
     try {
@@ -401,9 +449,8 @@ serve(async (req) => {
           })();
         }
 
-        const { error: userCacheErr } = await supabaseAdmin
-          .from("ml_user_cache")
-          .upsert({
+        const { error: userCacheErr } = await supabaseAdmin.from("ml_user_cache").upsert(
+          {
             user_id,
             ml_user_id: user.id,
             nickname: user.nickname,
@@ -411,10 +458,14 @@ serve(async (req) => {
             permalink: user.permalink,
             active_listings: activeListings,
             synced_at: syncedAt,
-          }, { onConflict: "user_id" });
+          },
+          { onConflict: "user_id" },
+        );
         if (userCacheErr) console.error("User cache upsert error:", userCacheErr);
 
-        console.log(`Cache updated: ${dailyRows.length} daily rows, ${hourlyRows.length} hourly rows, ${productRows.length} product rows, user cache saved`);
+        console.log(
+          `Cache updated: ${dailyRows.length} daily rows, ${hourlyRows.length} hourly rows, ${productRows.length} product rows, user cache saved`,
+        );
       } catch (cacheError) {
         console.error("Cache save error:", cacheError);
       }
@@ -424,12 +475,11 @@ serve(async (req) => {
       .map(([date, data]) => ({ date, ...data }))
       .sort((a, b) => b.date.localeCompare(a.date));
 
-    const hourlyBreakdown = Object.values(hourlySales)
-      .sort((a, b) => {
-        const dateCompare = b.date.localeCompare(a.date);
-        if (dateCompare !== 0) return dateCompare;
-        return b.hour - a.hour;
-      });
+    const hourlyBreakdown = Object.values(hourlySales).sort((a, b) => {
+      const dateCompare = b.date.localeCompare(a.date);
+      if (dateCompare !== 0) return dateCompare;
+      return b.hour - a.hour;
+    });
 
     const conversionRate = totalVisits > 0 ? (totalUniqueBuyers / totalVisits) * 100 : 0;
 
@@ -465,9 +515,9 @@ serve(async (req) => {
     });
   } catch (error: any) {
     console.error("ML Integration error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: error.message || "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ success: false, error: error.message || "Internal server error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
