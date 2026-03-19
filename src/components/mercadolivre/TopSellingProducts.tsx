@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, Trophy, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useMediaQuery } from "@/hooks/use-mobile";
 
 export interface ProductSalesRow {
   item_id: string;
@@ -19,6 +20,9 @@ interface Props {
 const currencyFmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function TopSellingProducts({ products, loading }: Props) {
+  const isLargeScreen = useMediaQuery("(min-width: 1024px)");
+  const maxItems = isLargeScreen ? 12 : 10;
+  const visibleProducts = products.slice(0, maxItems);
   if (loading) {
     return (
       <Card className="h-full">
