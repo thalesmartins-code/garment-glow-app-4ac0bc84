@@ -47,14 +47,14 @@ export function TopSellingProducts({ products, loading }: Props) {
   }
 
   return (
-    <Card className="h-full">
+    <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Trophy className="w-4 h-4 text-[hsl(45,93%,47%)]" />
           Produtos mais vendidos
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="p-0 flex-1 flex flex-col justify-end">
         {products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground text-sm">
             <Package className="w-8 h-8 mb-2 opacity-50" />
