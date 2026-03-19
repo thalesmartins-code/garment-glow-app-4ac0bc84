@@ -72,7 +72,7 @@ export default function MLProdutos() {
 
   return (
     <div className="space-y-6">
-      <MLPageHeader title="Produtos" lastUpdated={lastUpdated}>
+      <MLPageHeader title="Anúncios" lastUpdated={lastUpdated}>
         <Button onClick={refresh} disabled={loading} size="sm" variant="outline">
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Atualizar
@@ -87,7 +87,7 @@ export default function MLProdutos() {
           ))
         ) : (
           <>
-            <KPICard title="Total de Produtos" value={String(items.length)} icon={<ShoppingBag className="w-5 h-5" />} subtitle="Anúncios ativos" />
+            <KPICard title="Total de Anúncios" value={String(items.length)} icon={<ShoppingBag className="w-5 h-5" />} subtitle="Anúncios ativos" />
             <KPICard title="Ticket Médio" value={currencyFmt(avgPrice)} icon={<Tag className="w-5 h-5" />} subtitle="Preço médio dos anúncios" />
             <KPICard title="Unidades Vendidas" value={String(totalSold)} icon={<TrendingUp className="w-5 h-5" />} subtitle="Total histórico" />
             <KPICard title="Receita Potencial" value={currencyFmt(totalRevenuePotential)} icon={<DollarSign className="w-5 h-5" />} subtitle="Estoque × Preço" />
@@ -99,7 +99,7 @@ export default function MLProdutos() {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <CardTitle className="text-base">Catálogo de Produtos</CardTitle>
+            <CardTitle className="text-base">Catálogo de Anúncios</CardTitle>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <div className="relative flex-1 sm:w-56">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
