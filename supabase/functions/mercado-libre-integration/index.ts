@@ -8,6 +8,17 @@ const corsHeaders = {
 };
 
 const ML_API = "https://api.mercadolibre.com";
+const BRT_OFFSET_MS = -3 * 60 * 60 * 1000; // UTC-3
+
+/** Convert an ISO date string to { date: "YYYY-MM-DD", hour: number } in BRT */
+function toBRT(isoStr: string): { date: string; hour: number } {
+  const utc = new Date(isoStr);
+  const brt = new Date(utc.getTime() + BRT_OFFSET_MS);
+  return {
+    date: brt.toISOString().substring(0, 10),
+    hour: brt.getUTCHours(),
+  };
+}
 
 async function mlFetch(path: string, accessToken: string) {
   const res = await fetch(`${ML_API}${path}`, {
@@ -36,10 +47,8 @@ async function fetchOrdersChunk(
   let offset = 0;
 
   while (offset < 10000 && allOrders.length < maxOrders) {
-    // FIX: Usar date_last_updated em vez de date_created para capturar pedidos
-    // que foram atualizados (pagos, enviados, cancelados) dentro da janela,
-    // mesmo que tenham sido criados antes do período.
-    const url = `/orders/search?seller=${sellerId}&order.date_last_updated.from=${dateFrom}&order.date_last_updated.to=${dateTo}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`;
+    // Usar date_created para consistência: buscamos e classificamos pelo mesmo campo
+    const url = `/orders/search?seller=${sellerId}&order.date_created.from=${dateFrom}&order.date_created.to=${dateTo}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`;
     const data = await mlFetch(url, accessToken);
     const results = data.results || [];
     allOrders = allOrders.concat(results);
@@ -94,7 +103,8 @@ async function fetchVisits(
 function countUniqueBuyers(orders: any[]): Record<string, number> {
   const dailyBuyers: Record<string, Set<number>> = {};
   for (const order of orders) {
-    const date = order.date_created ? order.date_created.substring(0, 10) : null;
+    const dateCreated = order.date_created || null;
+    const date = dateCreated ? toBRT(dateCreated).date : null;
     const buyerId = order.buyer?.id;
     if (date && buyerId) {
       if (!dailyBuyers[date]) dailyBuyers[date] = new Set();
@@ -219,8 +229,9 @@ serve(async (req) => {
     for (const order of orders) {
       const amount = Number(order.total_amount || 0);
       const dateCreated = order.date_created || null;
-      const date = dateCreated ? dateCreated.substring(0, 10) : null;
-      const hour = dateCreated ? Number(dateCreated.substring(11, 13)) : null;
+      const brt = dateCreated ? toBRT(dateCreated) : null;
+      const date = brt?.date ?? null;
+      const hour = brt?.hour ?? null;
       const status = order.status;
 
       // Count units sold (each different product in a cart = 1 sale)
