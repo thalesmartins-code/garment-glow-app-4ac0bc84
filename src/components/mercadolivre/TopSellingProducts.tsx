@@ -87,7 +87,7 @@ export function TopSellingProducts({ products, loading }: Props) {
                   </div>
                 </div>
                 <a
-                  href={`https://www.mercadolivre.com.br/p/${product.item_id}`}
+                  href={`https://produto.mercadolivre.com.br/${product.item_id.replace(/^(MLB)(\d+)$/, '$1-$2')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="shrink-0 text-muted-foreground/30 hover:text-primary transition-colors"
