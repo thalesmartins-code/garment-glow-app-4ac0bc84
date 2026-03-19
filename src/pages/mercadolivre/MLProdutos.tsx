@@ -217,7 +217,7 @@ export default function MLProdutos() {
                      <TableHead className="text-center w-20">% Part.</TableHead>
                      <TableHead className="text-center w-20">Visitas</TableHead>
                      <TableHead className="text-center w-20">Conv.</TableHead>
-                     <TableHead className="text-center w-24">Tipo</TableHead>
+                     
                      <TableHead className="text-center w-20">Saúde</TableHead>
                      <TableHead className="w-10"></TableHead>
                    </TableRow>
