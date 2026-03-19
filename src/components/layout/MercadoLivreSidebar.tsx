@@ -4,9 +4,9 @@ import { EnvironmentSidebar } from "./EnvironmentSidebar";
 const mercadoLivreItems = [
   { icon: TrendingUp, label: "Vendas", path: "/mercado-livre" },
   { icon: Package, label: "Estoque", path: "/mercado-livre/estoque" },
-  { icon: ShoppingBag, label: "Produtos", path: "/mercado-livre/produtos" },
+  { icon: ShoppingBag, label: "Anúncios", path: "/mercado-livre/produtos" },
   { icon: ClipboardList, label: "Pedidos", path: "/mercado-livre/pedidos" },
-  { icon: Megaphone, label: "Anúncios", path: "/mercado-livre/anuncios" },
+  { icon: Megaphone, label: "Publicidade", path: "/mercado-livre/anuncios" },
   { icon: Plug, label: "Integrações", path: "/integracoes" },
 ];
 
