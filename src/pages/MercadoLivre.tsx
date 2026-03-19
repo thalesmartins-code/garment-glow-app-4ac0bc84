@@ -796,16 +796,16 @@ export default function MercadoLivre() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
         {hourly.length > 0 && (
           <Card className="flex flex-col">
-            <CardHeader>
+            <CardHeader className="py-3 px-4">
               <CardTitle className="text-base">Venda por Hora</CardTitle>
             </CardHeader>
             <CardContent className="p-0 flex-1 overflow-auto">
-              <Table>
+              <Table className="text-xs">
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Hora</TableHead>
-                    <TableHead className="text-right">Receita</TableHead>
-                    <TableHead className="text-right">Vendas Totais</TableHead>
+                  <TableRow className="h-7">
+                    <TableHead className="py-1 px-2 text-xs">Hora</TableHead>
+                    <TableHead className="py-1 px-2 text-xs text-right">Receita</TableHead>
+                    <TableHead className="py-1 px-2 text-xs text-right">Vendas</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -815,19 +815,19 @@ export default function MercadoLivre() {
                     const sales = hourData.reduce((s, d) => s + d.qty, 0);
                     if (revenue === 0 && sales === 0) return null;
                     return (
-                      <TableRow key={h}>
-                        <TableCell>{String(h).padStart(2, "0")}:00 – {String(h).padStart(2, "0")}:59</TableCell>
-                        <TableCell className="text-right">{currencyFmt(revenue)}</TableCell>
-                        <TableCell className="text-right">{sales}</TableCell>
+                      <TableRow key={h} className="h-7">
+                        <TableCell className="py-0.5 px-2">{String(h).padStart(2, "0")}:00–{String(h).padStart(2, "0")}:59</TableCell>
+                        <TableCell className="py-0.5 px-2 text-right">{currencyFmt(revenue)}</TableCell>
+                        <TableCell className="py-0.5 px-2 text-right">{sales}</TableCell>
                       </TableRow>
                     );
                   })}
                 </TableBody>
                 <TableFooter>
-                  <TableRow className="font-semibold">
-                    <TableCell>Total</TableCell>
-                    <TableCell className="text-right">{currencyFmt(hourly.reduce((s, d) => s + d.total, 0))}</TableCell>
-                    <TableCell className="text-right">{hourly.reduce((s, d) => s + d.qty, 0)}</TableCell>
+                  <TableRow className="font-semibold h-7">
+                    <TableCell className="py-0.5 px-2">Total</TableCell>
+                    <TableCell className="py-0.5 px-2 text-right">{currencyFmt(hourly.reduce((s, d) => s + d.total, 0))}</TableCell>
+                    <TableCell className="py-0.5 px-2 text-right">{hourly.reduce((s, d) => s + d.qty, 0)}</TableCell>
                   </TableRow>
                 </TableFooter>
               </Table>
