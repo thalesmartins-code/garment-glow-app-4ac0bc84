@@ -63,7 +63,7 @@ export function TopSellingProducts({ products, loading }: Props) {
         ) : (
           <div className="divide-y divide-border">
             {products.map((product, idx) => (
-              <div key={product.item_id} className="flex items-center gap-3 px-4 py-3.5">
+              <div key={product.item_id} className="flex items-center gap-3 px-4 py-4">
                 <span className="text-sm font-bold text-muted-foreground w-5 text-center shrink-0">{idx + 1}</span>
                 <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
                   {product.thumbnail ? (
