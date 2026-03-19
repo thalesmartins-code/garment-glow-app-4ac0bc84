@@ -813,7 +813,7 @@ export default function MercadoLivre() {
                     const hourRows = Array.from({ length: 24 }, (_, h) => {
                       const hourData = hourly.filter((d) => d.hour === h);
                       return { h, revenue: hourData.reduce((s, d) => s + d.total, 0), sales: hourData.reduce((s, d) => s + d.qty, 0) };
-                    }).filter((r) => r.revenue > 0 || r.sales > 0);
+                    });
                     const maxRevenue = Math.max(...hourRows.map((r) => r.revenue), 0);
                     return hourRows.map(({ h, revenue, sales }) => (
                       <TableRow key={h} className={`h-7 ${revenue > 0 && revenue === maxRevenue ? "bg-primary/10 font-semibold" : ""}`}>
