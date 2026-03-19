@@ -87,7 +87,7 @@ export default function MLProdutos() {
           ))
         ) : (
           <>
-            <KPICard title="Total de Produtos" value={String(items.length)} icon={<ShoppingBag className="w-5 h-5" />} subtitle="Anúncios ativos" />
+            <KPICard title="Total de Anúncios" value={String(items.length)} icon={<ShoppingBag className="w-5 h-5" />} subtitle="Anúncios ativos" />
             <KPICard title="Ticket Médio" value={currencyFmt(avgPrice)} icon={<Tag className="w-5 h-5" />} subtitle="Preço médio dos anúncios" />
             <KPICard title="Unidades Vendidas" value={String(totalSold)} icon={<TrendingUp className="w-5 h-5" />} subtitle="Total histórico" />
             <KPICard title="Receita Potencial" value={currencyFmt(totalRevenuePotential)} icon={<DollarSign className="w-5 h-5" />} subtitle="Estoque × Preço" />
