@@ -229,8 +229,9 @@ serve(async (req) => {
     for (const order of orders) {
       const amount = Number(order.total_amount || 0);
       const dateCreated = order.date_created || null;
-      const date = dateCreated ? dateCreated.substring(0, 10) : null;
-      const hour = dateCreated ? Number(dateCreated.substring(11, 13)) : null;
+      const brt = dateCreated ? toBRT(dateCreated) : null;
+      const date = brt?.date ?? null;
+      const hour = brt?.hour ?? null;
       const status = order.status;
 
       // Count units sold (each different product in a cart = 1 sale)
