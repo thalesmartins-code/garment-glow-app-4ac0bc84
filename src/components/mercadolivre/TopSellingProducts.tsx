@@ -56,16 +56,16 @@ export function TopSellingProducts({ products, loading }: Props) {
           Produtos mais vendidos
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 p-0">
+      <CardContent className="flex-1 p-0 flex flex-col">
         {products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground text-sm">
+          <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground text-sm">
             <Package className="w-8 h-8 mb-2 opacity-50" />
             Nenhum produto encontrado
           </div>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border flex flex-col flex-1">
             {visibleProducts.map((product, idx) => (
-              <div key={product.item_id} className="flex items-center gap-3 px-4 py-4">
+              <div key={product.item_id} className="flex items-center gap-3 px-4 flex-1">
                 <span className="text-sm font-bold text-muted-foreground w-5 text-center shrink-0">{idx + 1}</span>
                 <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
                   {product.thumbnail ? (
