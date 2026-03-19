@@ -143,7 +143,7 @@ export default function MLProdutos() {
                  <TableHeader>
                    <TableRow>
                      <TableHead className="w-12"></TableHead>
-                     <TableHead>Produto</TableHead>
+                     <TableHead>Anúncio</TableHead>
                      <TableHead className="text-right w-24">Preço</TableHead>
                      <TableHead className="text-center w-20">Estoque</TableHead>
                      <TableHead className="text-center w-20">Vendidos</TableHead>
