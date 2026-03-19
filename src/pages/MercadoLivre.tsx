@@ -816,7 +816,7 @@ export default function MercadoLivre() {
               <Table className="text-xs">
                 <TableHeader>
                   <TableRow className="h-7 hover:bg-transparent">
-                    <TableHead className="py-1 px-2 text-xs">Hora</TableHead>
+                    <TableHead className="py-1 px-2 text-xs w-[100px]">Hora</TableHead>
                     <TableHead className="py-1 px-2 text-xs text-right cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => setHourlySortByRevenue((p) => !p)}>
                       <span className="inline-flex items-center gap-1 justify-end">Receita <ArrowUpDown className="w-3 h-3" /></span>
                     </TableHead>
