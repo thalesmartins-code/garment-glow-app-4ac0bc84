@@ -146,6 +146,7 @@ export default function MercadoLivre() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [hourlySortByRevenue, setHourlySortByRevenue] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [connected, setConnected] = useState(false);
   const [mlUser, setMlUser] = useState<MLUser | null>(null);
