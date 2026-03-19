@@ -8,6 +8,17 @@ const corsHeaders = {
 };
 
 const ML_API = "https://api.mercadolibre.com";
+const BRT_OFFSET_MS = -3 * 60 * 60 * 1000; // UTC-3
+
+/** Convert an ISO date string to { date: "YYYY-MM-DD", hour: number } in BRT */
+function toBRT(isoStr: string): { date: string; hour: number } {
+  const utc = new Date(isoStr);
+  const brt = new Date(utc.getTime() + BRT_OFFSET_MS);
+  return {
+    date: brt.toISOString().substring(0, 10),
+    hour: brt.getUTCHours(),
+  };
+}
 
 async function mlFetch(path: string, accessToken: string) {
   const res = await fetch(`${ML_API}${path}`, {
