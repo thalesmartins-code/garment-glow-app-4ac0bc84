@@ -96,7 +96,10 @@ export default function MLEstoque() {
   }, [checkToken]);
 
   useEffect(() => {
-    if (hasToken) fetchInventory();
+    if (!hasToken) return;
+    fetchInventory();
+    const interval = setInterval(fetchInventory, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [hasToken, fetchInventory]);
 
   const filtered = items.filter((item) =>

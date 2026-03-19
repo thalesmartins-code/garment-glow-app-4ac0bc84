@@ -89,7 +89,12 @@ export default function MLProdutos() {
   }, [user, checkToken, toast]);
 
   useEffect(() => { checkToken(); }, [checkToken]);
-  useEffect(() => { if (hasToken) fetchProducts(); }, [hasToken, fetchProducts]);
+  useEffect(() => {
+    if (!hasToken) return;
+    fetchProducts();
+    const interval = setInterval(fetchProducts, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [hasToken, fetchProducts]);
 
   // Derived stats
   const totalRevenuePotential = items.reduce((s, i) => s + i.price * i.available_quantity, 0);
