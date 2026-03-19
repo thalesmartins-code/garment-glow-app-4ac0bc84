@@ -20,24 +20,7 @@ interface Props {
 const currencyFmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function TopSellingProducts({ products, loading }: Props) {
-  const [maxItems, setMaxItems] = React.useState(10);
-  React.useEffect(() => {
-    const mq1535 = window.matchMedia("(min-width: 1535px)");
-    const mq1525 = window.matchMedia("(min-width: 1525px)");
-    const update = () => {
-      if (mq1535.matches) setMaxItems(12);
-      else if (mq1525.matches) setMaxItems(11);
-      else setMaxItems(10);
-    };
-    mq1535.addEventListener("change", update);
-    mq1525.addEventListener("change", update);
-    update();
-    return () => {
-      mq1535.removeEventListener("change", update);
-      mq1525.removeEventListener("change", update);
-    };
-  }, []);
-  const visibleProducts = products.slice(0, maxItems);
+  const visibleProducts = products.slice(0, 10);
   if (loading) {
     return (
       <Card className="h-full">
