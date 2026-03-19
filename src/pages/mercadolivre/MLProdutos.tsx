@@ -62,7 +62,7 @@ export default function MLProdutos() {
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <Plug className="w-12 h-12 mb-4 text-muted-foreground/40" />
             <h3 className="text-lg font-semibold mb-2">Conta não conectada</h3>
-            <p className="text-sm text-muted-foreground mb-4">Conecte sua conta do Mercado Livre para visualizar os produtos.</p>
+            <p className="text-sm text-muted-foreground mb-4">Conecte sua conta do Mercado Livre para visualizar os anúncios.</p>
             <Button asChild><Link to="/integracoes">Ir para Integrações</Link></Button>
           </CardContent>
         </Card>
@@ -130,7 +130,7 @@ export default function MLProdutos() {
           {loading && items.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
-              <p className="text-sm">Carregando produtos...</p>
+              <p className="text-sm">Carregando anúncios...</p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
@@ -143,7 +143,7 @@ export default function MLProdutos() {
                  <TableHeader>
                    <TableRow>
                      <TableHead className="w-12"></TableHead>
-                     <TableHead>Produto</TableHead>
+                     <TableHead>Anúncio</TableHead>
                      <TableHead className="text-right w-24">Preço</TableHead>
                      <TableHead className="text-center w-20">Estoque</TableHead>
                      <TableHead className="text-center w-20">Vendidos</TableHead>
@@ -201,7 +201,7 @@ export default function MLProdutos() {
           )}
           {filtered.length > 0 && (
             <div className="px-4 py-3 border-t text-xs text-muted-foreground">
-              Exibindo {filtered.length} de {items.length} produtos
+              Exibindo {filtered.length} de {items.length} anúncios
             </div>
           )}
         </CardContent>

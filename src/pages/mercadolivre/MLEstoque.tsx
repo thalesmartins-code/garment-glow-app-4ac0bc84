@@ -67,9 +67,9 @@ export default function MLEstoque() {
           ))
         ) : summary ? (
           <>
-            <KPICard title="Anúncios Ativos" value={String(summary.totalItems)} icon={<Boxes className="w-5 h-5" />} subtitle="Total de produtos listados" />
+            <KPICard title="Anúncios Ativos" value={String(summary.totalItems)} icon={<Boxes className="w-5 h-5" />} subtitle="Total de anúncios listados" />
             <KPICard title="Unidades em Estoque" value={String(summary.totalStock)} icon={<Package className="w-5 h-5" />} subtitle="Disponível para venda" />
-            <KPICard title="Sem Estoque" value={String(summary.outOfStock)} icon={<PackageX className="w-5 h-5" />} subtitle="Produtos esgotados" variant={summary.outOfStock > 0 ? "danger" : "default"} />
+            <KPICard title="Sem Estoque" value={String(summary.outOfStock)} icon={<PackageX className="w-5 h-5" />} subtitle="Anúncios esgotados" variant={summary.outOfStock > 0 ? "danger" : "default"} />
             <KPICard title="Estoque Baixo" value={String(summary.lowStock)} icon={<AlertTriangle className="w-5 h-5" />} subtitle="≤ 5 unidades" variant={summary.lowStock > 0 ? "warning" : "default"} />
           </>
         ) : null}
@@ -79,7 +79,7 @@ export default function MLEstoque() {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Produtos</CardTitle>
+            <CardTitle className="text-base">Anúncios</CardTitle>
             <div className="relative w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -100,7 +100,7 @@ export default function MLEstoque() {
           ) : filtered.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">{search ? "Nenhum produto encontrado" : "Nenhum produto ativo"}</p>
+              <p className="text-sm">{search ? "Nenhum anúncio encontrado" : "Nenhum anúncio ativo"}</p>
             </div>
           ) : (
             <div className="max-h-[500px] overflow-auto">
@@ -108,7 +108,7 @@ export default function MLEstoque() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12"></TableHead>
-                    <TableHead>Produto</TableHead>
+                    <TableHead>Anúncio</TableHead>
                     <TableHead className="text-right w-28">Preço</TableHead>
                     <TableHead className="text-center w-28">Disponível</TableHead>
                     <TableHead className="text-center w-24">Vendidos</TableHead>
