@@ -815,13 +815,17 @@ export default function MercadoLivre() {
                       return { h, revenue: hourData.reduce((s, d) => s + d.total, 0), sales: hourData.reduce((s, d) => s + d.qty, 0) };
                     });
                     const maxRevenue = Math.max(...hourRows.map((r) => r.revenue), 0);
-                    return hourRows.map(({ h, revenue, sales }) => (
-                      <TableRow key={h} className={`h-7 ${revenue > 0 && revenue === maxRevenue ? "bg-primary/10 font-semibold" : ""}`}>
-                        <TableCell className="py-0.5 px-2">{String(h).padStart(2, "0")}:00–{String(h).padStart(2, "0")}:59</TableCell>
-                        <TableCell className="py-0.5 px-2 text-right">{currencyFmt(revenue)}</TableCell>
-                        <TableCell className="py-0.5 px-2 text-right">{sales}</TableCell>
-                      </TableRow>
-                    ));
+                    return hourRows.map(({ h, revenue, sales }) => {
+                      const isEmpty = revenue === 0 && sales === 0;
+                      const isTop = revenue > 0 && revenue === maxRevenue;
+                      return (
+                        <TableRow key={h} className={`h-7 ${isTop ? "bg-primary/10 font-semibold" : isEmpty ? "text-muted-foreground" : ""}`}>
+                          <TableCell className="py-0.5 px-2">{String(h).padStart(2, "0")}:00–{String(h).padStart(2, "0")}:59</TableCell>
+                          <TableCell className="py-0.5 px-2 text-right">{isEmpty ? "—" : currencyFmt(revenue)}</TableCell>
+                          <TableCell className="py-0.5 px-2 text-right">{isEmpty ? "—" : sales}</TableCell>
+                        </TableRow>
+                      );
+                    });
                   })()}
                 </TableBody>
                 <TableFooter>
