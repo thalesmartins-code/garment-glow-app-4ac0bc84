@@ -69,7 +69,7 @@ export default function MLEstoque() {
           <>
             <KPICard title="Anúncios Ativos" value={String(summary.totalItems)} icon={<Boxes className="w-5 h-5" />} subtitle="Total de anúncios listados" />
             <KPICard title="Unidades em Estoque" value={String(summary.totalStock)} icon={<Package className="w-5 h-5" />} subtitle="Disponível para venda" />
-            <KPICard title="Sem Estoque" value={String(summary.outOfStock)} icon={<PackageX className="w-5 h-5" />} subtitle="Produtos esgotados" variant={summary.outOfStock > 0 ? "danger" : "default"} />
+            <KPICard title="Sem Estoque" value={String(summary.outOfStock)} icon={<PackageX className="w-5 h-5" />} subtitle="Anúncios esgotados" variant={summary.outOfStock > 0 ? "danger" : "default"} />
             <KPICard title="Estoque Baixo" value={String(summary.lowStock)} icon={<AlertTriangle className="w-5 h-5" />} subtitle="≤ 5 unidades" variant={summary.lowStock > 0 ? "warning" : "default"} />
           </>
         ) : null}
