@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Trophy } from "lucide-react";
+import { Package, Trophy, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export interface ProductSalesRow {
@@ -86,6 +86,14 @@ export function TopSellingProducts({ products, loading }: Props) {
                     <span className="text-xs font-semibold text-primary">{currencyFmt(product.revenue)}</span>
                   </div>
                 </div>
+                <a
+                  href={`https://www.mercadolivre.com.br/p/${product.item_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 text-muted-foreground/30 hover:text-primary transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
                 {product.available_quantity !== undefined && (
                   <div className="flex flex-col items-end shrink-0">
                     <span className="text-[10px] text-muted-foreground mb-0.5">Estoque</span>
