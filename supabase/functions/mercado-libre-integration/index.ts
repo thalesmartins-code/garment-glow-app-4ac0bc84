@@ -103,7 +103,8 @@ async function fetchVisits(
 function countUniqueBuyers(orders: any[]): Record<string, number> {
   const dailyBuyers: Record<string, Set<number>> = {};
   for (const order of orders) {
-    const date = order.date_created ? order.date_created.substring(0, 10) : null;
+    const dateCreated = order.date_created || null;
+    const date = dateCreated ? toBRT(dateCreated).date : null;
     const buyerId = order.buyer?.id;
     if (date && buyerId) {
       if (!dailyBuyers[date]) dailyBuyers[date] = new Set();
