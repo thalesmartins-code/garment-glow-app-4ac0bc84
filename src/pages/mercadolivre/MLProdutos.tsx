@@ -217,7 +217,7 @@ export default function MLProdutos() {
                      <TableHead className="text-center w-20">% Part.</TableHead>
                      <TableHead className="text-center w-20">Visitas</TableHead>
                      <TableHead className="text-center w-20">Conv.</TableHead>
-                     <TableHead className="text-center w-24">Tipo</TableHead>
+                     
                      <TableHead className="text-center w-20">Saúde</TableHead>
                      <TableHead className="w-10"></TableHead>
                    </TableRow>
@@ -253,11 +253,6 @@ export default function MLProdutos() {
                          <TableCell className="text-center text-sm text-muted-foreground">{participation.toFixed(1)}%</TableCell>
                          <TableCell className="text-center text-sm text-muted-foreground">{item.visits.toLocaleString("pt-BR")}</TableCell>
                          <TableCell className="text-center text-sm text-muted-foreground">{conversion.toFixed(1)}%</TableCell>
-                         <TableCell className="text-center">
-                           <Badge variant="secondary" className="text-xs">
-                             {listingTypeLabel[item.listing_type_id || ""] || item.listing_type_id || "—"}
-                           </Badge>
-                         </TableCell>
                          <TableCell className="text-center">{healthBadge(item.health)}</TableCell>
                          <TableCell>
                            <a href={`https://produto.mercadolivre.com.br/${item.id.replace(/^(MLB)(\d+)$/, '$1-$2')}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
