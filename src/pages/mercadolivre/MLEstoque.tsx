@@ -47,6 +47,7 @@ export default function MLEstoque() {
   const [summary, setSummary] = useState<InventorySummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasToken, setHasToken] = useState<boolean | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [search, setSearch] = useState("");
 
   const checkToken = useCallback(async () => {
