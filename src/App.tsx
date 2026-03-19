@@ -95,7 +95,7 @@ const App = () => (
                         />
                       </Route>
 
-                      <Route element={<MercadoLivreLayout />}>
+                      <Route element={<MLInventoryProvider><MercadoLivreLayout /></MLInventoryProvider>}>
                         <Route
                           path="/mercado-livre"
                           element={
