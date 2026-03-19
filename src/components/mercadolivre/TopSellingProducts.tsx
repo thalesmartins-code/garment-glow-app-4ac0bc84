@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, Trophy, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import * as React from "react";
 
 export interface ProductSalesRow {
   item_id: string;
@@ -19,6 +20,16 @@ interface Props {
 const currencyFmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function TopSellingProducts({ products, loading }: Props) {
+  const [isLarge, setIsLarge] = React.useState(false);
+  React.useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => setIsLarge(mql.matches);
+    mql.addEventListener("change", onChange);
+    setIsLarge(mql.matches);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+  const maxItems = isLarge ? 12 : 10;
+  const visibleProducts = products.slice(0, maxItems);
   if (loading) {
     return (
       <Card className="h-full">
@@ -62,7 +73,7 @@ export function TopSellingProducts({ products, loading }: Props) {
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {products.map((product, idx) => (
+            {visibleProducts.map((product, idx) => (
               <div key={product.item_id} className="flex items-center gap-3 px-4 py-4">
                 <span className="text-sm font-bold text-muted-foreground w-5 text-center shrink-0">{idx + 1}</span>
                 <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
