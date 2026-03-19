@@ -20,27 +20,10 @@ interface Props {
 const currencyFmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function TopSellingProducts({ products, loading }: Props) {
-  const [maxItems, setMaxItems] = React.useState(10);
-  React.useEffect(() => {
-    const mq1535 = window.matchMedia("(min-width: 1535px)");
-    const mq1525 = window.matchMedia("(min-width: 1525px)");
-    const update = () => {
-      if (mq1535.matches) setMaxItems(12);
-      else if (mq1525.matches) setMaxItems(11);
-      else setMaxItems(10);
-    };
-    mq1535.addEventListener("change", update);
-    mq1525.addEventListener("change", update);
-    update();
-    return () => {
-      mq1535.removeEventListener("change", update);
-      mq1525.removeEventListener("change", update);
-    };
-  }, []);
-  const visibleProducts = products.slice(0, maxItems);
+  const visibleProducts = products.slice(0, 10);
   if (loading) {
     return (
-      <Card className="h-full">
+      <Card className="h-full flex flex-col">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Trophy className="w-4 h-4 text-[hsl(45,93%,47%)]" />
@@ -66,14 +49,14 @@ export function TopSellingProducts({ products, loading }: Props) {
   }
 
   return (
-    <Card className="h-auto">
+    <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Trophy className="w-4 h-4 text-[hsl(45,93%,47%)]" />
           Produtos mais vendidos
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="flex-1 p-0">
         {products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground text-sm">
             <Package className="w-8 h-8 mb-2 opacity-50" />
