@@ -619,9 +619,7 @@ export default function MercadoLivre() {
                       setCustomRange(null);
                       setPendingRange(null);
                       setPopoverOpen(false);
-                      if (autoSyncTriggeredRef.current) {
-                        syncFromAPI({ periodDays: opt.value === 0 ? 1 : opt.value });
-                      }
+                      syncFromAPI({ periodDays: opt.value === 0 ? 1 : opt.value });
                     }}
                   >
                     {opt.label}
