@@ -232,14 +232,10 @@ serve(async (req) => {
       const status = order.status;
 
       // Count units sold: each distinct product in the order = 1 sale (ML definition)
-      // Cancelled orders are excluded from units_sold to match ML dashboard
       const orderUnits = Math.max((order.order_items || []).length, 1);
-      const isCancelled = status === "cancelled";
 
       totalRevenue += amount;
-      if (!isCancelled) {
-        totalUnitsSold += orderUnits;
-      }
+      totalUnitsSold += orderUnits;
 
       if (status === "paid" || status === "confirmed") {
         approvedRevenue += amount;
@@ -266,9 +262,7 @@ serve(async (req) => {
         }
         dailySales[date].total += amount;
         dailySales[date].qty += 1;
-        if (!isCancelled) {
-          dailySales[date].units_sold += orderUnits;
-        }
+        dailySales[date].units_sold += orderUnits;
         if (status === "paid" || status === "confirmed") {
           dailySales[date].approved += amount;
         }
@@ -287,9 +281,7 @@ serve(async (req) => {
         }
         hourlySales[hourlyKey].total += amount;
         hourlySales[hourlyKey].qty += 1;
-        if (!isCancelled) {
-          hourlySales[hourlyKey].units_sold += orderUnits;
-        }
+        hourlySales[hourlyKey].units_sold += orderUnits;
         if (status === "paid" || status === "confirmed") {
           hourlySales[hourlyKey].approved += amount;
         }
