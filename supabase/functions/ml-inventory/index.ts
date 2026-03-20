@@ -59,11 +59,16 @@ serve(async (req) => {
       mlSellerId = me.id;
     }
 
-    // Fetch active AND paused items (paused = typically out of stock)
-    const [activeIds, pausedIds] = await Promise.all([
-      fetchItemIdsByStatus(mlSellerId, "active", access_token),
-      fetchItemIdsByStatus(mlSellerId, "paused", access_token),
-    ]);
+    // Fetch active items
+    const activeIds = await fetchItemIdsByStatus(mlSellerId, "active", access_token);
+
+    // Fetch paused items separately (non-fatal — ML pauses listings when stock = 0)
+    let pausedIds: string[] = [];
+    try {
+      pausedIds = await fetchItemIdsByStatus(mlSellerId, "paused", access_token);
+    } catch (e) {
+      console.warn("Could not fetch paused items (non-critical):", e);
+    }
 
     const allItemIds = [...new Set([...activeIds, ...pausedIds])];
     console.log(`Found ${activeIds.length} active, ${pausedIds.length} paused = ${allItemIds.length} total items`);
