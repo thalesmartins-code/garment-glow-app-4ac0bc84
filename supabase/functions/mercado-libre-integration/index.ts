@@ -443,21 +443,18 @@ serve(async (req) => {
         }));
 
         if (productRows.length > 0) {
-          // Fire-and-forget product cache upsert to avoid timeout
-          (async () => {
-            try {
-              for (let i = 0; i < productRows.length; i += 200) {
-                const batch = productRows.slice(i, i + 200);
-                const { error: prodCacheErr } = await supabaseAdmin
-                  .from("ml_product_daily_cache")
-                  .upsert(batch, { onConflict: "user_id,date,item_id" });
-                if (prodCacheErr) console.error("Product cache upsert error:", prodCacheErr);
-              }
-              console.log(`Product cache: ${productRows.length} rows saved`);
-            } catch (e) {
-              console.error("Product cache async error:", e);
+          try {
+            for (let i = 0; i < productRows.length; i += 200) {
+              const batch = productRows.slice(i, i + 200);
+              const { error: prodCacheErr } = await supabaseAdmin
+                .from("ml_product_daily_cache")
+                .upsert(batch, { onConflict: "user_id,date,item_id" });
+              if (prodCacheErr) console.error("Product cache upsert error:", prodCacheErr);
             }
-          })();
+            console.log(`Product cache: ${productRows.length} rows saved`);
+          } catch (e) {
+            console.error("Product cache error:", e);
+          }
         }
 
         const { error: userCacheErr } = await supabaseAdmin.from("ml_user_cache").upsert(
