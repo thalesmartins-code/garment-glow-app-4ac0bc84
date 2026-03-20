@@ -400,7 +400,7 @@ export default function MercadoLivre() {
     }
   }, [user]);
 
-  const syncFromAPI = useCallback(async () => {
+  const syncFromAPI = useCallback(async (opts?: { from?: Date; to?: Date; periodDays?: number }) => {
     if (!user) return;
     setSyncing(true);
 
@@ -432,11 +432,14 @@ export default function MercadoLivre() {
       let rangeStart = new Date(today);
       let rangeEnd = new Date(today);
 
-      if (customRange?.from) {
-        rangeStart = startOfDay(customRange.from);
-        rangeEnd = startOfDay(customRange.to ?? customRange.from);
+      const effectiveFrom = opts?.from ?? customRange?.from;
+      const effectiveTo = opts?.to ?? customRange?.to ?? customRange?.from;
+
+      if (effectiveFrom) {
+        rangeStart = startOfDay(effectiveFrom);
+        rangeEnd = startOfDay(effectiveTo ?? effectiveFrom);
       } else {
-        const days = period > 0 ? period : 1;
+        const days = opts?.periodDays ?? (period > 0 ? period : 1);
         rangeStart = new Date(today);
         rangeStart.setDate(today.getDate() - days + 1);
       }
@@ -542,11 +545,7 @@ export default function MercadoLivre() {
     })();
   }, [user, loadFromCache, loadHourlyCache, syncFromAPI]);
 
-  // Auto-sync when period/date filter changes
-  useEffect(() => {
-    if (!user || !connected || !autoSyncTriggeredRef.current) return;
-    syncFromAPI();
-  }, [activeFilterKey, connected, syncFromAPI, user]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Filter changes now trigger sync directly from event handlers below
 
   useEffect(() => {
     if (!user) {
@@ -620,6 +619,9 @@ export default function MercadoLivre() {
                       setCustomRange(null);
                       setPendingRange(null);
                       setPopoverOpen(false);
+                      if (autoSyncTriggeredRef.current) {
+                        syncFromAPI({ periodDays: opt.value === 0 ? 1 : opt.value });
+                      }
                     }}
                   >
                     {opt.label}
@@ -654,6 +656,9 @@ export default function MercadoLivre() {
                     setPendingRange(null);
                     setPeriod(0);
                     setPopoverOpen(false);
+                    if (autoSyncTriggeredRef.current) {
+                      syncFromAPI({ periodDays: 1 });
+                    }
                   }}
                 >
                   <X className="w-3.5 h-3.5 mr-1" />
@@ -667,6 +672,9 @@ export default function MercadoLivre() {
                     if (pendingRange?.from && pendingRange?.to) {
                       setCustomRange(pendingRange);
                       setPopoverOpen(false);
+                      if (autoSyncTriggeredRef.current) {
+                        syncFromAPI({ from: pendingRange.from, to: pendingRange.to });
+                      }
                     }
                   }}
                 >
