@@ -545,9 +545,8 @@ export default function MercadoLivre() {
   // Auto-sync when period/date filter changes
   useEffect(() => {
     if (!user || !connected || !autoSyncTriggeredRef.current) return;
-    // autoSyncTriggeredRef is true only after initial load+sync, so this fires on subsequent filter changes
     syncFromAPI();
-  }, [activeFilterKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeFilterKey, connected, syncFromAPI, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!user) {
