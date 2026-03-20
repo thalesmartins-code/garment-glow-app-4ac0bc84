@@ -9,6 +9,7 @@ const corsHeaders = {
 
 const ML_API = "https://api.mercadolibre.com";
 const BRT_OFFSET_MS = -3 * 60 * 60 * 1000; // UTC-3
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Convert an ISO date string to { date: "YYYY-MM-DD", hour: number } in BRT */
 function toBRT(isoStr: string): { date: string; hour: number } {
@@ -78,7 +79,7 @@ async function fetchVisits(
     const from = new Date(`${dateFrom}T00:00:00.000Z`);
     const to = new Date(`${dateTo}T00:00:00.000Z`);
     const diffMs = to.getTime() - from.getTime();
-    const last = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    const last = Math.max(1, Math.ceil(diffMs / DAY_MS));
 
     const data = await mlFetch(
       `/users/${sellerId}/items_visits/time_window?last=${last}&unit=day&ending=${dateTo}`,
@@ -143,11 +144,12 @@ serve(async (req) => {
     let periodDays: number;
 
     if (date_from && date_to) {
-      rangeStart = new Date(date_from);
-      rangeStart.setHours(0, 0, 0, 0);
-      rangeEnd = new Date(date_to);
-      rangeEnd.setHours(23, 59, 59, 999);
-      periodDays = Math.ceil((rangeEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24));
+      // Interpret dates as BRT (UTC-3): BRT midnight = UTC 03:00
+      rangeStart = new Date(`${date_from}T03:00:00.000Z`);
+      const endDateNext = new Date(`${date_to}T03:00:00.000Z`);
+      endDateNext.setUTCDate(endDateNext.getUTCDate() + 1);
+      rangeEnd = new Date(endDateNext.getTime() - 1);
+      periodDays = Math.ceil((rangeEnd.getTime() - rangeStart.getTime()) / DAY_MS);
     } else {
       periodDays = Math.min(Math.max(Number(days) || 30, 1), 90);
       rangeEnd = new Date();
@@ -160,22 +162,17 @@ serve(async (req) => {
     const CHUNK_DAYS = 1;
     const chunks: Array<{ from: string; to: string }> = [];
     const totalMs = rangeEnd.getTime() - rangeStart.getTime();
-    const totalDays = Math.ceil(totalMs / (1000 * 60 * 60 * 24));
+    const totalDays = Math.ceil(totalMs / DAY_MS);
 
     for (let d = 0; d < totalDays; d += CHUNK_DAYS) {
-      const chunkStart = new Date(rangeStart);
-      chunkStart.setDate(rangeStart.getDate() + d);
-      chunkStart.setHours(0, 0, 0, 0);
-
-      const chunkEnd = new Date(rangeStart);
-      chunkEnd.setDate(rangeStart.getDate() + Math.min(d + CHUNK_DAYS - 1, totalDays - 1));
-      chunkEnd.setHours(23, 59, 59, 999);
-
-      if (chunkEnd > rangeEnd) chunkEnd.setTime(rangeEnd.getTime());
-
+      const chunkFrom = new Date(rangeStart.getTime() + d * DAY_MS);
+      const chunkTo = new Date(Math.min(
+        rangeStart.getTime() + (d + CHUNK_DAYS) * DAY_MS - 1,
+        rangeEnd.getTime(),
+      ));
       chunks.push({
-        from: chunkStart.toISOString(),
-        to: chunkEnd.toISOString(),
+        from: chunkFrom.toISOString(),
+        to: chunkTo.toISOString(),
       });
     }
 
@@ -234,12 +231,15 @@ serve(async (req) => {
       const hour = brt?.hour ?? null;
       const status = order.status;
 
-      // Count units sold (each different product in a cart = 1 sale)
-      const orderUnits =
-        (order.order_items || []).reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0) || 1;
+      // Count units sold: each distinct product in the order = 1 sale (ML definition)
+      // Cancelled orders are excluded from units_sold to match ML dashboard
+      const orderUnits = Math.max((order.order_items || []).length, 1);
+      const isCancelled = status === "cancelled";
 
       totalRevenue += amount;
-      totalUnitsSold += orderUnits;
+      if (!isCancelled) {
+        totalUnitsSold += orderUnits;
+      }
 
       if (status === "paid" || status === "confirmed") {
         approvedRevenue += amount;
@@ -266,7 +266,9 @@ serve(async (req) => {
         }
         dailySales[date].total += amount;
         dailySales[date].qty += 1;
-        dailySales[date].units_sold += orderUnits;
+        if (!isCancelled) {
+          dailySales[date].units_sold += orderUnits;
+        }
         if (status === "paid" || status === "confirmed") {
           dailySales[date].approved += amount;
         }
@@ -285,7 +287,9 @@ serve(async (req) => {
         }
         hourlySales[hourlyKey].total += amount;
         hourlySales[hourlyKey].qty += 1;
-        hourlySales[hourlyKey].units_sold += orderUnits;
+        if (!isCancelled) {
+          hourlySales[hourlyKey].units_sold += orderUnits;
+        }
         if (status === "paid" || status === "confirmed") {
           hourlySales[hourlyKey].approved += amount;
         }
