@@ -654,9 +654,7 @@ export default function MercadoLivre() {
                     setPendingRange(null);
                     setPeriod(0);
                     setPopoverOpen(false);
-                    if (autoSyncTriggeredRef.current) {
                       syncFromAPI({ periodDays: 1 });
-                    }
                   }}
                 >
                   <X className="w-3.5 h-3.5 mr-1" />
