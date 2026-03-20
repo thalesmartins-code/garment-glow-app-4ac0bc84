@@ -4,12 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import { TopSellingProducts, type ProductSalesRow } from "@/components/mercadolivre/TopSellingProducts";
+import { HourlySalesTable } from "@/components/mercadolivre/HourlySalesTable";
 import {
   DollarSign,
   ShoppingCart,
@@ -18,7 +18,6 @@ import {
   Eye,
   Users,
   Percent,
-  RefreshCw,
   ExternalLink,
   Plug,
   CalendarIcon,
@@ -26,7 +25,6 @@ import {
   Check,
   X,
   Clock3,
-  ArrowUpDown,
 } from "lucide-react";
 import {
   ComposedChart,
@@ -74,8 +72,7 @@ interface HourlyBreakdown {
 type ChartMode = "daily" | "hourly";
 type DateRange = { from: Date; to?: Date } | null;
 
-const currencyFmt = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const currencyFmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const QUICK_RANGES = [
   { label: "Hoje", value: 0 },
@@ -146,7 +143,6 @@ export default function MercadoLivre() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [hourlySortByRevenue, setHourlySortByRevenue] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [connected, setConnected] = useState(false);
   const [mlUser, setMlUser] = useState<MLUser | null>(null);
@@ -163,15 +159,15 @@ export default function MercadoLivre() {
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => localStorage.getItem(LAST_ML_SYNC_KEY));
   const cacheLoadedRef = useRef(false);
 
-  const singleDayRange = customRange?.from && customRange?.to
-    ? format(startOfDay(customRange.from), "yyyy-MM-dd") === format(startOfDay(customRange.to), "yyyy-MM-dd")
-      ? format(startOfDay(customRange.from), "yyyy-MM-dd")
-      : null
-    : null;
+  const singleDayRange =
+    customRange?.from && customRange?.to
+      ? format(startOfDay(customRange.from), "yyyy-MM-dd") === format(startOfDay(customRange.to), "yyyy-MM-dd")
+        ? format(startOfDay(customRange.from), "yyyy-MM-dd")
+        : null
+      : null;
 
   const isHourlyAvailable = period === 0 || !!singleDayRange;
   const hourlyTargetDate = singleDayRange ?? (period === 0 ? todayUTC() : null);
-  const isMultiDayHourly = !isHourlyAvailable;
   const activeFilterKey = customRange?.from
     ? `${format(startOfDay(customRange.from), "yyyy-MM-dd")}:${format(startOfDay(customRange.to ?? customRange.from), "yyyy-MM-dd")}`
     : `period:${period}`;
@@ -195,7 +191,6 @@ export default function MercadoLivre() {
       if (singleDayRange) return d.date === singleDayRange;
       return d.date === todayUTC();
     }
-    // Multi-day: filter by same criteria as daily
     if (customRange?.from) {
       const from = format(startOfDay(customRange.from), "yyyy-MM-dd");
       const to = customRange.to ? format(startOfDay(customRange.to), "yyyy-MM-dd") : from;
@@ -213,29 +208,25 @@ export default function MercadoLivre() {
       ? "Hoje"
       : `Últimos ${period} dias`;
 
-  const metrics = daily.length > 0 ? {
-    total_revenue: daily.reduce((s, d) => s + d.total, 0),
-    approved_revenue: daily.reduce((s, d) => s + d.approved, 0),
-    total_orders: daily.reduce((s, d) => s + d.qty, 0),
-    units_sold: daily.reduce((s, d) => s + d.units_sold, 0),
-    unique_visits: daily.reduce((s, d) => s + (d.unique_visits || 0), 0),
-    unique_buyers: daily.reduce((s, d) => s + (d.unique_buyers || 0), 0),
-    avg_ticket: 0,
-    conversion_rate: 0,
-  } : null;
+  const metrics =
+    daily.length > 0
+      ? {
+          total_revenue: daily.reduce((s, d) => s + d.total, 0),
+          approved_revenue: daily.reduce((s, d) => s + d.approved, 0),
+          total_orders: daily.reduce((s, d) => s + d.qty, 0),
+          units_sold: daily.reduce((s, d) => s + d.units_sold, 0),
+          unique_visits: daily.reduce((s, d) => s + (d.unique_visits || 0), 0),
+          unique_buyers: daily.reduce((s, d) => s + (d.unique_buyers || 0), 0),
+          avg_ticket: 0,
+          conversion_rate: 0,
+        }
+      : null;
 
   if (metrics) {
     if (metrics.total_orders > 0) metrics.avg_ticket = metrics.total_revenue / metrics.total_orders;
     if (metrics.unique_visits > 0) metrics.conversion_rate = (metrics.unique_buyers / metrics.unique_visits) * 100;
   }
 
-  const totals = {
-    qty: daily.reduce((s, d) => s + d.qty, 0),
-    total: daily.reduce((s, d) => s + d.total, 0),
-    approved: daily.reduce((s, d) => s + d.approved, 0),
-  };
-
-  // Compute top products filtered by the same date range as daily
   const filteredTopProducts = (() => {
     const dateSet = new Set(daily.map((d) => d.date));
     const filtered = allProductSales.filter((p) => dateSet.has(p.date));
@@ -281,11 +272,7 @@ export default function MercadoLivre() {
   const loadFromCache = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
 
-    const { data: userCache } = await supabase
-      .from("ml_user_cache")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const { data: userCache } = await supabase.from("ml_user_cache").select("*").eq("user_id", user.id).maybeSingle();
 
     if (userCache) {
       setMlUser({
@@ -311,7 +298,6 @@ export default function MercadoLivre() {
     setAllDaily(dailyCache.map(mapDailyRow));
     setConnected(true);
 
-    // Load product daily cache
     const { data: productCache } = await (supabase as any)
       .from("ml_product_daily_cache")
       .select("*")
@@ -320,178 +306,183 @@ export default function MercadoLivre() {
       .limit(5000);
 
     if (productCache && productCache.length > 0) {
-      setAllProductSales(productCache.map((r: any) => ({
-        item_id: r.item_id,
-        date: r.date,
-        title: r.title || "",
-        thumbnail: r.thumbnail,
-        qty_sold: Number(r.qty_sold || 0),
-        revenue: Number(r.revenue || 0),
-      })));
+      setAllProductSales(
+        productCache.map((r: any) => ({
+          item_id: r.item_id,
+          date: r.date,
+          title: r.title || "",
+          thumbnail: r.thumbnail,
+          qty_sold: Number(r.qty_sold || 0),
+          revenue: Number(r.revenue || 0),
+        })),
+      );
     }
 
     return true;
   }, [user]);
 
-  const saveToCache = useCallback(async (
-    dailyData: DailyBreakdown[],
-    hourlyData: HourlyBreakdown[] = [],
-    mlUserInfo?: MLUser | null,
-    listings?: number,
-  ) => {
-    if (!user || dailyData.length === 0) return;
+  const saveToCache = useCallback(
+    async (
+      dailyData: DailyBreakdown[],
+      hourlyData: HourlyBreakdown[] = [],
+      mlUserInfo?: MLUser | null,
+      listings?: number,
+    ) => {
+      if (!user || dailyData.length === 0) return;
 
-    try {
-      const syncedAt = new Date().toISOString();
-      const dailyRows = dailyData.map((d) => ({
-        user_id: user.id,
-        date: d.date,
-        total_revenue: d.total,
-        approved_revenue: d.approved,
-        qty_orders: d.qty,
-        cancelled_orders: d.cancelled || 0,
-        shipped_orders: d.shipped || 0,
-        unique_visits: d.unique_visits || 0,
-        unique_buyers: d.unique_buyers || 0,
-        synced_at: syncedAt,
-      }));
-
-      for (let i = 0; i < dailyRows.length; i += 200) {
-        const batch = dailyRows.slice(i, i + 200);
-        await supabase
-          .from("ml_daily_cache")
-          .upsert(batch, { onConflict: "user_id,date" });
-      }
-
-      if (hourlyData.length > 0) {
-        const hourlyRows = hourlyData.map((h) => ({
+      try {
+        const syncedAt = new Date().toISOString();
+        const dailyRows = dailyData.map((d) => ({
           user_id: user.id,
-          date: h.date,
-          hour: h.hour,
-          total_revenue: h.total,
-          approved_revenue: h.approved,
-          qty_orders: h.qty,
+          date: d.date,
+          total_revenue: d.total,
+          approved_revenue: d.approved,
+          qty_orders: d.qty,
+          cancelled_orders: d.cancelled || 0,
+          shipped_orders: d.shipped || 0,
+          unique_visits: d.unique_visits || 0,
+          unique_buyers: d.unique_buyers || 0,
           synced_at: syncedAt,
         }));
 
-        for (let i = 0; i < hourlyRows.length; i += 200) {
-          const batch = hourlyRows.slice(i, i + 200);
-          await (supabase as any)
-            .from("ml_hourly_cache")
-            .upsert(batch, { onConflict: "user_id,date,hour" });
+        for (let i = 0; i < dailyRows.length; i += 200) {
+          const batch = dailyRows.slice(i, i + 200);
+          await supabase.from("ml_daily_cache").upsert(batch, { onConflict: "user_id,date" });
         }
-      }
 
-      if (mlUserInfo) {
-        await supabase
-          .from("ml_user_cache")
-          .upsert({
+        if (hourlyData.length > 0) {
+          const hourlyRows = hourlyData.map((h) => ({
             user_id: user.id,
-            ml_user_id: mlUserInfo.id,
-            nickname: mlUserInfo.nickname,
-            country: mlUserInfo.country,
-            permalink: mlUserInfo.permalink,
-            active_listings: listings || 0,
+            date: h.date,
+            hour: h.hour,
+            total_revenue: h.total,
+            approved_revenue: h.approved,
+            qty_orders: h.qty,
             synced_at: syncedAt,
-          }, { onConflict: "user_id" });
+          }));
+
+          for (let i = 0; i < hourlyRows.length; i += 200) {
+            const batch = hourlyRows.slice(i, i + 200);
+            await (supabase as any).from("ml_hourly_cache").upsert(batch, { onConflict: "user_id,date,hour" });
+          }
+        }
+
+        if (mlUserInfo) {
+          await supabase.from("ml_user_cache").upsert(
+            {
+              user_id: user.id,
+              ml_user_id: mlUserInfo.id,
+              nickname: mlUserInfo.nickname,
+              country: mlUserInfo.country,
+              permalink: mlUserInfo.permalink,
+              active_listings: listings || 0,
+              synced_at: syncedAt,
+            },
+            { onConflict: "user_id" },
+          );
+        }
+      } catch (err) {
+        console.error("Frontend cache save error:", err);
       }
-    } catch (err) {
-      console.error("Frontend cache save error:", err);
-    }
-  }, [user]);
+    },
+    [user],
+  );
 
-  const syncFromAPI = useCallback(async (opts?: { from?: Date; to?: Date; periodDays?: number }) => {
-    if (!user) return;
-    setSyncing(true);
+  const syncFromAPI = useCallback(
+    async (opts?: { from?: Date; to?: Date; periodDays?: number }) => {
+      if (!user) return;
+      setSyncing(true);
 
-    try {
-      const { data: tokenRow } = await supabase
-        .from("ml_tokens")
-        .select("access_token, expires_at, refresh_token")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      try {
+        const { data: tokenRow } = await supabase
+          .from("ml_tokens")
+          .select("access_token, expires_at, refresh_token")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (!tokenRow?.access_token) {
-        setConnected(false);
-        return;
+        if (!tokenRow?.access_token) {
+          setConnected(false);
+          return;
+        }
+
+        let accessToken = tokenRow.access_token;
+        const expiresAt = tokenRow.expires_at ? new Date(tokenRow.expires_at).getTime() : 0;
+        if (expiresAt > 0 && expiresAt - Date.now() < 5 * 60 * 1000 && tokenRow.refresh_token) {
+          const { data: refreshed } = await supabase.functions.invoke("ml-token-refresh", {
+            body: { refresh_token: tokenRow.refresh_token, user_id: user.id },
+          });
+          if (refreshed?.access_token) accessToken = refreshed.access_token;
+        }
+
+        setCachedAccessToken(accessToken);
+        setConnected(true);
+
+        const today = startOfDay(new Date());
+        let rangeStart = new Date(today);
+        let rangeEnd = new Date(today);
+
+        const effectiveFrom = opts?.from ?? customRange?.from;
+        const effectiveTo = opts?.to ?? customRange?.to ?? customRange?.from;
+
+        if (effectiveFrom) {
+          rangeStart = startOfDay(effectiveFrom);
+          rangeEnd = startOfDay(effectiveTo ?? effectiveFrom);
+        } else {
+          const days = opts?.periodDays ?? (period > 0 ? period : 1);
+          rangeStart = new Date(today);
+          rangeStart.setDate(today.getDate() - days + 1);
+        }
+
+        const CHUNK_DAYS = 2;
+        const chunks: Array<{ date_from: string; date_to: string }> = [];
+        const cursor = new Date(rangeStart);
+        while (cursor <= rangeEnd) {
+          const chunkStart = new Date(cursor);
+          const chunkEnd = new Date(cursor);
+          chunkEnd.setDate(chunkEnd.getDate() + CHUNK_DAYS - 1);
+          if (chunkEnd > rangeEnd) chunkEnd.setTime(rangeEnd.getTime());
+
+          chunks.push({
+            date_from: chunkStart.toISOString().substring(0, 10),
+            date_to: chunkEnd.toISOString().substring(0, 10),
+          });
+
+          cursor.setDate(cursor.getDate() + CHUNK_DAYS);
+        }
+
+        let lastUserInfo: MLUser | null = null;
+
+        for (const chunk of chunks) {
+          const { data, error } = await supabase.functions.invoke("mercado-libre-integration", {
+            body: {
+              access_token: accessToken,
+              user_id: user.id,
+              date_from: chunk.date_from,
+              date_to: chunk.date_to,
+            },
+          });
+
+          if (error) throw error;
+          if (!data?.success) throw new Error(data?.error || "Sync failed");
+
+          if (data.user) lastUserInfo = data.user as MLUser;
+        }
+
+        await Promise.all([loadFromCache(), loadHourlyCache()]);
+        if (lastUserInfo) setMlUser(lastUserInfo);
+
+        const now = new Date().toLocaleString("pt-BR");
+        setLastSyncedAt(now);
+        localStorage.setItem(LAST_ML_SYNC_KEY, now);
+        toast({ title: "Sincronizado", description: `Dados atualizados (${chunks.length} bloco(s)).` });
+      } catch (err: any) {
+        toast({ title: "Erro", description: err.message, variant: "destructive" });
+      } finally {
+        setSyncing(false);
       }
-
-      let accessToken = tokenRow.access_token;
-      const expiresAt = tokenRow.expires_at ? new Date(tokenRow.expires_at).getTime() : 0;
-      if (expiresAt > 0 && expiresAt - Date.now() < 5 * 60 * 1000 && tokenRow.refresh_token) {
-        const { data: refreshed } = await supabase.functions.invoke("ml-token-refresh", {
-          body: { refresh_token: tokenRow.refresh_token, user_id: user.id },
-        });
-        if (refreshed?.access_token) accessToken = refreshed.access_token;
-      }
-
-      setCachedAccessToken(accessToken);
-      setConnected(true);
-
-      const today = startOfDay(new Date());
-      let rangeStart = new Date(today);
-      let rangeEnd = new Date(today);
-
-      const effectiveFrom = opts?.from ?? customRange?.from;
-      const effectiveTo = opts?.to ?? customRange?.to ?? customRange?.from;
-
-      if (effectiveFrom) {
-        rangeStart = startOfDay(effectiveFrom);
-        rangeEnd = startOfDay(effectiveTo ?? effectiveFrom);
-      } else {
-        const days = opts?.periodDays ?? (period > 0 ? period : 1);
-        rangeStart = new Date(today);
-        rangeStart.setDate(today.getDate() - days + 1);
-      }
-
-      const CHUNK_DAYS = 2;
-      const chunks: Array<{ date_from: string; date_to: string }> = [];
-      const cursor = new Date(rangeStart);
-      while (cursor <= rangeEnd) {
-        const chunkStart = new Date(cursor);
-        const chunkEnd = new Date(cursor);
-        chunkEnd.setDate(chunkEnd.getDate() + CHUNK_DAYS - 1);
-        if (chunkEnd > rangeEnd) chunkEnd.setTime(rangeEnd.getTime());
-
-        chunks.push({
-          date_from: chunkStart.toISOString().substring(0, 10),
-          date_to: chunkEnd.toISOString().substring(0, 10),
-        });
-
-        cursor.setDate(cursor.getDate() + CHUNK_DAYS);
-      }
-
-      let lastUserInfo: MLUser | null = null;
-
-      for (const chunk of chunks) {
-        const { data, error } = await supabase.functions.invoke("mercado-libre-integration", {
-          body: {
-            access_token: accessToken,
-            user_id: user.id,
-            date_from: chunk.date_from,
-            date_to: chunk.date_to,
-          },
-        });
-
-        if (error) throw error;
-        if (!data?.success) throw new Error(data?.error || "Sync failed");
-
-        if (data.user) lastUserInfo = data.user as MLUser;
-      }
-
-      await Promise.all([loadFromCache(), loadHourlyCache()]);
-      if (lastUserInfo) setMlUser(lastUserInfo);
-
-      const now = new Date().toLocaleString("pt-BR");
-      setLastSyncedAt(now);
-      localStorage.setItem(LAST_ML_SYNC_KEY, now);
-      toast({ title: "Sincronizado", description: `Dados atualizados (${chunks.length} bloco(s)).` });
-    } catch (err: any) {
-      toast({ title: "Erro", description: err.message, variant: "destructive" });
-    } finally {
-      setSyncing(false);
-    }
-  }, [user, toast, period, customRange, loadFromCache, loadHourlyCache]);
+    },
+    [user, toast, period, customRange, loadFromCache, loadHourlyCache],
+  );
 
   const reloadCache = useCallback(async () => {
     cacheLoadedRef.current = false;
@@ -521,7 +512,6 @@ export default function MercadoLivre() {
       setConnected(true);
       await Promise.all([loadFromCache(), loadHourlyCache()]);
 
-      // Load stock data for product ranking
       try {
         const { data: invData } = await supabase.functions.invoke("ml-inventory", {
           body: { access_token: tokenRow.access_token },
@@ -533,11 +523,12 @@ export default function MercadoLivre() {
           }
           setProductStockMap(stockMap);
         }
-      } catch { /* non-critical */ }
+      } catch {
+        /* non-critical */
+      }
 
       setLoading(false);
 
-      // Auto-sync from API after loading cache
       if (!autoSyncTriggeredRef.current) {
         autoSyncTriggeredRef.current = true;
         syncFromAPI();
@@ -545,14 +536,11 @@ export default function MercadoLivre() {
     })();
   }, [user, loadFromCache, loadHourlyCache, syncFromAPI]);
 
-  // Filter changes now trigger sync directly from event handlers below
-
   useEffect(() => {
     if (!user) {
       setAllHourly([]);
       return;
     }
-
     void loadHourlyCache();
   }, [user, loadHourlyCache, activeFilterKey]);
 
@@ -596,10 +584,13 @@ export default function MercadoLivre() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Popover open={popoverOpen} onOpenChange={(open) => {
-            setPopoverOpen(open);
-            if (open) setPendingRange(customRange);
-          }}>
+          <Popover
+            open={popoverOpen}
+            onOpenChange={(open) => {
+              setPopoverOpen(open);
+              if (open) setPendingRange(customRange);
+            }}
+          >
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 text-xs">
                 <CalendarIcon className="w-3.5 h-3.5 mr-1" />
@@ -654,7 +645,7 @@ export default function MercadoLivre() {
                     setPendingRange(null);
                     setPeriod(0);
                     setPopoverOpen(false);
-                      syncFromAPI({ periodDays: 1 });
+                    syncFromAPI({ periodDays: 1 });
                   }}
                 >
                   <X className="w-3.5 h-3.5 mr-1" />
@@ -700,7 +691,8 @@ export default function MercadoLivre() {
             <div>
               <p className="text-sm font-medium text-foreground">Nenhum dado no cache</p>
               <p className="text-xs text-muted-foreground">
-                Clique em <strong>Sincronizar</strong> para carregar os dados pela primeira vez, ou use <strong>Histórico</strong> para importar meses anteriores.
+                Clique em <strong>Sincronizar</strong> para carregar os dados pela primeira vez, ou use{" "}
+                <strong>Histórico</strong> para importar meses anteriores.
               </p>
             </div>
           </CardContent>
@@ -708,16 +700,77 @@ export default function MercadoLivre() {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <KPICard title="Receita Total" value={metrics ? currencyFmt(metrics.total_revenue) : "—"} icon={<DollarSign className="w-5 h-5" />} variant="info" loading={loading} refreshing={syncing} subtitle={periodLabel} />
-        <KPICard title="Receita Aprovada" value={metrics ? currencyFmt(metrics.approved_revenue) : "—"} icon={<TrendingUp className="w-5 h-5" />} variant="success" loading={loading} refreshing={syncing} subtitle={periodLabel} />
-        <KPICard title="Quantidade de Vendas" value={metrics ? String(metrics.units_sold) : "—"} icon={<ShoppingCart className="w-5 h-5" />} variant="purple" loading={loading} refreshing={syncing} tooltip="Nas vendas do carrinho, cada produto diferente conta como uma nova venda." />
+        <KPICard
+          title="Receita Total"
+          value={metrics ? currencyFmt(metrics.total_revenue) : "—"}
+          icon={<DollarSign className="w-5 h-5" />}
+          variant="info"
+          loading={loading}
+          refreshing={syncing}
+          subtitle={periodLabel}
+        />
+        <KPICard
+          title="Receita Aprovada"
+          value={metrics ? currencyFmt(metrics.approved_revenue) : "—"}
+          icon={<TrendingUp className="w-5 h-5" />}
+          variant="success"
+          loading={loading}
+          refreshing={syncing}
+          subtitle={periodLabel}
+        />
+        <KPICard
+          title="Quantidade de Vendas"
+          value={metrics ? String(metrics.units_sold) : "—"}
+          icon={<ShoppingCart className="w-5 h-5" />}
+          variant="purple"
+          loading={loading}
+          refreshing={syncing}
+          tooltip="Nas vendas do carrinho, cada produto diferente conta como uma nova venda."
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KPICard title="Ticket Médio" value={metrics ? metrics.avg_ticket.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 }) : "—"} icon={<Tag className="w-5 h-5" />} variant="orange" loading={loading} refreshing={syncing} />
-        <KPICard title="Visitas Únicas" value={metrics ? metrics.unique_visits.toLocaleString("pt-BR") : "—"} icon={<Eye className="w-5 h-5" />} variant="neutral" loading={loading} refreshing={syncing} />
-        <KPICard title="Total de Compradores" value={metrics ? metrics.unique_buyers.toLocaleString("pt-BR") : "—"} icon={<Users className="w-5 h-5" />} variant="success" loading={loading} refreshing={syncing} />
-        <KPICard title="Conversão" value={metrics ? `${metrics.conversion_rate.toFixed(2)}%` : "—"} icon={<Percent className="w-5 h-5" />} variant="info" loading={loading} refreshing={syncing} />
+        <KPICard
+          title="Ticket Médio"
+          value={
+            metrics
+              ? metrics.avg_ticket.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                })
+              : "—"
+          }
+          icon={<Tag className="w-5 h-5" />}
+          variant="orange"
+          loading={loading}
+          refreshing={syncing}
+        />
+        <KPICard
+          title="Visitas Únicas"
+          value={metrics ? metrics.unique_visits.toLocaleString("pt-BR") : "—"}
+          icon={<Eye className="w-5 h-5" />}
+          variant="neutral"
+          loading={loading}
+          refreshing={syncing}
+        />
+        <KPICard
+          title="Total de Compradores"
+          value={metrics ? metrics.unique_buyers.toLocaleString("pt-BR") : "—"}
+          icon={<Users className="w-5 h-5" />}
+          variant="success"
+          loading={loading}
+          refreshing={syncing}
+        />
+        <KPICard
+          title="Conversão"
+          value={metrics ? `${metrics.conversion_rate.toFixed(2)}%` : "—"}
+          icon={<Percent className="w-5 h-5" />}
+          variant="info"
+          loading={loading}
+          refreshing={syncing}
+        />
       </div>
 
       {(dailyChartData.length > 0 || showHourlyChart) && (
@@ -747,7 +800,9 @@ export default function MercadoLivre() {
             {showHourlyChart && !hasHourlyData ? (
               <div className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center">
                 <p className="text-sm font-medium text-foreground">Sem dados horários para este período</p>
-                <p className="mt-1 text-xs text-muted-foreground">Sincronize novamente para carregar a visão de venda por hora de Hoje ou dos últimos 7 dias.</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Sincronize novamente para carregar a visão de venda por hora de Hoje ou dos últimos 7 dias.
+                </p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={320}>
@@ -763,7 +818,11 @@ export default function MercadoLivre() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="label" tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    stroke="hsl(var(--muted-foreground))"
+                  />
                   <YAxis
                     yAxisId="revenue"
                     tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
@@ -780,7 +839,9 @@ export default function MercadoLivre() {
                     />
                   )}
                   <RechartsTooltip
-                    formatter={(value: number, name: string) => name === "Pedidos" ? [value, name] : [currencyFmt(Number(value)), name]}
+                    formatter={(value: number, name: string) =>
+                      name === "Pedidos" ? [value, name] : [currencyFmt(Number(value)), name]
+                    }
                     contentStyle={{
                       borderRadius: 12,
                       border: "1px solid hsl(var(--border))",
@@ -791,14 +852,48 @@ export default function MercadoLivre() {
                   <Legend />
                   {showHourlyChart ? (
                     <>
-                      <Bar yAxisId="orders" dataKey="Pedidos" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} maxBarSize={28} />
-                      <Area yAxisId="revenue" type="monotone" dataKey="Venda Total" stroke="hsl(var(--accent))" fill="url(#mlTotal)" strokeWidth={2.5} />
-                      <Line yAxisId="revenue" type="monotone" dataKey="Venda Aprovada" stroke="hsl(var(--success))" strokeWidth={2} dot={false} />
+                      <Bar
+                        yAxisId="orders"
+                        dataKey="Pedidos"
+                        fill="hsl(var(--primary))"
+                        radius={[6, 6, 0, 0]}
+                        maxBarSize={28}
+                      />
+                      <Area
+                        yAxisId="revenue"
+                        type="monotone"
+                        dataKey="Venda Total"
+                        stroke="hsl(var(--accent))"
+                        fill="url(#mlTotal)"
+                        strokeWidth={2.5}
+                      />
+                      <Line
+                        yAxisId="revenue"
+                        type="monotone"
+                        dataKey="Venda Aprovada"
+                        stroke="hsl(var(--success))"
+                        strokeWidth={2}
+                        dot={false}
+                      />
                     </>
                   ) : (
                     <>
-                      <Area yAxisId="revenue" type="monotone" dataKey="Venda Total" stroke="hsl(var(--accent))" fill="url(#mlTotal)" strokeWidth={2.5} />
-                      <Area yAxisId="revenue" type="monotone" dataKey="Venda Aprovada" stroke="hsl(var(--success))" fill="url(#mlApproved)" strokeWidth={2} />
+                      <Area
+                        yAxisId="revenue"
+                        type="monotone"
+                        dataKey="Venda Total"
+                        stroke="hsl(var(--accent))"
+                        fill="url(#mlTotal)"
+                        strokeWidth={2.5}
+                      />
+                      <Area
+                        yAxisId="revenue"
+                        type="monotone"
+                        dataKey="Venda Aprovada"
+                        stroke="hsl(var(--success))"
+                        fill="url(#mlApproved)"
+                        strokeWidth={2}
+                      />
                     </>
                   )}
                 </ComposedChart>
@@ -809,89 +904,7 @@ export default function MercadoLivre() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-        {hourly.length > 0 && (
-          <Card className="flex flex-col">
-            <CardHeader className="py-3 px-4">
-              <CardTitle className="text-base">Venda por Hora</CardTitle>
-              {(() => {
-                const peakHour = Array.from({ length: 24 }, (_, h) => {
-                  const hd = hourly.filter((d) => d.hour === h);
-                  return { h, revenue: hd.reduce((s, d) => s + d.total, 0) };
-                }).reduce((best, cur) => (cur.revenue > best.revenue ? cur : best), { h: 0, revenue: 0 });
-                return peakHour.revenue > 0 ? (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    🔥 Pico às <span className="font-semibold text-foreground">{String(peakHour.h).padStart(2, "0")}h–{String(peakHour.h + 1).padStart(2, "0")}h</span> — <span className="font-semibold text-foreground">{currencyFmt(peakHour.revenue)}</span>
-                  </p>
-                ) : null;
-              })()}
-            </CardHeader>
-            <CardContent className="p-0 flex-1 overflow-auto">
-              <Table className="text-xs">
-                <TableHeader>
-                  <TableRow className="h-7 hover:bg-transparent">
-                    <TableHead className="py-1 px-2 text-xs w-[100px]">Hora</TableHead>
-                    <TableHead className="py-1 px-2 text-xs text-right cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => setHourlySortByRevenue((p) => !p)}>
-                      <span className="inline-flex items-center gap-1 justify-end">Receita <ArrowUpDown className="w-3 h-3" /></span>
-                    </TableHead>
-                    <TableHead className="py-1 px-2 text-xs text-right">Vendas</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(() => {
-                    const hourRows = Array.from({ length: 24 }, (_, h) => {
-                      const hourData = hourly.filter((d) => d.hour === h);
-                      return { h, revenue: hourData.reduce((s, d) => s + d.total, 0), sales: hourData.reduce((s, d) => s + d.qty, 0) };
-                    });
-                    // Rank top 12 hours by revenue for gradient coloring
-                    const ranked = hourRows
-                      .filter((r) => r.revenue > 0)
-                      .sort((a, b) => b.revenue - a.revenue)
-                      .slice(0, 12);
-                    const gradientColors = [
-                      "rgba(16,185,129,0.18)",  // 1st  - emerald
-                      "rgba(5,180,140,0.17)",   // 2nd  - emerald→teal
-                      "rgba(13,172,156,0.16)",  // 3rd  - teal
-                      "rgba(20,160,180,0.16)",  // 4th  - teal→cyan
-                      "rgba(6,182,212,0.15)",   // 5th  - cyan
-                      "rgba(14,165,233,0.15)",  // 6th  - sky
-                      "rgba(59,130,246,0.14)",  // 7th  - blue
-                      "rgba(99,102,241,0.14)",  // 8th  - indigo
-                      "rgba(129,90,230,0.13)",  // 9th  - indigo→violet
-                      "rgba(139,92,246,0.13)",  // 10th - violet
-                      "rgba(160,70,230,0.12)",  // 11th - violet→purple
-                      "rgba(168,85,247,0.12)",  // 12th - purple
-                    ];
-                    const rankMap = new Map(ranked.map((r, i) => [r.h, i]));
-                    const displayRows = hourlySortByRevenue
-                      ? [...hourRows].sort((a, b) => b.revenue - a.revenue)
-                      : hourRows;
-                    return displayRows.map(({ h, revenue, sales }) => {
-                      const isEmpty = revenue === 0 && sales === 0;
-                      const rankIdx = rankMap.get(h);
-                      const rowStyle = rankIdx !== undefined ? { backgroundColor: gradientColors[rankIdx] } : undefined;
-                      const extraClass = rankIdx === 0 ? "font-semibold" : isEmpty ? "text-muted-foreground" : "";
-                      return (
-                        <TableRow key={h} className={`h-8 ${extraClass}`} style={rowStyle}>
-                          <TableCell className="py-0.5 px-2 tabular-nums whitespace-nowrap">{String(h).padStart(2, "0")}:00–{String(h).padStart(2, "0")}:59</TableCell>
-                          <TableCell className="py-0.5 px-2 text-right">{isEmpty ? "—" : currencyFmt(revenue)}</TableCell>
-                          <TableCell className="py-0.5 px-2 text-right">{isEmpty ? "—" : sales}</TableCell>
-                        </TableRow>
-                      );
-                    });
-                  })()}
-                </TableBody>
-                <TableFooter>
-                  <TableRow className="font-semibold h-8">
-                    <TableCell className="py-0.5 px-2">Total</TableCell>
-                    <TableCell className="py-0.5 px-2 text-right">{currencyFmt(hourly.reduce((s, d) => s + d.total, 0))}</TableCell>
-                    <TableCell className="py-0.5 px-2 text-right">{hourly.reduce((s, d) => s + d.qty, 0)}</TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-
+        {hourly.length > 0 && <HourlySalesTable hourly={hourly} />}
         <TopSellingProducts products={filteredTopProducts} loading={loading} />
       </div>
     </div>
