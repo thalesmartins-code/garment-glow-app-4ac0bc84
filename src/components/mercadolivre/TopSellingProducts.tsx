@@ -103,21 +103,19 @@ export function TopSellingProducts({ products, loading }: Props) {
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
-                {product.available_quantity !== undefined && (
-                  <div className="flex flex-col items-end shrink-0">
-                    <span className="text-[10px] text-muted-foreground mb-0.5">Estoque</span>
-                    {product.available_quantity === undefined ? (
-                      <Badge variant="destructive" className="text-xs flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" />
-                        Sem estoque
-                      </Badge>
-                    ) : (
-                      <Badge variant={product.available_quantity <= 5 ? "secondary" : "outline"} className="text-xs">
-                        {product.available_quantity} un.
-                      </Badge>
-                    )}
-                  </div>
-                )}
+                <div className="flex flex-col items-end shrink-0">
+                  <span className="text-[10px] text-muted-foreground mb-0.5">Estoque</span>
+                  {product.available_quantity === undefined ? (
+                    <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      Sem estoque
+                    </Badge>
+                  ) : (
+                    <Badge variant={product.available_quantity <= 5 ? "secondary" : "outline"} className="text-xs">
+                      {product.available_quantity} un.
+                    </Badge>
+                  )}
+                </div>
               </div>
             ))}
           </div>
