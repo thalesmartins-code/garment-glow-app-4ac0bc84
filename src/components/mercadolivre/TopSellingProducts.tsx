@@ -109,7 +109,7 @@ export function TopSellingProducts({ products, loading }: Props) {
                       }
                       className="text-xs"
                     >
-                      {product.available_quantity} un.
+                      {product.available_quantity === 0 ? "Sem estoque" : `${product.available_quantity} un.`}
                     </Badge>
                   </div>
                 )}
