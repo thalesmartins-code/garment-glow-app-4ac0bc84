@@ -106,7 +106,7 @@ export function TopSellingProducts({ products, loading }: Props) {
                 {product.available_quantity !== undefined && (
                   <div className="flex flex-col items-end shrink-0">
                     <span className="text-[10px] text-muted-foreground mb-0.5">Estoque</span>
-                    {product.available_quantity === 0 ? (
+                    {product.available_quantity === undefined ? (
                       <Badge variant="destructive" className="text-xs flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" />
                         Sem estoque
