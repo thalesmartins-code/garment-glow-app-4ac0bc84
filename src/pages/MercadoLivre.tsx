@@ -668,9 +668,7 @@ export default function MercadoLivre() {
                     if (pendingRange?.from && pendingRange?.to) {
                       setCustomRange(pendingRange);
                       setPopoverOpen(false);
-                      if (autoSyncTriggeredRef.current) {
-                        syncFromAPI({ from: pendingRange.from, to: pendingRange.to });
-                      }
+                      syncFromAPI({ from: pendingRange.from, to: pendingRange.to });
                     }
                   }}
                 >
