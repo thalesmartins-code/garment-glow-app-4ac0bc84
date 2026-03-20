@@ -20,6 +20,24 @@ async function mlFetch(path: string, accessToken: string) {
   return data;
 }
 
+async function fetchItemIdsByStatus(sellerId: number, status: string, accessToken: string): Promise<string[]> {
+  const ids: string[] = [];
+  let offset = 0;
+  const PAGE_SIZE = 100;
+  while (true) {
+    const search = await mlFetch(
+      `/users/${sellerId}/items/search?status=${status}&limit=${PAGE_SIZE}&offset=${offset}`,
+      accessToken,
+    );
+    const results = search.results || [];
+    ids.push(...results);
+    const total = search.paging?.total || 0;
+    offset += PAGE_SIZE;
+    if (results.length < PAGE_SIZE || offset >= total || offset >= 10000) break;
+  }
+  return ids;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -31,44 +49,33 @@ serve(async (req) => {
     if (!access_token) {
       return new Response(
         JSON.stringify({ error: "access_token is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // 1. Get seller_id from /users/me if not provided
     let mlSellerId = seller_id;
     if (!mlSellerId) {
       const me = await mlFetch("/users/me", access_token);
       mlSellerId = me.id;
     }
 
-    // 2. Fetch all active item IDs with pagination
-    const allItemIds: string[] = [];
-    let offset = 0;
-    const PAGE_SIZE = 100;
-    while (true) {
-      const search = await mlFetch(
-        `/users/${mlSellerId}/items/search?status=active&limit=${PAGE_SIZE}&offset=${offset}`,
-        access_token
-      );
-      const ids = search.results || [];
-      allItemIds.push(...ids);
-      const total = search.paging?.total || 0;
-      offset += PAGE_SIZE;
-      if (ids.length < PAGE_SIZE || offset >= total) break;
-      if (offset >= 10000) break; // ML API limit
-    }
+    // Fetch active AND paused items (paused = typically out of stock)
+    const [activeIds, pausedIds] = await Promise.all([
+      fetchItemIdsByStatus(mlSellerId, "active", access_token),
+      fetchItemIdsByStatus(mlSellerId, "paused", access_token),
+    ]);
 
-    console.log(`Found ${allItemIds.length} active items for seller ${mlSellerId}`);
+    const allItemIds = [...new Set([...activeIds, ...pausedIds])];
+    console.log(`Found ${activeIds.length} active, ${pausedIds.length} paused = ${allItemIds.length} total items`);
 
-    // 3. Multi-get items in batches of 20
+    // Multi-get items in batches of 20
     const items: any[] = [];
     for (let i = 0; i < allItemIds.length; i += 20) {
       const batch = allItemIds.slice(i, i + 20);
       const idsParam = batch.join(",");
       const multiGet = await mlFetch(
         `/items?ids=${idsParam}&attributes=id,title,available_quantity,sold_quantity,price,currency_id,thumbnail,status,category_id,listing_type_id,health`,
-        access_token
+        access_token,
       );
       for (const entry of multiGet) {
         if (entry.code === 200 && entry.body) {
@@ -91,13 +98,12 @@ serve(async (req) => {
       }
     }
 
-    // 4. Fetch visits per item in batches of 50
+    // Fetch visits per item in batches of 50 (active only to save time)
     try {
-      for (let i = 0; i < allItemIds.length; i += 50) {
-        const batch = allItemIds.slice(i, i + 50);
+      for (let i = 0; i < activeIds.length; i += 50) {
+        const batch = activeIds.slice(i, i + 50);
         const idsParam = batch.join(",");
         const visitsData = await mlFetch(`/items/visits?ids=${idsParam}`, access_token);
-        // visitsData is an object { "MLB123": 500, "MLB456": 200, ... }
         if (visitsData && typeof visitsData === "object") {
           for (const item of items) {
             if (visitsData[item.id] !== undefined) {
@@ -110,27 +116,22 @@ serve(async (req) => {
       console.error("Visits fetch error (non-critical):", visitErr);
     }
 
-    // 5. Sort: low stock first, then by sold_quantity descending
     items.sort((a, b) => a.available_quantity - b.available_quantity || b.sold_quantity - a.sold_quantity);
 
-    // 6. Summary stats
     const totalItems = items.length;
     const totalStock = items.reduce((s, i) => s + i.available_quantity, 0);
     const outOfStock = items.filter((i) => i.available_quantity === 0).length;
     const lowStock = items.filter((i) => i.available_quantity > 0 && i.available_quantity <= 5).length;
 
     return new Response(
-      JSON.stringify({
-        items,
-        summary: { totalItems, totalStock, outOfStock, lowStock },
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ items, summary: { totalItems, totalStock, outOfStock, lowStock } }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-  } catch (err) {
+  } catch (err: any) {
     console.error("ml-inventory error:", err);
     return new Response(
       JSON.stringify({ error: err.message || "Internal error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
