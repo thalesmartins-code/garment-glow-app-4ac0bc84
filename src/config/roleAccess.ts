@@ -14,6 +14,7 @@ export const roleAccess: Record<string, AppRole[]> = {
   "/mercado-livre/produtos": ["admin", "editor", "viewer"],
   "/mercado-livre/pedidos": ["admin", "editor", "viewer"],
   "/mercado-livre/anuncios": ["admin", "editor", "viewer"],
+  "/mercado-livre/integracoes": ["admin", "editor"],
 };
 
 export function canAccess(role: AppRole | null, path: string): boolean {

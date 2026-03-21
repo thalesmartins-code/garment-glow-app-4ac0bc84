@@ -7,7 +7,7 @@ const mercadoLivreItems = [
   { icon: ShoppingBag, label: "Anúncios", path: "/mercado-livre/produtos" },
   { icon: ClipboardList, label: "Pedidos", path: "/mercado-livre/pedidos" },
   { icon: Megaphone, label: "Publicidade", path: "/mercado-livre/anuncios" },
-  { icon: Plug, label: "Integrações", path: "/integracoes" },
+  { icon: Plug, label: "Integrações", path: "/mercado-livre/integracoes" },
 ];
 
 const backToMainItem = {
