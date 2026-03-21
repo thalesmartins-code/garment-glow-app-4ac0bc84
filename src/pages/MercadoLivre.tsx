@@ -654,12 +654,14 @@ export default function MercadoLivre() {
                 <Button
                   size="sm"
                   className="h-7 text-xs"
-                  disabled={!pendingRange?.from || !pendingRange?.to}
+                  disabled={!pendingRange?.from}
                   onClick={() => {
-                    if (pendingRange?.from && pendingRange?.to) {
-                      setCustomRange(pendingRange);
+                    if (pendingRange?.from) {
+                      const resolvedTo = pendingRange.to ?? pendingRange.from;
+                      const resolvedRange = { from: pendingRange.from, to: resolvedTo };
+                      setCustomRange(resolvedRange);
                       setPopoverOpen(false);
-                      syncFromAPI({ from: pendingRange.from, to: pendingRange.to });
+                      syncFromAPI({ from: resolvedRange.from, to: resolvedRange.to });
                     }
                   }}
                 >
