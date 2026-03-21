@@ -17,14 +17,11 @@ interface Props {
 type SortKey = "hour" | "revenue" | "sales";
 type SortDir = "asc" | "desc";
 
-const currencyFmt = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const currencyFmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   if (!active) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
-  return dir === "desc"
-    ? <ArrowDown className="w-3 h-3 text-primary" />
-    : <ArrowUp className="w-3 h-3 text-primary" />;
+  return dir === "desc" ? <ArrowDown className="w-3 h-3 text-primary" /> : <ArrowUp className="w-3 h-3 text-primary" />;
 }
 
 export function HourlySalesTable({ hourly }: Props) {
@@ -40,25 +37,21 @@ export function HourlySalesTable({ hourly }: Props) {
     };
   });
 
-  const peakHour = hourRows.reduce(
-    (best, cur) => (cur.revenue > best.revenue ? cur : best),
-    { h: 0, revenue: 0, sales: 0 }
-  );
+  const peakHour = hourRows.reduce((best, cur) => (cur.revenue > best.revenue ? cur : best), {
+    h: 0,
+    revenue: 0,
+    sales: 0,
+  });
 
   const maxRevenue = peakHour.revenue;
 
-  // Rank das top 12 horas por receita (só as que têm dados)
-  const rankedByRevenue = [...hourRows]
-    .filter((r) => r.revenue > 0)
-    .sort((a, b) => b.revenue - a.revenue);
+  const rankedByRevenue = [...hourRows].filter((r) => r.revenue > 0).sort((a, b) => b.revenue - a.revenue);
   const top12Set = new Set(rankedByRevenue.slice(0, 12).map((r) => r.h));
-  const rankMap = new Map(rankedByRevenue.map((r, i) => [r.h, i])); // 0 = melhor
+  const rankMap = new Map(rankedByRevenue.map((r, i) => [r.h, i]));
 
-  // Degradê: rank 0 = mais forte, rank 11 = mais fraco
   function getCellBg(h: number, revenue: number): string {
     if (revenue === 0 || !top12Set.has(h)) return "";
     const rank = rankMap.get(h) ?? 12;
-    // Opacidade de 0.45 (1º) até 0.06 (12º)
     const opacity = 0.45 - rank * (0.39 / 11);
     return `rgba(34, 197, 94, ${opacity.toFixed(3)})`;
   }
@@ -95,10 +88,7 @@ export function HourlySalesTable({ hourly }: Props) {
                   {String(peakHour.h).padStart(2, "0")}h–
                   {String(peakHour.h + 1).padStart(2, "0")}h
                 </span>{" "}
-                ·{" "}
-                <span className="font-semibold text-foreground">
-                  {currencyFmt(peakHour.revenue)}
-                </span>
+                · <span className="font-semibold text-foreground">{currencyFmt(peakHour.revenue)}</span>
               </p>
             )}
           </div>
@@ -123,10 +113,10 @@ export function HourlySalesTable({ hourly }: Props) {
                 </span>
               </th>
               <th
-                className="py-2 px-2 font-medium text-muted-foreground cursor-pointer select-none"
+                className="text-left py-2 px-2 font-medium text-muted-foreground cursor-pointer select-none"
                 onClick={() => handleSort("revenue")}
               >
-                <span className="inline-flex items-center justify-end gap-1 w-full">
+                <span className="inline-flex items-center gap-1">
                   Receita <SortIcon active={sortKey === "revenue"} dir={sortDir} />
                 </span>
               </th>
@@ -150,12 +140,10 @@ export function HourlySalesTable({ hourly }: Props) {
 
               return (
                 <tr key={h} className="border-b border-border/50">
-                  {/* Hora */}
                   <td className="py-1.5 px-2 tabular-nums" style={{ width: 80, ...cellStyle }}>
                     {String(h).padStart(2, "0")}:00
                   </td>
 
-                  {/* Receita — valor à esquerda, barra à direita */}
                   <td className="py-1.5 px-2" style={cellStyle}>
                     {isEmpty ? (
                       <span className="text-muted-foreground">—</span>
@@ -165,16 +153,12 @@ export function HourlySalesTable({ hourly }: Props) {
                           {currencyFmt(revenue)}
                         </span>
                         <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-primary/60"
-                            style={{ width: `${barWidth}%` }}
-                          />
+                          <div className="h-full rounded-full bg-primary/60" style={{ width: `${barWidth}%` }} />
                         </div>
                       </div>
                     )}
                   </td>
 
-                  {/* Vendas */}
                   <td className="py-1.5 px-2 text-right" style={{ width: 80, ...cellStyle }}>
                     {isEmpty ? (
                       <span className="text-muted-foreground">—</span>
@@ -189,7 +173,7 @@ export function HourlySalesTable({ hourly }: Props) {
           <tfoot className="border-t-2 border-border bg-muted/50">
             <tr className="font-semibold">
               <td className="py-2 px-2">Total</td>
-              <td className="py-2 px-2 text-right">{currencyFmt(totalRevenue)}</td>
+              <td className="py-2 px-2 text-left">{currencyFmt(totalRevenue)}</td>
               <td className="py-2 px-2 text-right">{totalSales}</td>
             </tr>
           </tfoot>
