@@ -25,6 +25,7 @@ import {
   Check,
   X,
   Clock3,
+  Loader2,
 } from "lucide-react";
 import {
   ComposedChart,
@@ -82,6 +83,8 @@ const QUICK_RANGES = [
 ] as const;
 
 const LAST_ML_SYNC_KEY = "ml_last_synced_at";
+const LAST_ML_SYNC_TS_KEY = "ml_last_synced_ts";
+const AUTO_SYNC_STALE_MS = 10 * 60 * 1000; // 10 minutos
 
 function todayUTC() {
   const now = new Date();
@@ -272,11 +275,20 @@ export default function MercadoLivre() {
   const loadFromCache = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
 
-    // Paraleliza as 3 queries ao Supabase em vez de sequencial
     const [{ data: userCache }, { data: dailyCache }, { data: productCache }] = await Promise.all([
       supabase.from("ml_user_cache").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("ml_daily_cache").select("*").eq("user_id", user.id).order("date", { ascending: false }).limit(1000),
-      (supabase as any).from("ml_product_daily_cache").select("*").eq("user_id", user.id).order("revenue", { ascending: false }).limit(5000),
+      supabase
+        .from("ml_daily_cache")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false })
+        .limit(1000),
+      (supabase as any)
+        .from("ml_product_daily_cache")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("revenue", { ascending: false })
+        .limit(5000),
     ]);
 
     if (userCache) {
@@ -443,7 +455,6 @@ export default function MercadoLivre() {
 
         let lastUserInfo: MLUser | null = null;
 
-        // Dispara todos os chunks em paralelo em vez de sequencial
         const chunkResults = await Promise.all(
           chunks.map((chunk) =>
             supabase.functions.invoke("mercado-libre-integration", {
@@ -469,6 +480,7 @@ export default function MercadoLivre() {
         const now = new Date().toLocaleString("pt-BR");
         setLastSyncedAt(now);
         localStorage.setItem(LAST_ML_SYNC_KEY, now);
+        localStorage.setItem(LAST_ML_SYNC_TS_KEY, String(Date.now()));
         toast({ title: "Sincronizado", description: `Dados atualizados (${chunks.length} bloco(s)).` });
       } catch (err: any) {
         toast({ title: "Erro", description: err.message, variant: "destructive" });
@@ -507,7 +519,6 @@ export default function MercadoLivre() {
       setConnected(true);
       await Promise.all([loadFromCache(), loadHourlyCache()]);
 
-      // Inventário é não-crítico: não bloqueia o setLoading(false)
       supabase.functions
         .invoke("ml-inventory", { body: { access_token: tokenRow.access_token } })
         .then(({ data: invData }) => {
@@ -525,7 +536,10 @@ export default function MercadoLivre() {
 
       if (!autoSyncTriggeredRef.current) {
         autoSyncTriggeredRef.current = true;
-        syncFromAPI();
+        const lastTs = Number(localStorage.getItem(LAST_ML_SYNC_TS_KEY) ?? 0);
+        if (Date.now() - lastTs > AUTO_SYNC_STALE_MS) {
+          syncFromAPI();
+        }
       }
     })();
   }, [user, loadFromCache, loadHourlyCache, syncFromAPI]);
@@ -793,7 +807,7 @@ export default function MercadoLivre() {
             </div>
           </CardHeader>
           <CardContent>
-            {showHourlyChart && !hasHourlyData ? (
+            {showHourlyChart && !hasHourlyData && !syncing ? (
               <div className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center">
                 <p className="text-sm font-medium text-foreground">Sem dados horários para este período</p>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -900,7 +914,22 @@ export default function MercadoLivre() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-        {hourly.length > 0 && <HourlySalesTable hourly={hourly} />}
+        {isHourlyAvailable &&
+          (syncing && hourly.length === 0 ? (
+            <Card className="flex flex-col h-full">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Venda por Hora</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 flex items-center justify-center py-12">
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <p className="text-xs">Carregando dados horários...</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : hourly.length > 0 ? (
+            <HourlySalesTable hourly={hourly} />
+          ) : null)}
         <TopSellingProducts products={filteredTopProducts} loading={loading} />
       </div>
     </div>
