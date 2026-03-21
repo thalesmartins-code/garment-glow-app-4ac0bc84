@@ -659,64 +659,6 @@ export default function Integrations() {
         </div>
       )}
 
-      {/* ML Metrics */}
-      {mlMetrics && integrations.find((i) => i.id === "ml")?.status === "connected" && (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                🟡 Métricas do Mercado Livre
-                {mlUser && <Badge variant="outline" className="text-xs font-normal">{mlUser.nickname}</Badge>}
-              </CardTitle>
-              <span className="text-xs text-muted-foreground">Últimos 30 dias</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-500/10">
-                  <DollarSign className="w-5 h-5 text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Receita Aprovada</p>
-                  <p className="text-lg font-bold">
-                    {mlMetrics.approved_revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500/10">
-                  <ShoppingCart className="w-5 h-5 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Pedidos</p>
-                  <p className="text-lg font-bold">{mlMetrics.total_orders}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-500/10">
-                  <TrendingUp className="w-5 h-5 text-emerald-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Ticket Médio</p>
-                  <p className="text-lg font-bold">
-                    {mlMetrics.avg_ticket.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-500/10">
-                  <Tag className="w-5 h-5 text-orange-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Anúncios Ativos</p>
-                  <p className="text-lg font-bold">{mlMetrics.active_listings}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Magalu Metrics */}
       {magaluMetrics && integrations.find((i) => i.id === "magalu")?.status === "connected" && (
