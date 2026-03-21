@@ -136,6 +136,14 @@ const App = () => (
                             </RoleRoute>
                           }
                         />
+                        <Route
+                          path="/mercado-livre/integracoes"
+                          element={
+                            <RoleRoute>
+                              <Integrations />
+                            </RoleRoute>
+                          }
+                        />
                       </Route>
                     </Route>
                     <Route path="*" element={<NotFound />} />
