@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMLInventory } from "@/contexts/MLInventoryContext";
+import { Checkbox } from "@/components/ui/checkbox";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
