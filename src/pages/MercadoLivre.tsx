@@ -87,14 +87,14 @@ const LAST_ML_SYNC_TS_KEY = "ml_last_synced_ts";
 const AUTO_SYNC_STALE_MS = 10 * 60 * 1000;
 
 function todayUTC() {
-  return new Date().toISOString().substring(0, 10);
+  return format(new Date(), "yyyy-MM-dd");
 }
 
 function cutoffDateStr(daysBack: number) {
   if (daysBack === 0) return todayUTC();
   const d = new Date();
-  d.setUTCDate(d.getUTCDate() - daysBack + 1);
-  return d.toISOString().substring(0, 10);
+  d.setDate(d.getDate() - daysBack + 1);
+  return format(d, "yyyy-MM-dd");
 }
 
 function mapDailyRow(row: any): DailyBreakdown {
