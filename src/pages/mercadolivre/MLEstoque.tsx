@@ -252,7 +252,7 @@ export default function MLEstoque() {
                                     </TableRow>
                                   </TableHeader>
                                   <TableBody>
-                                    {item.variations.map((v) => (
+                                    {(hideOutOfStock ? item.variations.filter(v => v.available_quantity > 0) : item.variations).map((v) => (
                                       <TableRow key={v.variation_id} className="border-b border-border/30 last:border-0">
                                         <TableCell className="py-2 text-xs font-medium">
                                           {variationLabel(v)}
