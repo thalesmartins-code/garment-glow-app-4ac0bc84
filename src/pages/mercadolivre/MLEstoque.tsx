@@ -94,16 +94,25 @@ export default function MLEstoque() {
       {/* Search + Table */}
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <CardTitle className="text-base">Anúncios</CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por título ou ID..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-9 text-sm"
-              />
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={hideOutOfStock}
+                  onCheckedChange={(v) => setHideOutOfStock(!!v)}
+                />
+                <span className="text-sm text-muted-foreground whitespace-nowrap">Ocultar sem estoque</span>
+              </label>
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por título ou ID..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 h-9 text-sm"
+                />
+              </div>
             </div>
           </div>
         </CardHeader>
