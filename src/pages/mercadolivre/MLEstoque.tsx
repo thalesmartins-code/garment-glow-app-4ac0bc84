@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Package, PackageX, AlertTriangle, Boxes, RefreshCw, Search, ExternalLink, Plug, ChevronDown, ChevronRight,
 } from "lucide-react";
@@ -17,6 +18,9 @@ import type { ProductVariation } from "@/contexts/MLInventoryContext";
 
 const currencyFmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+type StockFilter = "all" | "in_stock" | "low" | "out";
+type SortBy = "stock_desc" | "stock_asc" | "price_desc" | "price_asc" | "title";
 
 const stockBadge = (qty: number) => {
   if (qty === 0) return <Badge variant="destructive" className="text-xs">Sem estoque</Badge>;
@@ -30,6 +34,8 @@ const variationLabel = (v: ProductVariation) =>
 export default function MLEstoque() {
   const { items, summary, loading, hasToken, lastUpdated, refresh } = useMLInventory();
   const [search, setSearch] = useState("");
+  const [stockFilter, setStockFilter] = useState<StockFilter>("all");
+  const [sortBy, setSortBy] = useState<SortBy>("stock_asc");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [hideOutOfStock, setHideOutOfStock] = useState(false);
 
@@ -42,10 +48,22 @@ export default function MLEstoque() {
     });
   };
 
-  const filtered = items.filter((item) =>
-    item.title.toLowerCase().includes(search.toLowerCase()) ||
-    item.id.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = items
+    .filter((item) => {
+      const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase()) || item.id.toLowerCase().includes(search.toLowerCase());
+      if (!matchesSearch) return false;
+      if (stockFilter === "out") return item.available_quantity === 0;
+      if (stockFilter === "low") return item.available_quantity > 0 && item.available_quantity <= 5;
+      if (stockFilter === "in_stock") return item.available_quantity > 0;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "stock_desc") return b.available_quantity - a.available_quantity;
+      if (sortBy === "stock_asc") return a.available_quantity - b.available_quantity;
+      if (sortBy === "price_desc") return b.price - a.price;
+      if (sortBy === "price_asc") return a.price - b.price;
+      return a.title.localeCompare(b.title);
+    });
 
   if (hasToken === false) {
     return (
