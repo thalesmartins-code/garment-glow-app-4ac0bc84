@@ -11,7 +11,7 @@ export const routeTitles: Record<string, { title: string; subtitle: string }> = 
     subtitle: "Conecte suas contas de marketplaces para sincronizar dados automaticamente",
   },
   "/mercado-livre": { title: "Mercado Livre — Vendas", subtitle: "Visão geral de vendas e métricas" },
-  "/mercado-livre/estoque": { title: "Mercado Livre — Estoque", subtitle: "Gestão de estoque de anúncios" },
+  "/mercado-livre/estoque": { title: "Mercado Livre — Estoque", subtitle: "Gestão de estoque dos seus anúncios" },
   "/mercado-livre/produtos": { title: "Mercado Livre — Anúncios", subtitle: "Catálogo de produtos e anúncios ativos" },
   "/mercado-livre/pedidos": { title: "Mercado Livre — Pedidos", subtitle: "Acompanhamento de pedidos e envios" },
   "/mercado-livre/anuncios": { title: "Mercado Livre — Publicidade", subtitle: "Gestão e performance de publicidade" },
