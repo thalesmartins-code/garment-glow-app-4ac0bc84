@@ -79,12 +79,25 @@ serve(async (req) => {
       const batch = allItemIds.slice(i, i + 20);
       const idsParam = batch.join(",");
       const multiGet = await mlFetch(
-        `/items?ids=${idsParam}&attributes=id,title,available_quantity,sold_quantity,price,currency_id,thumbnail,status,category_id,listing_type_id,health`,
+        `/items?ids=${idsParam}&attributes=id,title,available_quantity,sold_quantity,price,currency_id,thumbnail,status,category_id,listing_type_id,health,variations`,
         access_token,
       );
       for (const entry of multiGet) {
         if (entry.code === 200 && entry.body) {
           const b = entry.body;
+          const rawVariations: any[] = b.variations || [];
+          const variations = rawVariations.map((v: any) => ({
+            variation_id: String(v.id),
+            attribute_combinations: (v.attribute_combinations || []).map((a: any) => ({
+              id: a.id,
+              name: a.name,
+              value: a.value_name,
+            })),
+            available_quantity: v.available_quantity ?? 0,
+            sold_quantity: v.sold_quantity ?? 0,
+            price: v.price ?? b.price ?? 0,
+            picture_id: v.picture_ids?.[0] ?? null,
+          }));
           items.push({
             id: b.id,
             title: b.title,
@@ -98,6 +111,8 @@ serve(async (req) => {
             listing_type_id: b.listing_type_id ?? null,
             health: b.health ?? null,
             visits: 0,
+            has_variations: variations.length > 1,
+            variations,
           });
         }
       }

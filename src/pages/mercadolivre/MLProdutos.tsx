@@ -9,21 +9,51 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ShoppingBag, RefreshCw, Search, ExternalLink, Plug, DollarSign, Tag, TrendingUp, Package,
+  ChevronDown, ChevronRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
+import type { ProductVariation } from "@/contexts/MLInventoryContext";
 
 const currencyFmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 type StockFilter = "all" | "in_stock" | "low" | "out";
 
+const stockBadge = (qty: number) => {
+  if (qty === 0) return <Badge variant="destructive" className="text-xs">Sem estoque</Badge>;
+  if (qty <= 5) return <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">Baixo</Badge>;
+  return <Badge variant="outline" className="text-xs border-emerald-500 text-emerald-600">OK</Badge>;
+};
+
+const healthBadge = (health: number | null) => {
+  if (health === null) return <span className="text-xs text-muted-foreground">—</span>;
+  if (health >= 0.8) return <Badge variant="outline" className="text-xs border-emerald-500 text-emerald-600">Ótima</Badge>;
+  if (health >= 0.5) return <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">Regular</Badge>;
+  return <Badge variant="destructive" className="text-xs">Baixa</Badge>;
+};
+
+const variationLabel = (v: ProductVariation) =>
+  v.attribute_combinations.map((a) => a.value).join(" / ") || `Var. ${v.variation_id}`;
+
+const MAX_PILLS = 5;
+
 export default function MLProdutos() {
   const { items, loading, hasToken, lastUpdated, refresh } = useMLInventory();
   const [search, setSearch] = useState("");
   const [stockFilter, setStockFilter] = useState<StockFilter>("all");
   const [sortBy, setSortBy] = useState<"price_desc" | "price_asc" | "sold" | "title">("sold");
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  const toggleRow = (id: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   // Derived stats
   const totalRevenuePotential = items.reduce((s, i) => s + i.price * i.available_quantity, 0);
@@ -47,13 +77,6 @@ export default function MLProdutos() {
       if (sortBy === "sold") return b.sold_quantity - a.sold_quantity;
       return a.title.localeCompare(b.title);
     });
-
-  const healthBadge = (health: number | null) => {
-    if (health === null) return <span className="text-xs text-muted-foreground">—</span>;
-    if (health >= 0.8) return <Badge variant="outline" className="text-xs border-emerald-500 text-emerald-600">Ótima</Badge>;
-    if (health >= 0.5) return <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">Regular</Badge>;
-    return <Badge variant="destructive" className="text-xs">Baixa</Badge>;
-  };
 
   if (hasToken === false) {
     return (
@@ -138,64 +161,148 @@ export default function MLProdutos() {
               <p className="text-sm">{search || stockFilter !== "all" ? "Nenhum produto encontrado" : "Nenhum produto ativo"}</p>
             </div>
           ) : (
-            <div className="max-h-[500px] overflow-auto">
+            <div className="max-h-[600px] overflow-auto">
               <Table>
-                 <TableHeader>
-                   <TableRow>
-                     <TableHead className="w-12"></TableHead>
-                     <TableHead>Anúncio</TableHead>
-                     <TableHead className="text-right w-24">Preço</TableHead>
-                     <TableHead className="text-center w-20">Estoque</TableHead>
-                     <TableHead className="text-center w-20">Vendidos</TableHead>
-                     <TableHead className="text-right w-28">Vendidos R$</TableHead>
-                     <TableHead className="text-center w-20">% Part.</TableHead>
-                     <TableHead className="text-center w-20">Visitas</TableHead>
-                     <TableHead className="text-center w-20">Conv.</TableHead>
-                     <TableHead className="text-center w-20">Saúde</TableHead>
-                     <TableHead className="w-10"></TableHead>
-                   </TableRow>
-                 </TableHeader>
-                 <TableBody>
-                   {filtered.map((item) => {
-                     const soldRevenue = item.sold_quantity * item.price;
-                     const participation = totalSoldRevenue > 0 ? (soldRevenue / totalSoldRevenue) * 100 : 0;
-                     const conversion = item.visits > 0 ? (item.sold_quantity / item.visits) * 100 : 0;
-                     return (
-                       <TableRow key={item.id}>
-                         <TableCell className="p-2">
-                           {item.thumbnail ? (
-                             <img src={item.thumbnail.replace("http://", "https://")} alt="" className="w-10 h-10 rounded object-cover" loading="lazy" />
-                           ) : (
-                             <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                               <Package className="w-4 h-4 text-muted-foreground" />
-                             </div>
-                           )}
-                         </TableCell>
-                         <TableCell>
-                           <p className="text-sm font-medium line-clamp-2 leading-tight">{item.title}</p>
-                           <p className="text-xs text-muted-foreground mt-0.5">{item.id}</p>
-                         </TableCell>
-                         <TableCell className="text-right text-sm font-medium">{currencyFmt(item.price)}</TableCell>
-                         <TableCell className="text-center">
-                           <span className={`text-sm font-semibold ${item.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
-                             {item.available_quantity}
-                           </span>
-                         </TableCell>
-                         <TableCell className="text-center text-sm text-muted-foreground">{item.sold_quantity}</TableCell>
-                         <TableCell className="text-right text-sm font-medium">{currencyFmt(soldRevenue)}</TableCell>
-                         <TableCell className="text-center text-sm text-muted-foreground">{participation.toFixed(1)}%</TableCell>
-                         <TableCell className="text-center text-sm text-muted-foreground">{item.visits.toLocaleString("pt-BR")}</TableCell>
-                         <TableCell className="text-center text-sm text-muted-foreground">{conversion.toFixed(1)}%</TableCell>
-                         <TableCell className="text-center">{healthBadge(item.health)}</TableCell>
-                         <TableCell>
-                           <a href={`https://produto.mercadolivre.com.br/${item.id.replace(/^(MLB)(\d+)$/, '$1-$2')}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-                             <ExternalLink className="w-4 h-4" />
-                           </a>
-                         </TableCell>
-                       </TableRow>
-                     );
-                   })}
-                 </TableBody>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-8"></TableHead>
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead>Anúncio</TableHead>
+                    <TableHead className="text-right w-24">Preço</TableHead>
+                    <TableHead className="text-center w-20">Estoque</TableHead>
+                    <TableHead className="text-center w-20">Vendidos</TableHead>
+                    <TableHead className="text-right w-28">Vendidos R$</TableHead>
+                    <TableHead className="text-center w-20">% Part.</TableHead>
+                    <TableHead className="text-center w-20">Visitas</TableHead>
+                    <TableHead className="text-center w-20">Conv.</TableHead>
+                    <TableHead className="text-center w-20">Saúde</TableHead>
+                    <TableHead className="w-10"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((item) => {
+                    const soldRevenue = item.sold_quantity * item.price;
+                    const participation = totalSoldRevenue > 0 ? (soldRevenue / totalSoldRevenue) * 100 : 0;
+                    const conversion = item.visits > 0 ? (item.sold_quantity / item.visits) * 100 : 0;
+                    const isExpanded = expandedRows.has(item.id);
+
+                    const visiblePills = item.has_variations ? item.variations.slice(0, MAX_PILLS) : [];
+                    const extraPills = item.has_variations ? item.variations.length - MAX_PILLS : 0;
+
+                    return (
+                      <>
+                        <TableRow
+                          key={item.id}
+                          className={item.has_variations ? "cursor-pointer hover:bg-muted/50" : ""}
+                          onClick={() => item.has_variations && toggleRow(item.id)}
+                        >
+                          {/* Expand toggle */}
+                          <TableCell className="p-1 pl-3">
+                            {item.has_variations ? (
+                              isExpanded
+                                ? <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                : <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                            ) : null}
+                          </TableCell>
+
+                          {/* Thumbnail */}
+                          <TableCell className="p-2" onClick={(e) => e.stopPropagation()}>
+                            {item.thumbnail ? (
+                              <img src={item.thumbnail.replace("http://", "https://")} alt="" className="w-10 h-10 rounded object-cover" loading="lazy" />
+                            ) : (
+                              <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                                <Package className="w-4 h-4 text-muted-foreground" />
+                              </div>
+                            )}
+                          </TableCell>
+
+                          {/* Title + variation pills */}
+                          <TableCell>
+                            <p className="text-sm font-medium line-clamp-2 leading-tight">{item.title}</p>
+                            <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                              <p className="text-xs text-muted-foreground">{item.id}</p>
+                              {item.has_variations && (
+                                <>
+                                  <span className="text-muted-foreground/40 text-xs">·</span>
+                                  {visiblePills.map((v) => (
+                                    <span key={v.variation_id} className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-medium">
+                                      {variationLabel(v)}
+                                    </span>
+                                  ))}
+                                  {extraPills > 0 && (
+                                    <span className="text-[10px] text-muted-foreground">+{extraPills}</span>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          <TableCell className="text-right text-sm font-medium">{currencyFmt(item.price)}</TableCell>
+                          <TableCell className="text-center">
+                            <span className={`text-sm font-semibold ${item.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
+                              {item.available_quantity}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center text-sm text-muted-foreground">{item.sold_quantity}</TableCell>
+                          <TableCell className="text-right text-sm font-medium">{currencyFmt(soldRevenue)}</TableCell>
+                          <TableCell className="text-center text-sm text-muted-foreground">{participation.toFixed(1)}%</TableCell>
+                          <TableCell className="text-center text-sm text-muted-foreground">{item.visits.toLocaleString("pt-BR")}</TableCell>
+                          <TableCell className="text-center text-sm text-muted-foreground">{conversion.toFixed(1)}%</TableCell>
+                          <TableCell className="text-center">{healthBadge(item.health)}</TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <a href={`https://produto.mercadolivre.com.br/${item.id.replace(/^(MLB)(\d+)$/, "$1-$2")}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Expanded variations sub-table */}
+                        {item.has_variations && isExpanded && (
+                          <TableRow key={`${item.id}-variations`}>
+                            <TableCell colSpan={12} className="p-0 bg-muted/20 border-b">
+                              <div className="px-10 py-3">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow className="border-b border-border/50">
+                                      <TableHead className="text-xs h-8 font-medium">Variação</TableHead>
+                                      <TableHead className="text-xs h-8 font-medium text-right">Preço</TableHead>
+                                      <TableHead className="text-xs h-8 font-medium text-center">Disponível</TableHead>
+                                      <TableHead className="text-xs h-8 font-medium text-center">Vendidos</TableHead>
+                                      <TableHead className="text-xs h-8 font-medium text-center">Status</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {item.variations.map((v) => (
+                                      <TableRow key={v.variation_id} className="border-b border-border/30 last:border-0">
+                                        <TableCell className="py-2 text-xs font-medium">
+                                          {variationLabel(v)}
+                                        </TableCell>
+                                        <TableCell className="py-2 text-xs text-right">
+                                          {currencyFmt(v.price)}
+                                        </TableCell>
+                                        <TableCell className="py-2 text-center">
+                                          <span className={`text-xs font-semibold ${v.available_quantity === 0 ? "text-destructive" : v.available_quantity <= 5 ? "text-amber-600" : "text-foreground"}`}>
+                                            {v.available_quantity}
+                                          </span>
+                                        </TableCell>
+                                        <TableCell className="py-2 text-xs text-center text-muted-foreground">
+                                          {v.sold_quantity}
+                                        </TableCell>
+                                        <TableCell className="py-2 text-center">
+                                          {stockBadge(v.available_quantity)}
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
+                    );
+                  })}
+                </TableBody>
               </Table>
             </div>
           )}

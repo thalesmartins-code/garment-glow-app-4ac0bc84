@@ -7,29 +7,43 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Package, PackageX, AlertTriangle, Boxes, RefreshCw, Search, ExternalLink, Plug,
+  Package, PackageX, AlertTriangle, Boxes, RefreshCw, Search, ExternalLink, Plug, ChevronDown, ChevronRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
+import type { ProductVariation } from "@/contexts/MLInventoryContext";
 
 const currencyFmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+const stockBadge = (qty: number) => {
+  if (qty === 0) return <Badge variant="destructive" className="text-xs">Sem estoque</Badge>;
+  if (qty <= 5) return <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">Baixo</Badge>;
+  return <Badge variant="outline" className="text-xs border-emerald-500 text-emerald-600">OK</Badge>;
+};
+
+const variationLabel = (v: ProductVariation) =>
+  v.attribute_combinations.map((a) => a.value).join(" / ") || `Variação ${v.variation_id}`;
+
 export default function MLEstoque() {
   const { items, summary, loading, hasToken, lastUpdated, refresh } = useMLInventory();
   const [search, setSearch] = useState("");
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  const toggleRow = (id: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const filtered = items.filter((item) =>
     item.title.toLowerCase().includes(search.toLowerCase()) ||
     item.id.toLowerCase().includes(search.toLowerCase())
   );
-
-  const stockBadge = (qty: number) => {
-    if (qty === 0) return <Badge variant="destructive" className="text-xs">Sem estoque</Badge>;
-    if (qty <= 5) return <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">Baixo</Badge>;
-    return <Badge variant="outline" className="text-xs border-emerald-500 text-emerald-600">OK</Badge>;
-  };
 
   if (hasToken === false) {
     return (
@@ -103,10 +117,11 @@ export default function MLEstoque() {
               <p className="text-sm">{search ? "Nenhum anúncio encontrado" : "Nenhum anúncio ativo"}</p>
             </div>
           ) : (
-            <div className="max-h-[500px] overflow-auto">
+            <div className="max-h-[600px] overflow-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-8"></TableHead>
                     <TableHead className="w-12"></TableHead>
                     <TableHead>Anúncio</TableHead>
                     <TableHead className="text-right w-28">Preço</TableHead>
@@ -117,52 +132,145 @@ export default function MLEstoque() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="p-2">
-                        {item.thumbnail ? (
-                          <img
-                            src={item.thumbnail.replace("http://", "https://")}
-                            alt=""
-                            className="w-10 h-10 rounded object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                            <Package className="w-4 h-4 text-muted-foreground" />
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <p className="text-sm font-medium line-clamp-2 leading-tight">{item.title}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{item.id}</p>
-                      </TableCell>
-                      <TableCell className="text-right text-sm font-medium">
-                        {currencyFmt(item.price)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className={`text-sm font-semibold ${item.available_quantity === 0 ? "text-destructive" : item.available_quantity <= 5 ? "text-amber-600" : "text-foreground"}`}>
-                          {item.available_quantity}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-center text-sm text-muted-foreground">
-                        {item.sold_quantity}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {stockBadge(item.available_quantity)}
-                      </TableCell>
-                      <TableCell>
-                        <a
-                          href={`https://produto.mercadolivre.com.br/${item.id.replace(/^(MLB)(\d+)$/, '$1-$2')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-foreground transition-colors"
+                  {filtered.map((item) => {
+                    const isExpanded = expandedRows.has(item.id);
+                    const priceMin = item.has_variations
+                      ? Math.min(...item.variations.map((v) => v.price))
+                      : item.price;
+                    const priceMax = item.has_variations
+                      ? Math.max(...item.variations.map((v) => v.price))
+                      : item.price;
+                    const priceLabel =
+                      item.has_variations && priceMin !== priceMax
+                        ? `${currencyFmt(priceMin)} – ${currencyFmt(priceMax)}`
+                        : currencyFmt(item.price);
+
+                    return (
+                      <>
+                        <TableRow
+                          key={item.id}
+                          className={item.has_variations ? "cursor-pointer hover:bg-muted/50" : ""}
+                          onClick={() => item.has_variations && toggleRow(item.id)}
                         >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          {/* Expand toggle */}
+                          <TableCell className="p-1 pl-3">
+                            {item.has_variations ? (
+                              isExpanded
+                                ? <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                : <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                            ) : null}
+                          </TableCell>
+
+                          {/* Thumbnail */}
+                          <TableCell className="p-2">
+                            {item.thumbnail ? (
+                              <img
+                                src={item.thumbnail.replace("http://", "https://")}
+                                alt=""
+                                className="w-10 h-10 rounded object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                                <Package className="w-4 h-4 text-muted-foreground" />
+                              </div>
+                            )}
+                          </TableCell>
+
+                          {/* Title */}
+                          <TableCell>
+                            <p className="text-sm font-medium line-clamp-2 leading-tight">{item.title}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <p className="text-xs text-muted-foreground">{item.id}</p>
+                              {item.has_variations && (
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                  {item.variations.length} variações
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          {/* Price */}
+                          <TableCell className="text-right text-sm font-medium whitespace-nowrap">
+                            {priceLabel}
+                          </TableCell>
+
+                          {/* Stock */}
+                          <TableCell className="text-center">
+                            <span className={`text-sm font-semibold ${item.available_quantity === 0 ? "text-destructive" : item.available_quantity <= 5 ? "text-amber-600" : "text-foreground"}`}>
+                              {item.available_quantity}
+                            </span>
+                          </TableCell>
+
+                          {/* Sold */}
+                          <TableCell className="text-center text-sm text-muted-foreground">
+                            {item.sold_quantity}
+                          </TableCell>
+
+                          {/* Status */}
+                          <TableCell className="text-center">
+                            {stockBadge(item.available_quantity)}
+                          </TableCell>
+
+                          {/* Link */}
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <a
+                              href={`https://produto.mercadolivre.com.br/${item.id.replace(/^(MLB)(\d+)$/, "$1-$2")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Expanded variations sub-table */}
+                        {item.has_variations && isExpanded && (
+                          <TableRow key={`${item.id}-variations`}>
+                            <TableCell colSpan={8} className="p-0 bg-muted/20 border-b">
+                              <div className="px-10 py-3">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow className="border-b border-border/50">
+                                      <TableHead className="text-xs h-8 font-medium">Variação</TableHead>
+                                      <TableHead className="text-xs h-8 font-medium text-right">Preço</TableHead>
+                                      <TableHead className="text-xs h-8 font-medium text-center">Disponível</TableHead>
+                                      <TableHead className="text-xs h-8 font-medium text-center">Vendidos</TableHead>
+                                      <TableHead className="text-xs h-8 font-medium text-center">Status</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {item.variations.map((v) => (
+                                      <TableRow key={v.variation_id} className="border-b border-border/30 last:border-0">
+                                        <TableCell className="py-2 text-xs font-medium">
+                                          {variationLabel(v)}
+                                        </TableCell>
+                                        <TableCell className="py-2 text-xs text-right">
+                                          {currencyFmt(v.price)}
+                                        </TableCell>
+                                        <TableCell className="py-2 text-center">
+                                          <span className={`text-xs font-semibold ${v.available_quantity === 0 ? "text-destructive" : v.available_quantity <= 5 ? "text-amber-600" : "text-foreground"}`}>
+                                            {v.available_quantity}
+                                          </span>
+                                        </TableCell>
+                                        <TableCell className="py-2 text-xs text-center text-muted-foreground">
+                                          {v.sold_quantity}
+                                        </TableCell>
+                                        <TableCell className="py-2 text-center">
+                                          {stockBadge(v.available_quantity)}
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

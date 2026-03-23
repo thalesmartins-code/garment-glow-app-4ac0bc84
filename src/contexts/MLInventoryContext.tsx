@@ -3,7 +3,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
-interface ProductItem {
+export interface ProductVariation {
+  variation_id: string;
+  attribute_combinations: { id: string; name: string; value: string }[];
+  available_quantity: number;
+  sold_quantity: number;
+  price: number;
+  picture_id: string | null;
+}
+
+export interface ProductItem {
   id: string;
   title: string;
   available_quantity: number;
@@ -16,6 +25,8 @@ interface ProductItem {
   listing_type_id: string | null;
   health: number | null;
   visits: number;
+  has_variations: boolean;
+  variations: ProductVariation[];
 }
 
 interface InventorySummary {
@@ -73,7 +84,13 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      setItems(data.items || []);
+      const rawItems: ProductItem[] = (data.items || []).map((item: any) => ({
+        ...item,
+        has_variations: item.has_variations ?? false,
+        variations: item.variations ?? [],
+      }));
+
+      setItems(rawItems);
       setSummary(data.summary || null);
       setLastUpdated(new Date());
     } catch (err: any) {
