@@ -112,12 +112,13 @@ export default function MLEstoque() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <CardTitle className="text-base">Anúncios</CardTitle>
             <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-1.5 cursor-pointer opacity-60 hover:opacity-100 transition-opacity">
                 <Checkbox
                   checked={hideOutOfStock}
                   onCheckedChange={(v) => setHideOutOfStock(!!v)}
+                  className="h-3.5 w-3.5"
                 />
-                <span className="text-sm text-muted-foreground whitespace-nowrap">Ocultar sem estoque</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">Ocultar sem estoque</span>
               </label>
               <div className="relative flex-1 sm:w-56">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
