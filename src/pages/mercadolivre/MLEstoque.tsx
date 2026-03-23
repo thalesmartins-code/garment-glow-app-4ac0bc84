@@ -19,7 +19,7 @@ import type { ProductVariation } from "@/contexts/MLInventoryContext";
 const currencyFmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-type StockFilter = "all" | "in_stock" | "low" | "out";
+
 type SortBy = "stock_desc" | "stock_asc" | "price_desc" | "price_asc" | "title";
 
 const stockBadge = (qty: number) => {
@@ -34,7 +34,7 @@ const variationLabel = (v: ProductVariation) =>
 export default function MLEstoque() {
   const { items, summary, loading, hasToken, lastUpdated, refresh } = useMLInventory();
   const [search, setSearch] = useState("");
-  const [stockFilter, setStockFilter] = useState<StockFilter>("in_stock");
+  
   const [sortBy, setSortBy] = useState<SortBy>("stock_desc");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [hideOutOfStock, setHideOutOfStock] = useState(true);
@@ -52,9 +52,6 @@ export default function MLEstoque() {
     .filter((item) => {
       const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase()) || item.id.toLowerCase().includes(search.toLowerCase());
       if (!matchesSearch) return false;
-      if (stockFilter === "out") return item.available_quantity === 0;
-      if (stockFilter === "low") return item.available_quantity > 0 && item.available_quantity <= 5;
-      if (stockFilter === "in_stock") return item.available_quantity > 0;
       return true;
     })
     .sort((a, b) => {
@@ -131,15 +128,6 @@ export default function MLEstoque() {
                   className="pl-9 h-9 text-sm"
                 />
               </div>
-              <Select value={stockFilter} onValueChange={(v) => setStockFilter(v as StockFilter)}>
-                <SelectTrigger className="w-32 h-9 text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  
-                  <SelectItem value="in_stock">Com estoque</SelectItem>
-                  <SelectItem value="low">Estoque baixo</SelectItem>
-                  <SelectItem value="out">Sem estoque</SelectItem>
-                </SelectContent>
-              </Select>
               <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
                 <SelectTrigger className="w-36 h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
