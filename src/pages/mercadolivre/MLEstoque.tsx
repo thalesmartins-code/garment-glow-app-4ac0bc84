@@ -134,7 +134,7 @@ export default function MLEstoque() {
               <Select value={stockFilter} onValueChange={(v) => setStockFilter(v as StockFilter)}>
                 <SelectTrigger className="w-32 h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
+                  
                   <SelectItem value="in_stock">Com estoque</SelectItem>
                   <SelectItem value="low">Estoque baixo</SelectItem>
                   <SelectItem value="out">Sem estoque</SelectItem>
