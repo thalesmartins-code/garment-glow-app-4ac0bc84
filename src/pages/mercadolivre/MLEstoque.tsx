@@ -19,7 +19,7 @@ import type { ProductVariation } from "@/contexts/MLInventoryContext";
 const currencyFmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-type StockFilter = "all" | "in_stock" | "low" | "out";
+
 type SortBy = "stock_desc" | "stock_asc" | "price_desc" | "price_asc" | "title";
 
 const stockBadge = (qty: number) => {
