@@ -128,15 +128,6 @@ export default function MLEstoque() {
                   className="pl-9 h-9 text-sm"
                 />
               </div>
-              <Select value={stockFilter} onValueChange={(v) => setStockFilter(v as StockFilter)}>
-                <SelectTrigger className="w-32 h-9 text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  
-                  <SelectItem value="in_stock">Com estoque</SelectItem>
-                  <SelectItem value="low">Estoque baixo</SelectItem>
-                  <SelectItem value="out">Sem estoque</SelectItem>
-                </SelectContent>
-              </Select>
               <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
                 <SelectTrigger className="w-36 h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
