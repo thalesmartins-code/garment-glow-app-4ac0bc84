@@ -564,26 +564,33 @@ export default function MercadoLivre() {
     cacheLoadedRef.current = true;
 
     (async () => {
-      const { data: tokenRow } = await supabase
+      // Check for any token
+      const { data: tokenRows } = await supabase
         .from("ml_tokens")
-        .select("access_token")
+        .select("access_token, ml_user_id")
         .eq("user_id", user.id)
-        .maybeSingle();
+        .not("access_token", "is", null)
+        .limit(10);
 
-      if (!tokenRow?.access_token) {
+      if (!tokenRows || tokenRows.length === 0) {
         setConnected(false);
         setLoading(false);
         return;
       }
 
-      setCachedAccessToken(tokenRow.access_token);
+      // Use the first available token (or the selected one)
+      const targetToken = selectedStore !== "all"
+        ? tokenRows.find((t) => t.ml_user_id === selectedStore) || tokenRows[0]
+        : tokenRows[0];
+
+      setCachedAccessToken(targetToken.access_token!);
       setConnected(true);
 
       const { fromDate, toDate } = getFilterDates(customRange, period);
       await Promise.all([loadFromCache(), loadHourlyCache(), loadProductCache(fromDate, toDate)]);
 
       supabase.functions
-        .invoke("ml-inventory", { body: { access_token: tokenRow.access_token } })
+        .invoke("ml-inventory", { body: { access_token: targetToken.access_token } })
         .then(({ data: invData }) => {
           if (invData?.items) {
             const stockMap: Record<string, number> = {};
@@ -603,7 +610,16 @@ export default function MercadoLivre() {
         }
       }
     })();
-  }, [user, loadFromCache, loadHourlyCache, loadProductCache, syncFromAPI]);
+  }, [user, loadFromCache, loadHourlyCache, loadProductCache, syncFromAPI, selectedStore]);
+
+  // Reload caches when store selection changes
+  useEffect(() => {
+    if (!user || !cacheLoadedRef.current) return;
+    const { fromDate, toDate } = getFilterDates(customRange, period);
+    void loadFromCache();
+    void loadHourlyCache();
+    void loadProductCache(fromDate, toDate);
+  }, [selectedStore]);
 
   // Recarrega horário E produtos sempre que o filtro mudar
   useEffect(() => {
