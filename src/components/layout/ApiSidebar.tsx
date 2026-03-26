@@ -20,12 +20,41 @@ const backToMainItem = {
 };
 
 function MarketplaceIndicator({ collapsed }: { collapsed: boolean }) {
-  const { activeMarketplace, selectedMarketplace } = useMarketplace();
+  const { activeMarketplace, selectedMarketplace, connectedMarketplaces, marketplaces } = useMarketplace();
 
   const isAll = selectedMarketplace === "all";
   const name = isAll ? "Todos" : activeMarketplace?.name ?? "Todos";
   const Icon = activeMarketplace?.icon;
   const gradientClass = activeMarketplace?.color ?? "from-primary to-primary";
+
+  // "All" collapsed: show stacked dots for each marketplace
+  const allDots = (
+    <div className="flex items-center gap-0.5">
+      {marketplaces.map((mp) => (
+        <div
+          key={mp.id}
+          className={cn("h-2 w-2 rounded-full bg-gradient-to-br", mp.color)}
+        />
+      ))}
+    </div>
+  );
+
+  // "All" expanded: show colored dots inline
+  const allDotsExpanded = (
+    <div className="flex items-center gap-1">
+      {marketplaces.map((mp) => {
+        const MpIcon = mp.icon;
+        return (
+          <div
+            key={mp.id}
+            className={cn("flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-br", mp.color)}
+          >
+            <MpIcon className="h-2.5 w-2.5 text-white" />
+          </div>
+        );
+      })}
+    </div>
+  );
 
   const indicator = (
     <div
@@ -34,18 +63,23 @@ function MarketplaceIndicator({ collapsed }: { collapsed: boolean }) {
         collapsed && "mx-2 justify-center px-0 py-2 w-12"
       )}
     >
-      <div
-        className={cn(
-          "flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br shadow-sm transition-transform duration-300",
-          gradientClass
-        )}
-      >
-        {Icon ? (
-          <Icon className="h-3.5 w-3.5 text-white" />
-        ) : (
-          <div className="h-3 w-3 rounded-full bg-white/80" />
-        )}
-      </div>
+      {/* Icon area */}
+      {isAll ? (
+        collapsed ? allDots : (
+          <div className="flex-shrink-0">{allDotsExpanded}</div>
+        )
+      ) : (
+        <div
+          className={cn(
+            "flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br shadow-sm transition-transform duration-300",
+            gradientClass
+          )}
+        >
+          {Icon && <Icon className="h-3.5 w-3.5 text-white" />}
+        </div>
+      )}
+
+      {/* Text */}
       <div
         className={cn(
           "overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out",
