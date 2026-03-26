@@ -20,6 +20,7 @@ export type Database = {
           cancelled_orders: number
           date: string
           id: string
+          ml_user_id: string
           qty_orders: number
           shipped_orders: number
           synced_at: string
@@ -34,6 +35,7 @@ export type Database = {
           cancelled_orders?: number
           date: string
           id?: string
+          ml_user_id?: string
           qty_orders?: number
           shipped_orders?: number
           synced_at?: string
@@ -48,6 +50,7 @@ export type Database = {
           cancelled_orders?: number
           date?: string
           id?: string
+          ml_user_id?: string
           qty_orders?: number
           shipped_orders?: number
           synced_at?: string
@@ -65,6 +68,7 @@ export type Database = {
           date: string
           hour: number
           id: string
+          ml_user_id: string
           qty_orders: number
           synced_at: string
           total_revenue: number
@@ -76,6 +80,7 @@ export type Database = {
           date: string
           hour: number
           id?: string
+          ml_user_id?: string
           qty_orders?: number
           synced_at?: string
           total_revenue?: number
@@ -87,6 +92,7 @@ export type Database = {
           date?: string
           hour?: number
           id?: string
+          ml_user_id?: string
           qty_orders?: number
           synced_at?: string
           total_revenue?: number
@@ -100,6 +106,7 @@ export type Database = {
           date: string
           id: string
           item_id: string
+          ml_user_id: string
           qty_sold: number
           revenue: number
           synced_at: string
@@ -111,6 +118,7 @@ export type Database = {
           date: string
           id?: string
           item_id: string
+          ml_user_id?: string
           qty_sold?: number
           revenue?: number
           synced_at?: string
@@ -122,6 +130,7 @@ export type Database = {
           date?: string
           id?: string
           item_id?: string
+          ml_user_id?: string
           qty_sold?: number
           revenue?: number
           synced_at?: string
@@ -174,7 +183,7 @@ export type Database = {
         Row: {
           active_listings: number
           country: string | null
-          ml_user_id: number | null
+          ml_user_id: number
           nickname: string | null
           permalink: string | null
           synced_at: string
@@ -183,7 +192,7 @@ export type Database = {
         Insert: {
           active_listings?: number
           country?: string | null
-          ml_user_id?: number | null
+          ml_user_id: number
           nickname?: string | null
           permalink?: string | null
           synced_at?: string
@@ -192,7 +201,7 @@ export type Database = {
         Update: {
           active_listings?: number
           country?: string | null
-          ml_user_id?: number | null
+          ml_user_id?: number
           nickname?: string | null
           permalink?: string | null
           synced_at?: string

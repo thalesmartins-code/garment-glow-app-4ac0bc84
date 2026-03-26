@@ -32,6 +32,7 @@ import {
   ShoppingCart,
   Tag,
   TrendingUp,
+  Store,
 } from "lucide-react";
 
 interface MarketplaceIntegration {
@@ -201,7 +202,7 @@ export default function Integrations() {
     });
   };
 
-  // Helper: save ML tokens to both localStorage and Supabase
+  // Helper: save ML tokens to both localStorage and Supabase (upsert per ml_user_id)
   const saveMLTokens = async (tokenData: { access_token: string; refresh_token: string; expires_in: number; user_id: string }) => {
     const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000).toISOString();
     const localPayload = {
@@ -213,23 +214,22 @@ export default function Integrations() {
     localStorage.removeItem("ml_pkce_code_verifier");
     localStorage.setItem("ml_tokens", JSON.stringify(localPayload));
 
-    // Save to Supabase ml_tokens table
+    // Upsert to Supabase ml_tokens table using (user_id, ml_user_id) constraint
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const userId = user?.id || null;
 
-      // Upsert: delete existing then insert
-      if (userId) {
-        await supabase.from("ml_tokens").delete().eq("user_id", userId);
-      }
-      await supabase.from("ml_tokens").insert({
-        user_id: userId,
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-        expires_at: expiresAt,
-        ml_user_id: String(tokenData.user_id),
-        token_type: "bearer",
-      });
+      await supabase.from("ml_tokens").upsert(
+        {
+          user_id: userId,
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          expires_at: expiresAt,
+          ml_user_id: String(tokenData.user_id),
+          token_type: "bearer",
+        },
+        { onConflict: "user_id,ml_user_id" },
+      );
     } catch (e) {
       console.error("Failed to save ML tokens to DB:", e);
     }
@@ -265,7 +265,7 @@ export default function Integrations() {
         try { tokens = JSON.parse(mlTokens); } catch (e) { /* ignore */ }
       }
 
-      // Fallback: check DB
+      // Fallback: check DB for ANY token
       if (!tokens?.access_token) {
         try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -275,16 +275,16 @@ export default function Integrations() {
             .select("*")
             .eq("user_id", user.id)
             .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
+            .limit(1);
 
-          if (dbTokens?.access_token) {
-            const expiresAt = dbTokens.expires_at ? new Date(dbTokens.expires_at).getTime() : 0;
+          const firstToken = dbTokens?.[0];
+          if (firstToken?.access_token) {
+            const expiresAt = firstToken.expires_at ? new Date(firstToken.expires_at).getTime() : 0;
             tokens = {
-              access_token: dbTokens.access_token,
-              refresh_token: dbTokens.refresh_token || undefined,
+              access_token: firstToken.access_token,
+              refresh_token: firstToken.refresh_token || undefined,
               expires_at: expiresAt,
-              user_id: dbTokens.ml_user_id || undefined,
+              user_id: firstToken.ml_user_id || undefined,
             };
             localStorage.setItem("ml_tokens", JSON.stringify(tokens));
           }
@@ -447,9 +447,18 @@ export default function Integrations() {
     setApiKeyInput("");
   };
 
-  const handleDisconnect = (integrationId: string) => {
-    updateIntegrationStatus(integrationId, "disconnected");
+  const handleDisconnect = async (integrationId: string) => {
     if (integrationId === "ml") {
+      // Delete ALL ML tokens from DB for this user
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from("ml_tokens").delete().eq("user_id", user.id);
+          await supabase.from("ml_user_cache").delete().eq("user_id", user.id);
+        }
+      } catch (e) {
+        console.error("Failed to delete ML tokens from DB:", e);
+      }
       localStorage.removeItem("ml_tokens");
       localStorage.removeItem("ml_metrics");
       localStorage.removeItem("ml_user");
@@ -461,6 +470,7 @@ export default function Integrations() {
       localStorage.removeItem("magalu_metrics");
       setMagaluMetrics(null);
     }
+    updateIntegrationStatus(integrationId, "disconnected");
     toast({
       title: "Marketplace desconectado",
       description: "A integração foi removida com sucesso.",
@@ -775,9 +785,14 @@ export default function Integrations() {
                         Desconectar
                       </Button>
                       {integration.id === "ml" && (
-                        <Button variant="ghost" size="sm" onClick={handleSyncML} disabled={syncing} title="Sincronizar pedidos e vendas">
-                          <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
-                        </Button>
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => handleConnect(integration)} title="Adicionar outra loja ML">
+                            <Store className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={handleSyncML} disabled={syncing} title="Sincronizar pedidos e vendas">
+                            <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
+                          </Button>
+                        </>
                       )}
                       {integration.id === "magalu" && (
                         <Button variant="ghost" size="sm" onClick={handleSyncMagalu} disabled={syncing} title="Sincronizar pedidos e vendas">

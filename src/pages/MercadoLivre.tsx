@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMLStore } from "@/contexts/MLStoreContext";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import { TopSellingProducts, type ProductSalesRow } from "@/components/mercadolivre/TopSellingProducts";
 import { HourlySalesTable } from "@/components/mercadolivre/HourlySalesTable";
+import { MLStoreSelector } from "@/components/mercadolivre/MLStoreSelector";
 import {
   DollarSign,
   ShoppingCart,
@@ -151,6 +153,7 @@ function getFilterDates(customRange: DateRange, period: number): { fromDate: str
 export default function MercadoLivre() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { stores, selectedStore } = useMLStore();
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -272,7 +275,7 @@ export default function MercadoLivre() {
         setAllProductSales([]);
         return;
       }
-      const { data } = await (supabase as any)
+      let query = (supabase as any)
         .from("ml_product_daily_cache")
         .select("*")
         .eq("user_id", user.id)
@@ -280,6 +283,10 @@ export default function MercadoLivre() {
         .lte("date", toDate)
         .order("revenue", { ascending: false })
         .limit(5000);
+      if (selectedStore !== "all") {
+        query = query.eq("ml_user_id", selectedStore);
+      }
+      const { data } = await query;
       setAllProductSales(
         (data || []).map((r: any) => ({
           item_id: r.item_id,
@@ -291,7 +298,7 @@ export default function MercadoLivre() {
         })),
       );
     },
-    [user],
+    [user, selectedStore],
   );
 
   const loadHourlyCache = useCallback(
@@ -304,7 +311,11 @@ export default function MercadoLivre() {
       let query = (supabase as any)
         .from("ml_hourly_cache")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", user.id);
+      if (selectedStore !== "all") {
+        query = query.eq("ml_user_id", selectedStore);
+      }
+      query = query
         .order("date", { ascending: false })
         .order("hour", { ascending: true });
 
@@ -322,40 +333,50 @@ export default function MercadoLivre() {
       setAllHourly(mapped);
       return mapped;
     },
-    [user, isHourlyAvailable, hourlyTargetDate],
+    [user, isHourlyAvailable, hourlyTargetDate, selectedStore],
   );
 
   const loadFromCache = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
 
-    const [{ data: userCache }, { data: dailyCache }] = await Promise.all([
-      supabase.from("ml_user_cache").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase
-        .from("ml_daily_cache")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("date", { ascending: false })
-        .limit(1000),
+    let userCacheQuery = supabase.from("ml_user_cache").select("*").eq("user_id", user.id);
+    if (selectedStore !== "all") {
+      userCacheQuery = userCacheQuery.eq("ml_user_id", Number(selectedStore));
+    }
+
+    let dailyCacheQuery = supabase
+      .from("ml_daily_cache")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("date", { ascending: false })
+      .limit(1000);
+    if (selectedStore !== "all") {
+      dailyCacheQuery = dailyCacheQuery.eq("ml_user_id", selectedStore);
+    }
+
+    const [{ data: userCacheData }, { data: dailyCache }] = await Promise.all([
+      userCacheQuery.maybeSingle(),
+      dailyCacheQuery,
     ]);
 
-    if (userCache) {
+    if (userCacheData) {
       setMlUser({
-        id: userCache.ml_user_id,
-        nickname: userCache.nickname,
-        country: userCache.country,
-        permalink: userCache.permalink,
+        id: userCacheData.ml_user_id,
+        nickname: userCacheData.nickname,
+        country: userCacheData.country,
+        permalink: userCacheData.permalink,
       });
     }
 
     if (!dailyCache || dailyCache.length === 0) {
       setAllDaily([]);
-      return !!userCache;
+      return !!userCacheData;
     }
 
     setAllDaily(dailyCache.map(mapDailyRow));
     setConnected(true);
     return true;
-  }, [user]);
+  }, [user, selectedStore]);
 
   const saveToCache = useCallback(
     async (
@@ -412,7 +433,7 @@ export default function MercadoLivre() {
               active_listings: listings || 0,
               synced_at: syncedAt,
             },
-            { onConflict: "user_id" },
+            { onConflict: "user_id,ml_user_id" },
           );
         }
       } catch (err) {
@@ -428,27 +449,38 @@ export default function MercadoLivre() {
       setSyncing(true);
 
       try {
-        const { data: tokenRow } = await supabase
-          .from("ml_tokens")
-          .select("access_token, expires_at, refresh_token")
-          .eq("user_id", user.id)
-          .maybeSingle();
+        // Determine which tokens to sync
+        let tokensToSync: { access_token: string; ml_user_id: string }[] = [];
 
-        if (!tokenRow?.access_token) {
+        if (selectedStore === "all") {
+          // Sync all stores
+          const { data: allTokens } = await supabase
+            .from("ml_tokens")
+            .select("access_token, ml_user_id, expires_at, refresh_token")
+            .eq("user_id", user.id)
+            .not("access_token", "is", null);
+          tokensToSync = (allTokens || [])
+            .filter((t) => t.access_token && t.ml_user_id)
+            .map((t) => ({ access_token: t.access_token!, ml_user_id: t.ml_user_id! }));
+        } else {
+          // Sync specific store
+          const { data: tokenRow } = await supabase
+            .from("ml_tokens")
+            .select("access_token, expires_at, refresh_token, ml_user_id")
+            .eq("user_id", user.id)
+            .eq("ml_user_id", selectedStore)
+            .maybeSingle();
+          if (tokenRow?.access_token) {
+            tokensToSync = [{ access_token: tokenRow.access_token, ml_user_id: tokenRow.ml_user_id! }];
+          }
+        }
+
+        if (tokensToSync.length === 0) {
           setConnected(false);
           return;
         }
 
-        let accessToken = tokenRow.access_token;
-        const expiresAt = tokenRow.expires_at ? new Date(tokenRow.expires_at).getTime() : 0;
-        if (expiresAt > 0 && expiresAt - Date.now() < 5 * 60 * 1000 && tokenRow.refresh_token) {
-          const { data: refreshed } = await supabase.functions.invoke("ml-token-refresh", {
-            body: { refresh_token: tokenRow.refresh_token, user_id: user.id },
-          });
-          if (refreshed?.access_token) accessToken = refreshed.access_token;
-        }
-
-        setCachedAccessToken(accessToken);
+        setCachedAccessToken(tokensToSync[0].access_token);
         setConnected(true);
 
         const today = startOfDay(new Date());
@@ -470,21 +502,25 @@ export default function MercadoLivre() {
         const fromDateStr = rangeStart.toISOString().substring(0, 10);
         const toDateStr = rangeEnd.toISOString().substring(0, 10);
 
-        const { data: syncData, error: syncError } = await supabase.functions.invoke(
-          "mercado-libre-integration",
-          {
-            body: {
-              access_token: accessToken,
-              user_id: user.id,
-              date_from: fromDateStr,
-              date_to: toDateStr,
+        // Sync each token sequentially
+        let lastUserInfo: MLUser | null = null;
+        for (const tokenInfo of tokensToSync) {
+          const { data: syncData, error: syncError } = await supabase.functions.invoke(
+            "mercado-libre-integration",
+            {
+              body: {
+                access_token: tokenInfo.access_token,
+                user_id: user.id,
+                date_from: fromDateStr,
+                date_to: toDateStr,
+              },
             },
-          },
-        );
+          );
 
-        if (syncError) throw syncError;
-        if (!syncData?.success) throw new Error(syncData?.error || "Sync failed");
-        const lastUserInfo: MLUser | null = syncData.user ?? null;
+          if (syncError) throw syncError;
+          if (!syncData?.success) throw new Error(syncData?.error || "Sync failed");
+          if (syncData.user) lastUserInfo = syncData.user;
+        }
 
         let hourlyDateOverride: string | null;
         if (effectiveFrom) {
@@ -512,7 +548,7 @@ export default function MercadoLivre() {
         setSyncing(false);
       }
     },
-    [user, toast, period, customRange, loadFromCache, loadHourlyCache, loadProductCache],
+    [user, toast, period, customRange, selectedStore, stores, loadFromCache, loadHourlyCache, loadProductCache],
   );
 
   const reloadCache = useCallback(async () => {
@@ -528,26 +564,33 @@ export default function MercadoLivre() {
     cacheLoadedRef.current = true;
 
     (async () => {
-      const { data: tokenRow } = await supabase
+      // Check for any token
+      const { data: tokenRows } = await supabase
         .from("ml_tokens")
-        .select("access_token")
+        .select("access_token, ml_user_id")
         .eq("user_id", user.id)
-        .maybeSingle();
+        .not("access_token", "is", null)
+        .limit(10);
 
-      if (!tokenRow?.access_token) {
+      if (!tokenRows || tokenRows.length === 0) {
         setConnected(false);
         setLoading(false);
         return;
       }
 
-      setCachedAccessToken(tokenRow.access_token);
+      // Use the first available token (or the selected one)
+      const targetToken = selectedStore !== "all"
+        ? tokenRows.find((t) => t.ml_user_id === selectedStore) || tokenRows[0]
+        : tokenRows[0];
+
+      setCachedAccessToken(targetToken.access_token!);
       setConnected(true);
 
       const { fromDate, toDate } = getFilterDates(customRange, period);
       await Promise.all([loadFromCache(), loadHourlyCache(), loadProductCache(fromDate, toDate)]);
 
       supabase.functions
-        .invoke("ml-inventory", { body: { access_token: tokenRow.access_token } })
+        .invoke("ml-inventory", { body: { access_token: targetToken.access_token } })
         .then(({ data: invData }) => {
           if (invData?.items) {
             const stockMap: Record<string, number> = {};
@@ -567,7 +610,16 @@ export default function MercadoLivre() {
         }
       }
     })();
-  }, [user, loadFromCache, loadHourlyCache, loadProductCache, syncFromAPI]);
+  }, [user, loadFromCache, loadHourlyCache, loadProductCache, syncFromAPI, selectedStore]);
+
+  // Reload caches when store selection changes
+  useEffect(() => {
+    if (!user || !cacheLoadedRef.current) return;
+    const { fromDate, toDate } = getFilterDates(customRange, period);
+    void loadFromCache();
+    void loadHourlyCache();
+    void loadProductCache(fromDate, toDate);
+  }, [selectedStore]);
 
   // Recarrega horário E produtos sempre que o filtro mudar
   useEffect(() => {
@@ -636,6 +688,7 @@ export default function MercadoLivre() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <MLStoreSelector />
           <Popover
             open={popoverOpen}
             onOpenChange={(open) => {

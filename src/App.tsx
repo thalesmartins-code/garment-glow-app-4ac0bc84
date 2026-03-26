@@ -7,6 +7,7 @@ import { MainAppLayout } from "@/components/layout/MainAppLayout";
 import { MercadoLivreLayout } from "@/components/layout/MercadoLivreLayout";
 import { SellerProvider } from "@/contexts/SellerContext";
 import { MLInventoryProvider } from "@/contexts/MLInventoryContext";
+import { MLStoreProvider } from "@/contexts/MLStoreContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { SalesDataProvider } from "@/contexts/SalesDataContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -95,7 +96,7 @@ const App = () => (
                         />
                       </Route>
 
-                      <Route element={<MLInventoryProvider><MercadoLivreLayout /></MLInventoryProvider>}>
+                      <Route element={<MLStoreProvider><MLInventoryProvider><MercadoLivreLayout /></MLInventoryProvider></MLStoreProvider>}>
                         <Route
                           path="/mercado-livre"
                           element={

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMLStore } from "@/contexts/MLStoreContext";
 import { useToast } from "@/hooks/use-toast";
 
 export interface ProductVariation {
@@ -51,6 +52,7 @@ const REFRESH_INTERVAL = 5 * 60 * 1000;
 
 export function MLInventoryProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { stores, selectedStore } = useMLStore();
   const { toast } = useToast();
 
   const [items, setItems] = useState<ProductItem[]>([]);
@@ -60,38 +62,54 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const checkToken = useCallback(async () => {
-    if (!user) return null;
-    const { data } = await supabase
-      .from("ml_tokens")
-      .select("access_token")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    setHasToken(!!data?.access_token);
-    return data?.access_token || null;
-  }, [user]);
+  // Determine which tokens to use based on store selection
+  const getTokensToFetch = useCallback(() => {
+    if (selectedStore === "all") {
+      return stores.map((s) => s.access_token);
+    }
+    const store = stores.find((s) => s.ml_user_id === selectedStore);
+    return store ? [store.access_token] : [];
+  }, [stores, selectedStore]);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
+    const tokens = getTokensToFetch();
+    if (tokens.length === 0) {
+      setHasToken(false);
+      return;
+    }
+
+    setHasToken(true);
     setLoading(true);
     try {
-      const token = await checkToken();
-      if (!token) { setHasToken(false); return; }
+      let allItems: ProductItem[] = [];
+      let mergedSummary: InventorySummary = { totalItems: 0, totalStock: 0, outOfStock: 0, lowStock: 0 };
 
-      const { data, error } = await supabase.functions.invoke("ml-inventory", {
-        body: { access_token: token },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      for (const token of tokens) {
+        const { data, error } = await supabase.functions.invoke("ml-inventory", {
+          body: { access_token: token },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
 
-      const rawItems: ProductItem[] = (data.items || []).map((item: any) => ({
-        ...item,
-        has_variations: item.has_variations ?? false,
-        variations: item.variations ?? [],
-      }));
+        const rawItems: ProductItem[] = (data.items || []).map((item: any) => ({
+          ...item,
+          has_variations: item.has_variations ?? false,
+          variations: item.variations ?? [],
+        }));
 
-      setItems(rawItems);
-      setSummary(data.summary || null);
+        allItems = [...allItems, ...rawItems];
+
+        if (data.summary) {
+          mergedSummary.totalItems += data.summary.totalItems || 0;
+          mergedSummary.totalStock += data.summary.totalStock || 0;
+          mergedSummary.outOfStock += data.summary.outOfStock || 0;
+          mergedSummary.lowStock += data.summary.lowStock || 0;
+        }
+      }
+
+      setItems(allItems);
+      setSummary(mergedSummary);
       setLastUpdated(new Date());
     } catch (err: any) {
       console.error("ML inventory fetch error:", err);
@@ -99,14 +117,16 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [user, checkToken, toast]);
+  }, [user, getTokensToFetch, toast]);
 
-  // Initial token check
-  useEffect(() => { checkToken(); }, [checkToken]);
-
-  // Fetch once when token is confirmed, then auto-refresh
+  // Update hasToken when stores change
   useEffect(() => {
-    if (!hasToken) return;
+    setHasToken(stores.length > 0 ? true : null);
+  }, [stores]);
+
+  // Fetch once when stores are available, then auto-refresh
+  useEffect(() => {
+    if (stores.length === 0) return;
     if (items.length === 0 && !lastUpdated) {
       fetchData();
     }
@@ -114,7 +134,14 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [hasToken, fetchData, items.length, lastUpdated]);
+  }, [stores.length, fetchData, items.length, lastUpdated]);
+
+  // Re-fetch when store selection changes
+  useEffect(() => {
+    if (stores.length > 0 && lastUpdated) {
+      fetchData();
+    }
+  }, [selectedStore]);
 
   return (
     <MLInventoryContext.Provider value={{ items, summary, loading, hasToken, lastUpdated, refresh: fetchData }}>
