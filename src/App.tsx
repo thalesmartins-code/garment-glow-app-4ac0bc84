@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { MainAppLayout } from "@/components/layout/MainAppLayout";
-import { MercadoLivreLayout } from "@/components/layout/MercadoLivreLayout";
+import { ApiLayout } from "@/components/layout/ApiLayout";
 import { SellerProvider } from "@/contexts/SellerContext";
 import { MLInventoryProvider } from "@/contexts/MLInventoryContext";
 import { MLStoreProvider } from "@/contexts/MLStoreContext";
@@ -81,32 +81,31 @@ const App = () => (
                         />
                       </Route>
 
-                      {/* Mercado Livre environment */}
-                      {/* Mercado Livre environment */}
-                      <Route element={<MLStoreProvider><MLInventoryProvider><MercadoLivreLayout /></MLInventoryProvider></MLStoreProvider>}>
-                        <Route path="/mercado-livre/perfil" element={<Profile />} />
+                      {/* Marketplaces via API */}
+                      <Route element={<MLStoreProvider><MLInventoryProvider><ApiLayout /></MLInventoryProvider></MLStoreProvider>}>
+                        <Route path="/api/perfil" element={<Profile />} />
                         <Route
-                          path="/mercado-livre"
+                          path="/api"
                           element={<RoleRoute><MercadoLivre /></RoleRoute>}
                         />
                         <Route
-                          path="/mercado-livre/estoque"
+                          path="/api/estoque"
                           element={<RoleRoute><MLEstoque /></RoleRoute>}
                         />
                         <Route
-                          path="/mercado-livre/produtos"
+                          path="/api/produtos"
                           element={<RoleRoute><MLProdutos /></RoleRoute>}
                         />
                         <Route
-                          path="/mercado-livre/pedidos"
+                          path="/api/pedidos"
                           element={<RoleRoute><MLPedidos /></RoleRoute>}
                         />
                         <Route
-                          path="/mercado-livre/anuncios"
+                          path="/api/anuncios"
                           element={<RoleRoute><MLAnuncios /></RoleRoute>}
                         />
                         <Route
-                          path="/mercado-livre/integracoes"
+                          path="/api/integracoes"
                           element={<RoleRoute><Integrations /></RoleRoute>}
                         />
                       </Route>

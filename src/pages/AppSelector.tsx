@@ -15,11 +15,11 @@ const environments = [
     shadow: "hover:shadow-[0_8px_30px_hsl(142_70%_45%/0.15)]",
   },
   {
-    id: "mercado-livre",
+    id: "api",
     title: "Marketplaces via API",
     description: "Vendas, Estoque, Anúncios, Pedidos, Publicidade e Integrações — dados em tempo real via API",
     icon: Store,
-    path: "/mercado-livre",
+    path: "/api",
     gradient: "from-sky-500 to-blue-600",
     shadow: "hover:shadow-[0_8px_30px_hsl(217_70%_45%/0.15)]",
   },

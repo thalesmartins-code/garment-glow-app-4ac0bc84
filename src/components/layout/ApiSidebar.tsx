@@ -1,0 +1,21 @@
+import { ArrowLeft, ClipboardList, Megaphone, Package, Plug, ShoppingBag, TrendingUp } from "lucide-react";
+import { EnvironmentSidebar } from "./EnvironmentSidebar";
+
+const apiItems = [
+  { icon: TrendingUp, label: "Vendas", path: "/api" },
+  { icon: Package, label: "Estoque", path: "/api/estoque" },
+  { icon: ShoppingBag, label: "Anúncios", path: "/api/produtos" },
+  { icon: ClipboardList, label: "Pedidos", path: "/api/pedidos" },
+  { icon: Megaphone, label: "Publicidade", path: "/api/anuncios" },
+  { icon: Plug, label: "Integrações", path: "/api/integracoes" },
+];
+
+const backToMainItem = {
+  icon: ArrowLeft,
+  label: "Voltar ao painel",
+  path: "/",
+};
+
+export function ApiSidebar() {
+  return <EnvironmentSidebar items={apiItems} footerItem={backToMainItem} />;
+}
