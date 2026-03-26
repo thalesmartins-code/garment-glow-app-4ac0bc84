@@ -12,14 +12,16 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSeller } from "@/contexts/SellerContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { MarketplaceSwitcher } from "./MarketplaceSwitcher";
 
 interface HeaderProps {
   title: string;
   subtitle?: string;
   showSellerSwitcher?: boolean;
+  showMarketplaceSwitcher?: boolean;
 }
 
-export function Header({ title, subtitle, showSellerSwitcher = true }: HeaderProps) {
+export function Header({ title, subtitle, showSellerSwitcher = true, showMarketplaceSwitcher = false }: HeaderProps) {
   const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
   const { profile, role, signOut } = useAuth();
   const navigate = useNavigate();
@@ -44,6 +46,7 @@ export function Header({ title, subtitle, showSellerSwitcher = true }: HeaderPro
       </div>
 
       <div className="flex items-center gap-3">
+        {showMarketplaceSwitcher && <MarketplaceSwitcher />}
         {showSellerSwitcher && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

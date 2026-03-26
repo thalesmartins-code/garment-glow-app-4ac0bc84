@@ -1,6 +1,11 @@
 import { LayoutShell } from "./LayoutShell";
 import { ApiSidebar } from "./ApiSidebar";
+import { MarketplaceProvider } from "@/contexts/MarketplaceContext";
 
 export function ApiLayout() {
-  return <LayoutShell sidebar={<ApiSidebar />} showSellerSwitcher={false} />;
+  return (
+    <MarketplaceProvider>
+      <LayoutShell sidebar={<ApiSidebar />} showSellerSwitcher={false} showMarketplaceSwitcher />
+    </MarketplaceProvider>
+  );
 }
