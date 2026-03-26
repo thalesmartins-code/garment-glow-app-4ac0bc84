@@ -15,10 +15,9 @@ export interface SidebarNavItem {
 interface EnvironmentSidebarProps {
   items: SidebarNavItem[];
   footerItem?: SidebarNavItem;
-  headerSlot?: (collapsed: boolean) => React.ReactNode;
 }
 
-export function EnvironmentSidebar({ items, footerItem, headerSlot }: EnvironmentSidebarProps) {
+export function EnvironmentSidebar({ items, footerItem }: EnvironmentSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { role } = useAuth();
@@ -90,7 +89,7 @@ export function EnvironmentSidebar({ items, footerItem, headerSlot }: Environmen
         </div>
       </div>
 
-      {headerSlot?.(collapsed)}
+      
 
       <nav className={cn("flex flex-1 flex-col gap-1.5 overflow-y-auto pt-6 pb-4", collapsed ? "items-center px-2" : "px-3")}>
         {visibleItems.map(renderLink)}
