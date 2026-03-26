@@ -1126,7 +1126,7 @@ export default function MercadoLivre() {
           ) : effectiveHourly.length > 0 ? (
             <HourlySalesTable hourly={effectiveHourly} />
           ) : null)}
-        <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} />
+        <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
       </div>
     </div>
   );
