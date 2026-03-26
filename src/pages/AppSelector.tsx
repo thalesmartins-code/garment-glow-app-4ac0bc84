@@ -66,7 +66,7 @@ export default function AppSelector() {
           >
             <h1 className="text-3xl font-bold tracking-tight">Selecione o ambiente</h1>
             <p className="text-muted-foreground">
-              Escolha o módulo que deseja acessar
+              Escolha a origem dos dados do marketplace
             </p>
           </motion.div>
 
