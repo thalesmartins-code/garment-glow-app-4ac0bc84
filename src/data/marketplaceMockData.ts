@@ -98,58 +98,58 @@ function generateHourlyData(seed: number, date: string, totalOrders: number, avg
   });
 }
 
-// Real product thumbnail URLs from public sources
+// Stable product thumbnail URLs from DummyJSON CDN
 const PRODUCT_THUMBNAILS: Record<string, string[]> = {
   amazon: [
-    "https://m.media-amazon.com/images/I/71zV7oJk7PL._AC_SL1500_.jpg", // Echo Dot
-    "https://m.media-amazon.com/images/I/61PHxZnE4IL._AC_SL1000_.jpg", // Kindle Paperwhite
-    "https://m.media-amazon.com/images/I/61YBU1dkHrL._AC_SL1000_.jpg", // Fire TV Stick
-    "https://m.media-amazon.com/images/I/61UxFjpOzrL._AC_SL1000_.jpg", // Ring Doorbell
-    "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg", // AirPods Pro
-    "https://m.media-amazon.com/images/I/51b+BsNXGYL._AC_SL1500_.jpg", // Galaxy Buds2
-    "https://m.media-amazon.com/images/I/71V8XK11PZL._AC_SL1500_.jpg", // JBL Flip 6
-    "https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg", // MX Master 3S
-    "https://m.media-amazon.com/images/I/71RkNMFmZAL._AC_SL1500_.jpg", // SSD Kingston
-    "https://m.media-amazon.com/images/I/61aKJKP4enL._AC_SL1500_.jpg", // Carregador Anker
-    "https://m.media-amazon.com/images/I/61UYqMpNbnL._AC_SL1500_.jpg", // Mouse Razer
-    "https://m.media-amazon.com/images/I/71RrdtzJxnL._AC_SL1500_.jpg", // Teclado HyperX
-    "https://m.media-amazon.com/images/I/71iNwni9TsL._AC_SL1500_.jpg", // Webcam C920
-    "https://m.media-amazon.com/images/I/71b6U-gv3PL._AC_SL1500_.jpg", // HD Seagate
-    "https://m.media-amazon.com/images/I/51UDsQ-CZPL._AC_SL1500_.jpg", // Fone QCY
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-homepod-mini-cosmic-grey/thumbnail.webp", // Echo Dot
+    "https://cdn.dummyjson.com/product-images/tablets/ipad-mini-2021-starlight/thumbnail.webp", // Kindle Paperwhite
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/tv-studio-camera-pedestal/thumbnail.webp", // Fire TV Stick
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/selfie-lamp-with-iphone/thumbnail.webp", // Ring Doorbell
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-airpods-max-silver/thumbnail.webp", // AirPods Pro
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/beats-flex-wireless-earphones/thumbnail.webp", // Galaxy Buds2
+    "https://cdn.dummyjson.com/product-images/laptops/apple-macbook-pro-14-inch-space-grey/thumbnail.webp", // JBL Flip 6
+    "https://cdn.dummyjson.com/product-images/laptops/asus-zenbook-pro-dual-screen-laptop/thumbnail.webp", // MX Master 3S
+    "https://cdn.dummyjson.com/product-images/laptops/lenovo-yoga-920/thumbnail.webp", // SSD Kingston
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-iphone-charger/thumbnail.webp", // Carregador Anker
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-watch-series-4-gold/thumbnail.webp", // Mouse Razer
+    "https://cdn.dummyjson.com/product-images/laptops/huawei-matebook-x-pro/thumbnail.webp", // Teclado HyperX
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/monopod/thumbnail.webp", // Webcam C920
+    "https://cdn.dummyjson.com/product-images/laptops/dell-xps-8940-desktop-computer/thumbnail.webp", // HD Seagate
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-magsafe-battery-pack/thumbnail.webp", // Fone QCY
   ],
   shopee: [
-    "https://down-br.img.susercontent.com/file/br-11134207-7r98o-lzugnv8m7k2i96.webp", // Capa iPhone
-    "https://down-br.img.susercontent.com/file/sg-11134201-22100-89ialak7hiiv48.webp", // Película Samsung
-    "https://down-br.img.susercontent.com/file/br-11134207-7r98o-lxw1fg1r8uq7a6.webp", // Fone i12
-    "https://down-br.img.susercontent.com/file/br-11134207-7r98o-lyb3sdqj8vxt3d.webp", // Carregador Turbo
-    "https://down-br.img.susercontent.com/file/sg-11134201-22120-20pxzpkh19kv27.webp", // Ring Light
-    "https://down-br.img.susercontent.com/file/br-11134207-7r98o-lz7cbdyuhcmp60.webp", // Suporte Celular
-    "https://down-br.img.susercontent.com/file/br-11134207-7r98o-lxkxvt3kz23z08.webp", // Cabo USB-C
-    "https://down-br.img.susercontent.com/file/sg-11134201-22100-chyf27yt9div63.webp", // Mouse Sem Fio
-    "https://down-br.img.susercontent.com/file/sg-11134201-22110-j0m6cxqekgjv05.webp", // Fita LED
-    "https://down-br.img.susercontent.com/file/br-11134207-7r98o-lxgxixtbq54l15.webp", // Organizador
-    "https://down-br.img.susercontent.com/file/br-11134207-7r98o-lzb0f09yp6i53c.webp", // Camiseta
-    "https://down-br.img.susercontent.com/file/br-11134207-7r98o-lxq0v02v6c0j3c.webp", // Meia
-    "https://down-br.img.susercontent.com/file/sg-11134201-22110-d3g6dxykkjjvf2.webp", // Relógio
-    "https://down-br.img.susercontent.com/file/br-11134207-7r98o-lxdxvz6o8ia904.webp", // Garrafa
-    "https://down-br.img.susercontent.com/file/sg-11134201-22100-t5fj1oq09div96.webp", // Escova Dental
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/iphone-12-silicone-case-with-magsafe-plum/thumbnail.webp", // Capa iPhone
+    "https://cdn.dummyjson.com/product-images/smartphones/samsung-galaxy-s8/thumbnail.webp", // Película Samsung
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/beats-flex-wireless-earphones/thumbnail.webp", // Fone i12
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-airpower-wireless-charger/thumbnail.webp", // Carregador Turbo
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/selfie-lamp-with-iphone/thumbnail.webp", // Ring Light
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/selfie-stick-monopod/thumbnail.webp", // Suporte Celular
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-iphone-charger/thumbnail.webp", // Cabo USB-C
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-magsafe-battery-pack/thumbnail.webp", // Mouse Sem Fio
+    "https://cdn.dummyjson.com/product-images/home-decoration/table-lamp/thumbnail.webp", // Fita LED
+    "https://cdn.dummyjson.com/product-images/home-decoration/decoration-swing/thumbnail.webp", // Organizador
+    "https://cdn.dummyjson.com/product-images/tops/blue-womens-handbag/thumbnail.webp", // Camiseta
+    "https://cdn.dummyjson.com/product-images/womens-shoes/calvin-klein-heel-shoes/thumbnail.webp", // Meia
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-watch-series-4-gold/thumbnail.webp", // Relógio
+    "https://cdn.dummyjson.com/product-images/kitchen-accessories/glass/thumbnail.webp", // Garrafa
+    "https://cdn.dummyjson.com/product-images/beauty/essence-mascara-lash-princess/thumbnail.webp", // Escova Dental
   ],
   magalu: [
-    "https://a-static.mlcdn.com.br/450x450/smart-tv-55-4k-uhd-led-lg/magazineluiza/235936400/7505d4b7c4a5d72f5e4c1ee84c10ce2a.jpg", // Smart TV LG
-    "https://a-static.mlcdn.com.br/450x450/geladeira-brastemp-frost-free/magazineluiza/225089500/2ef89252a58d32c5a44d05be8e7fbc40.jpg", // Geladeira
-    "https://a-static.mlcdn.com.br/450x450/lavadora-electrolux-12kg/magazineluiza/224892900/50f8e7a5c9d6e0f1a2b3c4d5e6f7a8b9.jpg", // Máquina Lavar
-    "https://a-static.mlcdn.com.br/450x450/ar-condicionado-split-12000-btus/magazineluiza/225834500/a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6.jpg", // Ar Condicionado
-    "https://a-static.mlcdn.com.br/450x450/notebook-lenovo-ideapad/magazineluiza/237175200/d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9.jpg", // Notebook
-    "https://a-static.mlcdn.com.br/450x450/iphone-15-128gb/magazineluiza/237483900/f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6.jpg", // iPhone 15
-    "https://a-static.mlcdn.com.br/450x450/aspirador-robo-xiaomi/magazineluiza/225675300/b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7.jpg", // Aspirador Robô
-    "https://a-static.mlcdn.com.br/450x450/cafeteira-nespresso-vertuo/magazineluiza/224987600/c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8.jpg", // Cafeteira
-    "https://a-static.mlcdn.com.br/450x450/fritadeira-air-fryer-mondial-5l/magazineluiza/226198700/e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0.jpg", // Air Fryer
-    "https://a-static.mlcdn.com.br/450x450/micro-ondas-panasonic-32l/magazineluiza/225467800/a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2.jpg", // Micro-ondas
-    "https://a-static.mlcdn.com.br/450x450/processador-philips-walita/magazineluiza/224356700/b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3.jpg", // Processador
-    "https://a-static.mlcdn.com.br/450x450/ventilador-arno-turbo/magazineluiza/225789000/c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4.jpg", // Ventilador
-    "https://a-static.mlcdn.com.br/450x450/fogao-consul-4-bocas/magazineluiza/224567800/d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5.jpg", // Fogão
-    "https://a-static.mlcdn.com.br/450x450/batedeira-planetaria-kitchenaid/magazineluiza/225890100/e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6.jpg", // Batedeira
-    "https://a-static.mlcdn.com.br/450x450/purificador-agua-electrolux/magazineluiza/224678900/f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7.jpg", // Purificador
+    "https://cdn.dummyjson.com/product-images/tablets/samsung-galaxy-tab-s8-plus-grey/thumbnail.webp", // Smart TV LG
+    "https://cdn.dummyjson.com/product-images/kitchen-accessories/electric-stove/thumbnail.webp", // Geladeira
+    "https://cdn.dummyjson.com/product-images/kitchen-accessories/boxed-blender/thumbnail.webp", // Máquina Lavar
+    "https://cdn.dummyjson.com/product-images/home-decoration/plant-pot/thumbnail.webp", // Ar Condicionado
+    "https://cdn.dummyjson.com/product-images/laptops/apple-macbook-pro-14-inch-space-grey/thumbnail.webp", // Notebook
+    "https://cdn.dummyjson.com/product-images/smartphones/iphone-13-pro/thumbnail.webp", // iPhone 15
+    "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-homepod-mini-cosmic-grey/thumbnail.webp", // Aspirador Robô
+    "https://cdn.dummyjson.com/product-images/kitchen-accessories/black-aluminium-cup/thumbnail.webp", // Cafeteira
+    "https://cdn.dummyjson.com/product-images/kitchen-accessories/carbon-steel-wok/thumbnail.webp", // Air Fryer
+    "https://cdn.dummyjson.com/product-images/kitchen-accessories/fine-mesh-strainer/thumbnail.webp", // Micro-ondas
+    "https://cdn.dummyjson.com/product-images/kitchen-accessories/hand-blender/thumbnail.webp", // Processador
+    "https://cdn.dummyjson.com/product-images/home-decoration/house-showpiece-plant/thumbnail.webp", // Ventilador
+    "https://cdn.dummyjson.com/product-images/kitchen-accessories/electric-stove/thumbnail.webp", // Fogão
+    "https://cdn.dummyjson.com/product-images/kitchen-accessories/boxed-blender/thumbnail.webp", // Batedeira
+    "https://cdn.dummyjson.com/product-images/kitchen-accessories/glass/thumbnail.webp", // Purificador
   ],
 };
 
