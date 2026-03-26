@@ -387,7 +387,6 @@ export default function Integrations() {
       window.location.href = data.auth_url;
       return;
     }
-  };
 
 
     if (integration.id === "magalu") {
