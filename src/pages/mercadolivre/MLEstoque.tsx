@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { useMLInventory } from "@/contexts/MLInventoryContext";
+import { useMarketplace } from "@/contexts/MarketplaceContext";
+import { getMarketplaceInventory, getMarketplaceName } from "@/data/marketplaceMockData";
 import { useMLCoverage, COVERAGE_PERIODS, COVERAGE_CLASS_LABELS } from "@/hooks/useMLCoverage";
 import type { CoveragePeriod, CoverageClass, CoverageData } from "@/hooks/useMLCoverage";
 import { CoverageAlerts } from "@/components/mercadolivre/CoverageAlerts";
@@ -56,7 +58,15 @@ function CoverageChip({ data, title }: { data: CoverageData | undefined; title?:
 }
 
 export default function MLEstoque() {
-  const { items, summary, loading, hasToken, lastUpdated, refresh } = useMLInventory();
+  const { items: mlItems, summary: mlSummary, loading: mlLoading, hasToken, lastUpdated, refresh } = useMLInventory();
+  const { selectedMarketplace, activeMarketplace } = useMarketplace();
+  const isML = selectedMarketplace === "mercado-livre" || selectedMarketplace === "all";
+
+  const mockData = useMemo(() => !isML ? getMarketplaceInventory(selectedMarketplace) : null, [isML, selectedMarketplace]);
+  const items = isML ? mlItems : (mockData?.items as any[] ?? []);
+  const summary = isML ? mlSummary : (mockData?.summary ?? null);
+  const loading = isML ? mlLoading : false;
+  const marketplaceName = activeMarketplace ? activeMarketplace.name : "Mercado Livre";
   const [search, setSearch] = useState("");
   const [stockFilter, setStockFilter] = useState<StockFilter>("all");
   const [coverageFilter, setCoverageFilter] = useState<CoverageFilter>("all");
@@ -117,7 +127,7 @@ export default function MLEstoque() {
       });
   }, [items, search, hideOutOfStock, stockFilter, coverageFilter, sortBy, coverageMap]);
 
-  if (hasToken === false) {
+  if (isML && hasToken === false) {
     return (
       <div className="space-y-6">
         <Card>
@@ -138,11 +148,16 @@ export default function MLEstoque() {
 
   return (
     <div className="space-y-6">
-      <MLPageHeader title="Estoque" lastUpdated={lastUpdated}>
-        <Button onClick={refresh} disabled={loading} size="sm" variant="outline">
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Atualizar
-        </Button>
+      <MLPageHeader title={`Estoque — ${marketplaceName}`} lastUpdated={isML ? lastUpdated : new Date()}>
+        {isML && (
+          <Button onClick={refresh} disabled={loading} size="sm" variant="outline">
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+            Atualizar
+          </Button>
+        )}
+        {!isML && (
+          <Badge variant="secondary" className="text-xs">Dados simulados</Badge>
+        )}
       </MLPageHeader>
 
       {/* Period Selector */}

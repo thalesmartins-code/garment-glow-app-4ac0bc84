@@ -1,9 +1,11 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMLStore } from "@/contexts/MLStoreContext";
+import { useMarketplace } from "@/contexts/MarketplaceContext";
 import { KPICard } from "@/components/dashboard/KPICard";
+import { getMarketplaceDailyData, getMarketplaceHourlyData, getMarketplaceProducts, getMarketplaceName } from "@/data/marketplaceMockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -154,6 +156,9 @@ export default function MercadoLivre() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { stores, selectedStore } = useMLStore();
+  const { selectedMarketplace, activeMarketplace } = useMarketplace();
+  const isML = selectedMarketplace === "mercado-livre" || selectedMarketplace === "all";
+  const marketplaceName = activeMarketplace ? activeMarketplace.name : "Mercado Livre";
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -648,7 +653,35 @@ export default function MercadoLivre() {
     }
   }, [pendingRange, pendingPeriod, syncFromAPI]);
 
-  if (!loading && !connected) {
+  // --- Mock data for non-ML marketplaces ---
+  const mockDaily = useMemo(() => !isML ? getMarketplaceDailyData(selectedMarketplace, 30) : [], [isML, selectedMarketplace]);
+  const mockHourly = useMemo(() => !isML ? getMarketplaceHourlyData(selectedMarketplace) : [], [isML, selectedMarketplace]);
+  const mockProducts = useMemo(() => !isML ? getMarketplaceProducts(selectedMarketplace) : [], [isML, selectedMarketplace]);
+
+  const effectiveDaily = isML ? daily : mockDaily;
+  const effectiveHourly = isML ? hourly : mockHourly;
+  const effectiveProducts = isML ? filteredTopProducts : mockProducts;
+  const effectiveMetrics = isML
+    ? metrics
+    : effectiveDaily.length > 0
+      ? (() => {
+          const m = {
+            total_revenue: effectiveDaily.reduce((s, d) => s + d.total, 0),
+            approved_revenue: effectiveDaily.reduce((s, d) => s + d.approved, 0),
+            total_orders: effectiveDaily.reduce((s, d) => s + d.qty, 0),
+            units_sold: effectiveDaily.reduce((s, d) => s + d.units_sold, 0),
+            unique_visits: effectiveDaily.reduce((s, d) => s + (d.unique_visits || 0), 0),
+            unique_buyers: effectiveDaily.reduce((s, d) => s + (d.unique_buyers || 0), 0),
+            avg_ticket: 0,
+            conversion_rate: 0,
+          };
+          if (m.total_orders > 0) m.avg_ticket = m.total_revenue / m.total_orders;
+          if (m.unique_visits > 0) m.conversion_rate = (m.unique_buyers / m.unique_visits) * 100;
+          return m;
+        })()
+      : null;
+
+  if (isML && !loading && !connected) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Plug className="w-16 h-16 text-muted-foreground/40" />
@@ -661,34 +694,42 @@ export default function MercadoLivre() {
     );
   }
 
-  const dailyChartData = [...daily].reverse().map((d) => ({
+  const effectiveLoading = isML ? loading : false;
+  const effectiveSyncing = isML ? syncing : false;
+
+  const dailyChartData = [...effectiveDaily].reverse().map((d) => ({
     label: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
     "Venda Total": d.total,
     "Venda Aprovada": d.approved,
     Pedidos: d.qty,
   }));
 
-  const hourlyChartData = buildHourlyChartData(hourly);
-  const showHourlyChart = isHourlyAvailable && chartMode === "hourly";
+  const hourlyChartData = buildHourlyChartData(effectiveHourly);
+  const showHourlyChart = (isML ? isHourlyAvailable : true) && chartMode === "hourly";
   const chartData = showHourlyChart ? hourlyChartData : dailyChartData;
-  const hasData = allDaily.length > 0;
-  const hasHourlyData = hourly.length > 0;
+  const hasData = isML ? allDaily.length > 0 : effectiveDaily.length > 0;
+  const hasHourlyData = effectiveHourly.length > 0;
   const chartTitle = showHourlyChart ? `Venda por Hora — ${periodLabel}` : `Vendas Diárias — ${periodLabel}`;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Mercado Livre</h1>
+          <h1 className="text-2xl font-bold text-foreground">{marketplaceName}</h1>
           <p className="text-sm text-muted-foreground">
-            {mlUser ? `Vendedor: ${mlUser.nickname}` : "Vendas do Mercado Livre"}
+            {isML && mlUser ? `Vendedor: ${mlUser.nickname}` : `Vendas — ${marketplaceName}`}
           </p>
-          <p className="text-xs text-muted-foreground/70">
-            {lastSyncedAt ? `Última sinc: ${lastSyncedAt}` : "Nunca sincronizado"}
-          </p>
+          {isML && (
+            <p className="text-xs text-muted-foreground/70">
+              {lastSyncedAt ? `Última sinc: ${lastSyncedAt}` : "Nunca sincronizado"}
+            </p>
+          )}
+          {!isML && (
+            <p className="text-xs text-muted-foreground/70">Dados simulados (integração em breve)</p>
+          )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <MLStoreSelector />
+          {isML && <MLStoreSelector />}
           <Popover
             open={popoverOpen}
             onOpenChange={(open) => {
@@ -772,22 +813,24 @@ export default function MercadoLivre() {
               </div>
             </PopoverContent>
           </Popover>
-          {mlUser?.permalink && (
+          {isML && mlUser?.permalink && (
             <Button variant="outline" size="sm" asChild>
               <a href={mlUser.permalink} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="w-4 h-4 mr-1" /> Perfil ML
               </a>
             </Button>
           )}
-          <HistoricalSyncModal
-            accessToken={cachedAccessToken}
-            onSyncComplete={reloadCache}
-            saveToCache={(dailyData, hourlyData) => saveToCache(dailyData, hourlyData)}
-          />
+          {isML && (
+            <HistoricalSyncModal
+              accessToken={cachedAccessToken}
+              onSyncComplete={reloadCache}
+              saveToCache={(dailyData, hourlyData) => saveToCache(dailyData, hourlyData)}
+            />
+          )}
         </div>
       </div>
 
-      {!loading && connected && !hasData && (
+      {isML && !effectiveLoading && connected && !hasData && (
         <Card className="border-dashed">
           <CardContent className="flex items-center gap-3 py-6">
             <Info className="w-5 h-5 text-muted-foreground flex-shrink-0" />
@@ -805,29 +848,29 @@ export default function MercadoLivre() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KPICard
           title="Receita Total"
-          value={metrics ? currencyFmt(metrics.total_revenue) : "—"}
+          value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
           icon={<DollarSign className="w-5 h-5" />}
           variant="info"
-          loading={loading}
-          refreshing={syncing}
+          loading={effectiveLoading}
+          refreshing={effectiveSyncing}
           subtitle={periodLabel}
         />
         <KPICard
           title="Receita Aprovada"
-          value={metrics ? currencyFmt(metrics.approved_revenue) : "—"}
+          value={effectiveMetrics ? currencyFmt(effectiveMetrics.approved_revenue) : "—"}
           icon={<TrendingUp className="w-5 h-5" />}
           variant="success"
-          loading={loading}
-          refreshing={syncing}
+          loading={effectiveLoading}
+          refreshing={effectiveSyncing}
           subtitle={periodLabel}
         />
         <KPICard
           title="Quantidade de Vendas"
-          value={metrics ? String(metrics.units_sold) : "—"}
+          value={effectiveMetrics ? String(effectiveMetrics.units_sold) : "—"}
           icon={<ShoppingCart className="w-5 h-5" />}
           variant="purple"
-          loading={loading}
-          refreshing={syncing}
+          loading={effectiveLoading}
+          refreshing={effectiveSyncing}
           tooltip="Nas vendas do carrinho, cada produto diferente conta como uma nova venda."
         />
       </div>
@@ -836,8 +879,8 @@ export default function MercadoLivre() {
         <KPICard
           title="Ticket Médio"
           value={
-            metrics
-              ? metrics.avg_ticket.toLocaleString("pt-BR", {
+            effectiveMetrics
+              ? effectiveMetrics.avg_ticket.toLocaleString("pt-BR", {
                   style: "currency",
                   currency: "BRL",
                   minimumFractionDigits: 0,
@@ -847,32 +890,32 @@ export default function MercadoLivre() {
           }
           icon={<Tag className="w-5 h-5" />}
           variant="orange"
-          loading={loading}
-          refreshing={syncing}
+          loading={effectiveLoading}
+          refreshing={effectiveSyncing}
         />
         <KPICard
           title="Visitas Únicas"
-          value={metrics ? metrics.unique_visits.toLocaleString("pt-BR") : "—"}
+          value={effectiveMetrics ? effectiveMetrics.unique_visits.toLocaleString("pt-BR") : "—"}
           icon={<Eye className="w-5 h-5" />}
           variant="neutral"
-          loading={loading}
-          refreshing={syncing}
+          loading={effectiveLoading}
+          refreshing={effectiveSyncing}
         />
         <KPICard
           title="Total de Compradores"
-          value={metrics ? metrics.unique_buyers.toLocaleString("pt-BR") : "—"}
+          value={effectiveMetrics ? effectiveMetrics.unique_buyers.toLocaleString("pt-BR") : "—"}
           icon={<Users className="w-5 h-5" />}
           variant="success"
-          loading={loading}
-          refreshing={syncing}
+          loading={effectiveLoading}
+          refreshing={effectiveSyncing}
         />
         <KPICard
           title="Conversão"
-          value={metrics ? `${metrics.conversion_rate.toFixed(2)}%` : "—"}
+          value={effectiveMetrics ? `${effectiveMetrics.conversion_rate.toFixed(2)}%` : "—"}
           icon={<Percent className="w-5 h-5" />}
           variant="info"
-          loading={loading}
-          refreshing={syncing}
+          loading={effectiveLoading}
+          refreshing={effectiveSyncing}
         />
       </div>
 
@@ -1007,8 +1050,8 @@ export default function MercadoLivre() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-        {isHourlyAvailable &&
-          (syncing && hourly.length === 0 ? (
+        {(isML ? isHourlyAvailable : true) &&
+          (effectiveSyncing && effectiveHourly.length === 0 ? (
             <Card className="flex flex-col h-full">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Venda por Hora</CardTitle>
@@ -1020,10 +1063,10 @@ export default function MercadoLivre() {
                 </div>
               </CardContent>
             </Card>
-          ) : hourly.length > 0 ? (
-            <HourlySalesTable hourly={hourly} />
+          ) : effectiveHourly.length > 0 ? (
+            <HourlySalesTable hourly={effectiveHourly} />
           ) : null)}
-        <TopSellingProducts products={filteredTopProducts} loading={loading} />
+        <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} />
       </div>
     </div>
   );
