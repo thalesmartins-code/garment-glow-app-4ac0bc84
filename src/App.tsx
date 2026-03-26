@@ -14,6 +14,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { RoleRoute } from "@/components/auth/RoleRoute";
 import { OAuthCodeRedirect } from "@/components/auth/OAuthCodeRedirect";
+import AppSelector from "./pages/AppSelector";
 import Index from "./pages/Index";
 import DailySales from "./pages/DailySales";
 import Import from "./pages/Import";
@@ -50,100 +51,61 @@ const App = () => (
                       <Route index element={<TVMode />} />
                     </Route>
                     <Route element={<ProtectedRoute />}>
+                      {/* Hub - Environment selector */}
+                      <Route path="/" element={<AppSelector />} />
+
+                      {/* Google Sheets environment */}
                       <Route element={<MainAppLayout />}>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/vendas-diarias" element={<DailySales />} />
+                        <Route path="/sheets" element={<Index />} />
+                        <Route path="/sheets/vendas-diarias" element={<DailySales />} />
                         <Route
-                          path="/importacao"
-                          element={
-                            <RoleRoute>
-                              <Import />
-                            </RoleRoute>
-                          }
+                          path="/sheets/importacao"
+                          element={<RoleRoute><Import /></RoleRoute>}
                         />
                         <Route
-                          path="/configuracoes"
-                          element={
-                            <RoleRoute>
-                              <Settings />
-                            </RoleRoute>
-                          }
+                          path="/sheets/configuracoes"
+                          element={<RoleRoute><Settings /></RoleRoute>}
                         />
                         <Route
-                          path="/sellers"
-                          element={
-                            <RoleRoute>
-                              <Sellers />
-                            </RoleRoute>
-                          }
+                          path="/sheets/sellers"
+                          element={<RoleRoute><Sellers /></RoleRoute>}
                         />
                         <Route
-                          path="/usuarios"
-                          element={
-                            <RoleRoute>
-                              <UserManagement />
-                            </RoleRoute>
-                          }
+                          path="/sheets/usuarios"
+                          element={<RoleRoute><UserManagement /></RoleRoute>}
                         />
                         <Route path="/perfil" element={<Profile />} />
                         <Route
-                          path="/integracoes"
-                          element={
-                            <RoleRoute>
-                              <Integrations />
-                            </RoleRoute>
-                          }
+                          path="/sheets/integracoes"
+                          element={<RoleRoute><Integrations /></RoleRoute>}
                         />
                       </Route>
 
+                      {/* Mercado Livre environment */}
                       <Route element={<MLStoreProvider><MLInventoryProvider><MercadoLivreLayout /></MLInventoryProvider></MLStoreProvider>}>
                         <Route
                           path="/mercado-livre"
-                          element={
-                            <RoleRoute>
-                              <MercadoLivre />
-                            </RoleRoute>
-                          }
+                          element={<RoleRoute><MercadoLivre /></RoleRoute>}
                         />
                         <Route
                           path="/mercado-livre/estoque"
-                          element={
-                            <RoleRoute>
-                              <MLEstoque />
-                            </RoleRoute>
-                          }
+                          element={<RoleRoute><MLEstoque /></RoleRoute>}
                         />
                         <Route
                           path="/mercado-livre/produtos"
-                          element={
-                            <RoleRoute>
-                              <MLProdutos />
-                            </RoleRoute>
-                          }
+                          element={<RoleRoute><MLProdutos /></RoleRoute>}
                         />
                         <Route
                           path="/mercado-livre/pedidos"
-                          element={
-                            <RoleRoute>
-                              <MLPedidos />
-                            </RoleRoute>
-                          }
+                          element={<RoleRoute><MLPedidos /></RoleRoute>}
                         />
                         <Route
                           path="/mercado-livre/anuncios"
-                          element={
-                            <RoleRoute>
-                              <MLAnuncios />
-                            </RoleRoute>
-                          }
+                          element={<RoleRoute><MLAnuncios /></RoleRoute>}
                         />
                         <Route
                           path="/mercado-livre/integracoes"
-                          element={
-                            <RoleRoute>
-                              <Integrations />
-                            </RoleRoute>
-                          }
+                          element={<RoleRoute><Integrations /></RoleRoute>}
                         />
                       </Route>
                     </Route>
