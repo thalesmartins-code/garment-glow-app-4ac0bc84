@@ -82,7 +82,9 @@ const App = () => (
                       </Route>
 
                       {/* Mercado Livre environment */}
+                      {/* Mercado Livre environment */}
                       <Route element={<MLStoreProvider><MLInventoryProvider><MercadoLivreLayout /></MLInventoryProvider></MLStoreProvider>}>
+                        <Route path="/mercado-livre/perfil" element={<Profile />} />
                         <Route
                           path="/mercado-livre"
                           element={<RoleRoute><MercadoLivre /></RoleRoute>}
