@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import { TopSellingProducts, type ProductSalesRow } from "@/components/mercadolivre/TopSellingProducts";
 import { HourlySalesTable } from "@/components/mercadolivre/HourlySalesTable";
+import { MLStoreSelector } from "@/components/mercadolivre/MLStoreSelector";
 import {
   DollarSign,
   ShoppingCart,
