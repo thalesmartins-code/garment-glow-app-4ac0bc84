@@ -784,9 +784,14 @@ export default function Integrations() {
                         Desconectar
                       </Button>
                       {integration.id === "ml" && (
-                        <Button variant="ghost" size="sm" onClick={handleSyncML} disabled={syncing} title="Sincronizar pedidos e vendas">
-                          <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
-                        </Button>
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => handleConnect(integration)} title="Adicionar outra loja ML">
+                            <Store className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={handleSyncML} disabled={syncing} title="Sincronizar pedidos e vendas">
+                            <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
+                          </Button>
+                        </>
                       )}
                       {integration.id === "magalu" && (
                         <Button variant="ghost" size="sm" onClick={handleSyncMagalu} disabled={syncing} title="Sincronizar pedidos e vendas">
