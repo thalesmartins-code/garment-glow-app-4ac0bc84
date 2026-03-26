@@ -40,11 +40,11 @@ const baseNavItems = [
 ];
 
 const mlSubItems = [
-  { icon: TrendingUp, label: "Vendas", path: "/mercado-livre" },
-  { icon: Package, label: "Estoque", path: "/mercado-livre/estoque" },
-  { icon: ShoppingBag, label: "Produtos", path: "/mercado-livre/produtos" },
-  { icon: ClipboardList, label: "Pedidos", path: "/mercado-livre/pedidos" },
-  { icon: Megaphone, label: "Publicidade", path: "/mercado-livre/anuncios" },
+  { icon: TrendingUp, label: "Vendas", path: "/api" },
+  { icon: Package, label: "Estoque", path: "/api/estoque" },
+  { icon: ShoppingBag, label: "Produtos", path: "/api/produtos" },
+  { icon: ClipboardList, label: "Pedidos", path: "/api/pedidos" },
+  { icon: Megaphone, label: "Publicidade", path: "/api/anuncios" },
 ];
 
 export function Sidebar() {
@@ -55,7 +55,7 @@ export function Sidebar() {
   const allNavItems = [...baseNavItems, { icon: ShieldCheck, label: "Usuários", path: "/usuarios" }];
   const navItems = allNavItems.filter((item) => canAccess(role, item.path));
   const visibleMlSubItems = mlSubItems.filter((item) => canAccess(role, item.path));
-  const isMLActive = location.pathname.startsWith("/mercado-livre");
+  const isMLActive = location.pathname.startsWith("/api");
   const showMLGroup = visibleMlSubItems.length > 0;
 
   const renderLink = (item: { icon: any; label: string; path: string }, isSubItem = false) => {
@@ -109,7 +109,7 @@ export function Sidebar() {
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
             <Link
-              to="/mercado-livre"
+              to="/api"
               className={cn(
                 "flex items-center justify-center w-12 py-2.5 rounded-xl transition-all duration-200",
                 isMLActive
