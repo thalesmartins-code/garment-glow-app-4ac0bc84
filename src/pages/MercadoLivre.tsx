@@ -339,34 +339,44 @@ export default function MercadoLivre() {
   const loadFromCache = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
 
-    const [{ data: userCache }, { data: dailyCache }] = await Promise.all([
-      supabase.from("ml_user_cache").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase
-        .from("ml_daily_cache")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("date", { ascending: false })
-        .limit(1000),
+    let userCacheQuery = supabase.from("ml_user_cache").select("*").eq("user_id", user.id);
+    if (selectedStore !== "all") {
+      userCacheQuery = userCacheQuery.eq("ml_user_id", Number(selectedStore));
+    }
+
+    let dailyCacheQuery = supabase
+      .from("ml_daily_cache")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("date", { ascending: false })
+      .limit(1000);
+    if (selectedStore !== "all") {
+      dailyCacheQuery = dailyCacheQuery.eq("ml_user_id", selectedStore);
+    }
+
+    const [{ data: userCacheData }, { data: dailyCache }] = await Promise.all([
+      userCacheQuery.maybeSingle(),
+      dailyCacheQuery,
     ]);
 
-    if (userCache) {
+    if (userCacheData) {
       setMlUser({
-        id: userCache.ml_user_id,
-        nickname: userCache.nickname,
-        country: userCache.country,
-        permalink: userCache.permalink,
+        id: userCacheData.ml_user_id,
+        nickname: userCacheData.nickname,
+        country: userCacheData.country,
+        permalink: userCacheData.permalink,
       });
     }
 
     if (!dailyCache || dailyCache.length === 0) {
       setAllDaily([]);
-      return !!userCache;
+      return !!userCacheData;
     }
 
     setAllDaily(dailyCache.map(mapDailyRow));
     setConnected(true);
     return true;
-  }, [user]);
+  }, [user, selectedStore]);
 
   const saveToCache = useCallback(
     async (
