@@ -275,7 +275,7 @@ export default function MercadoLivre() {
         setAllProductSales([]);
         return;
       }
-      const { data } = await (supabase as any)
+      let query = (supabase as any)
         .from("ml_product_daily_cache")
         .select("*")
         .eq("user_id", user.id)
@@ -283,6 +283,10 @@ export default function MercadoLivre() {
         .lte("date", toDate)
         .order("revenue", { ascending: false })
         .limit(5000);
+      if (selectedStore !== "all") {
+        query = query.eq("ml_user_id", selectedStore);
+      }
+      const { data } = await query;
       setAllProductSales(
         (data || []).map((r: any) => ({
           item_id: r.item_id,
@@ -294,7 +298,7 @@ export default function MercadoLivre() {
         })),
       );
     },
-    [user],
+    [user, selectedStore],
   );
 
   const loadHourlyCache = useCallback(
@@ -307,7 +311,11 @@ export default function MercadoLivre() {
       let query = (supabase as any)
         .from("ml_hourly_cache")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", user.id);
+      if (selectedStore !== "all") {
+        query = query.eq("ml_user_id", selectedStore);
+      }
+      query = query
         .order("date", { ascending: false })
         .order("hour", { ascending: true });
 
@@ -325,7 +333,7 @@ export default function MercadoLivre() {
       setAllHourly(mapped);
       return mapped;
     },
-    [user, isHourlyAvailable, hourlyTargetDate],
+    [user, isHourlyAvailable, hourlyTargetDate, selectedStore],
   );
 
   const loadFromCache = useCallback(async (): Promise<boolean> => {
