@@ -23,7 +23,10 @@ export function Header({ title, subtitle, showSellerSwitcher = true }: HeaderPro
   const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
   const { profile, role, signOut } = useAuth();
   const navigate = useNavigate();
-
+  const location = useLocation();
+  const isML = location.pathname.startsWith("/mercado-livre");
+  const profilePath = isML ? "/mercado-livre/perfil" : "/perfil";
+  const settingsPath = isML ? "/mercado-livre/integracoes" : "/sheets/configuracoes";
   const displayName = profile?.full_name || "Usuário";
   const initials = displayName
     .split(" ")
