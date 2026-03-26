@@ -449,27 +449,38 @@ export default function MercadoLivre() {
       setSyncing(true);
 
       try {
-        const { data: tokenRow } = await supabase
-          .from("ml_tokens")
-          .select("access_token, expires_at, refresh_token")
-          .eq("user_id", user.id)
-          .maybeSingle();
+        // Determine which tokens to sync
+        let tokensToSync: { access_token: string; ml_user_id: string }[] = [];
 
-        if (!tokenRow?.access_token) {
+        if (selectedStore === "all") {
+          // Sync all stores
+          const { data: allTokens } = await supabase
+            .from("ml_tokens")
+            .select("access_token, ml_user_id, expires_at, refresh_token")
+            .eq("user_id", user.id)
+            .not("access_token", "is", null);
+          tokensToSync = (allTokens || [])
+            .filter((t) => t.access_token && t.ml_user_id)
+            .map((t) => ({ access_token: t.access_token!, ml_user_id: t.ml_user_id! }));
+        } else {
+          // Sync specific store
+          const { data: tokenRow } = await supabase
+            .from("ml_tokens")
+            .select("access_token, expires_at, refresh_token, ml_user_id")
+            .eq("user_id", user.id)
+            .eq("ml_user_id", selectedStore)
+            .maybeSingle();
+          if (tokenRow?.access_token) {
+            tokensToSync = [{ access_token: tokenRow.access_token, ml_user_id: tokenRow.ml_user_id! }];
+          }
+        }
+
+        if (tokensToSync.length === 0) {
           setConnected(false);
           return;
         }
 
-        let accessToken = tokenRow.access_token;
-        const expiresAt = tokenRow.expires_at ? new Date(tokenRow.expires_at).getTime() : 0;
-        if (expiresAt > 0 && expiresAt - Date.now() < 5 * 60 * 1000 && tokenRow.refresh_token) {
-          const { data: refreshed } = await supabase.functions.invoke("ml-token-refresh", {
-            body: { refresh_token: tokenRow.refresh_token, user_id: user.id },
-          });
-          if (refreshed?.access_token) accessToken = refreshed.access_token;
-        }
-
-        setCachedAccessToken(accessToken);
+        setCachedAccessToken(tokensToSync[0].access_token);
         setConnected(true);
 
         const today = startOfDay(new Date());
@@ -491,21 +502,25 @@ export default function MercadoLivre() {
         const fromDateStr = rangeStart.toISOString().substring(0, 10);
         const toDateStr = rangeEnd.toISOString().substring(0, 10);
 
-        const { data: syncData, error: syncError } = await supabase.functions.invoke(
-          "mercado-libre-integration",
-          {
-            body: {
-              access_token: accessToken,
-              user_id: user.id,
-              date_from: fromDateStr,
-              date_to: toDateStr,
+        // Sync each token sequentially
+        let lastUserInfo: MLUser | null = null;
+        for (const tokenInfo of tokensToSync) {
+          const { data: syncData, error: syncError } = await supabase.functions.invoke(
+            "mercado-libre-integration",
+            {
+              body: {
+                access_token: tokenInfo.access_token,
+                user_id: user.id,
+                date_from: fromDateStr,
+                date_to: toDateStr,
+              },
             },
-          },
-        );
+          );
 
-        if (syncError) throw syncError;
-        if (!syncData?.success) throw new Error(syncData?.error || "Sync failed");
-        const lastUserInfo: MLUser | null = syncData.user ?? null;
+          if (syncError) throw syncError;
+          if (!syncData?.success) throw new Error(syncData?.error || "Sync failed");
+          if (syncData.user) lastUserInfo = syncData.user;
+        }
 
         let hourlyDateOverride: string | null;
         if (effectiveFrom) {
@@ -533,7 +548,7 @@ export default function MercadoLivre() {
         setSyncing(false);
       }
     },
-    [user, toast, period, customRange, loadFromCache, loadHourlyCache, loadProductCache],
+    [user, toast, period, customRange, selectedStore, stores, loadFromCache, loadHourlyCache, loadProductCache],
   );
 
   const reloadCache = useCallback(async () => {
