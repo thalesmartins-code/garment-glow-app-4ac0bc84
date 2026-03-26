@@ -715,16 +715,21 @@ export default function MercadoLivre() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Mercado Livre</h1>
+          <h1 className="text-2xl font-bold text-foreground">{marketplaceName}</h1>
           <p className="text-sm text-muted-foreground">
-            {mlUser ? `Vendedor: ${mlUser.nickname}` : "Vendas do Mercado Livre"}
+            {isML && mlUser ? `Vendedor: ${mlUser.nickname}` : `Vendas — ${marketplaceName}`}
           </p>
-          <p className="text-xs text-muted-foreground/70">
-            {lastSyncedAt ? `Última sinc: ${lastSyncedAt}` : "Nunca sincronizado"}
-          </p>
+          {isML && (
+            <p className="text-xs text-muted-foreground/70">
+              {lastSyncedAt ? `Última sinc: ${lastSyncedAt}` : "Nunca sincronizado"}
+            </p>
+          )}
+          {!isML && (
+            <p className="text-xs text-muted-foreground/70">Dados simulados (integração em breve)</p>
+          )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <MLStoreSelector />
+          {isML && <MLStoreSelector />}
           <Popover
             open={popoverOpen}
             onOpenChange={(open) => {
@@ -808,18 +813,20 @@ export default function MercadoLivre() {
               </div>
             </PopoverContent>
           </Popover>
-          {mlUser?.permalink && (
+          {isML && mlUser?.permalink && (
             <Button variant="outline" size="sm" asChild>
               <a href={mlUser.permalink} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="w-4 h-4 mr-1" /> Perfil ML
               </a>
             </Button>
           )}
-          <HistoricalSyncModal
-            accessToken={cachedAccessToken}
-            onSyncComplete={reloadCache}
-            saveToCache={(dailyData, hourlyData) => saveToCache(dailyData, hourlyData)}
-          />
+          {isML && (
+            <HistoricalSyncModal
+              accessToken={cachedAccessToken}
+              onSyncComplete={reloadCache}
+              saveToCache={(dailyData, hourlyData) => saveToCache(dailyData, hourlyData)}
+            />
+          )}
         </div>
       </div>
 
