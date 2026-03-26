@@ -153,6 +153,7 @@ function getFilterDates(customRange: DateRange, period: number): { fromDate: str
 export default function MercadoLivre() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { stores, selectedStore } = useMLStore();
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [connected, setConnected] = useState(false);
