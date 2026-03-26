@@ -32,7 +32,7 @@ export function MarketplaceSwitcher() {
         return (
           <div
             key={mp.id}
-            className={`flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-br ${mp.color}`}
+            className={`flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br ${mp.color}`}
           >
             <MpIcon className="h-[7px] w-[7px] text-white" />
           </div>
