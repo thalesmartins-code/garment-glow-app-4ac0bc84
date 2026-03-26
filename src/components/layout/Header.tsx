@@ -1,5 +1,5 @@
 import { Bell, Check, ChevronDown, LogOut, SlidersHorizontal, Store, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,7 +23,10 @@ export function Header({ title, subtitle, showSellerSwitcher = true }: HeaderPro
   const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
   const { profile, role, signOut } = useAuth();
   const navigate = useNavigate();
-
+  const location = useLocation();
+  const isML = location.pathname.startsWith("/mercado-livre");
+  const profilePath = isML ? "/mercado-livre/perfil" : "/perfil";
+  const settingsPath = isML ? "/mercado-livre/integracoes" : "/sheets/configuracoes";
   const displayName = profile?.full_name || "Usuário";
   const initials = displayName
     .split(" ")
@@ -114,11 +117,11 @@ export function Header({ title, subtitle, showSellerSwitcher = true }: HeaderPro
           <DropdownMenuContent align="end" className="w-48 rounded-xl">
             <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/perfil")}>
+            <DropdownMenuItem onClick={() => navigate(profilePath)}>
               <User className="mr-2 h-4 w-4" />
               Perfil
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
+            <DropdownMenuItem onClick={() => navigate(settingsPath)}>
               <SlidersHorizontal className="mr-2 h-4 w-4" />
               Configurações
             </DropdownMenuItem>
