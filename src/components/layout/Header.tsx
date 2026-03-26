@@ -117,11 +117,11 @@ export function Header({ title, subtitle, showSellerSwitcher = true }: HeaderPro
           <DropdownMenuContent align="end" className="w-48 rounded-xl">
             <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/perfil")}>
+            <DropdownMenuItem onClick={() => navigate(profilePath)}>
               <User className="mr-2 h-4 w-4" />
               Perfil
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
+            <DropdownMenuItem onClick={() => navigate(settingsPath)}>
               <SlidersHorizontal className="mr-2 h-4 w-4" />
               Configurações
             </DropdownMenuItem>
