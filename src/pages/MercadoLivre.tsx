@@ -14,6 +14,7 @@ import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncMod
 import { TopSellingProducts, type ProductSalesRow } from "@/components/mercadolivre/TopSellingProducts";
 import { HourlySalesTable } from "@/components/mercadolivre/HourlySalesTable";
 import { MLStoreSelector } from "@/components/mercadolivre/MLStoreSelector";
+import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
 import {
   DollarSign,
   ShoppingCart,
@@ -714,20 +715,7 @@ export default function MercadoLivre() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{marketplaceName}</h1>
-          <p className="text-sm text-muted-foreground">
-            {isML && mlUser ? `Vendedor: ${mlUser.nickname}` : `Vendas — ${marketplaceName}`}
-          </p>
-          {isML && (
-            <p className="text-xs text-muted-foreground/70">
-              {lastSyncedAt ? `Última sinc: ${lastSyncedAt}` : "Nunca sincronizado"}
-            </p>
-          )}
-          {!isML && (
-            <p className="text-xs text-muted-foreground/70">Dados simulados (integração em breve)</p>
-          )}
-        </div>
+        <MLPageHeader title="Vendas" lastUpdated={isML && lastSyncedAt ? new Date(lastSyncedAt) : null} />
         <div className="flex items-center gap-2 flex-wrap">
           {isML && <MLStoreSelector />}
           <Popover

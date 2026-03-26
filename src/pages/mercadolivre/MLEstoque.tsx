@@ -148,7 +148,7 @@ export default function MLEstoque() {
 
   return (
     <div className="space-y-6">
-      <MLPageHeader title={`Estoque — ${marketplaceName}`} lastUpdated={isML ? lastUpdated : new Date()}>
+      <MLPageHeader title="Estoque" lastUpdated={isML ? lastUpdated : new Date()}>
         {isML && (
           <Button onClick={refresh} disabled={loading} size="sm" variant="outline">
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
