@@ -433,7 +433,7 @@ export default function MercadoLivre() {
               active_listings: listings || 0,
               synced_at: syncedAt,
             },
-            { onConflict: "user_id" },
+            { onConflict: "user_id,ml_user_id" },
           );
         }
       } catch (err) {
