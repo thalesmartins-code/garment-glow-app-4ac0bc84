@@ -201,7 +201,7 @@ export default function Integrations() {
     });
   };
 
-  // Helper: save ML tokens to both localStorage and Supabase
+  // Helper: save ML tokens to both localStorage and Supabase (upsert per ml_user_id)
   const saveMLTokens = async (tokenData: { access_token: string; refresh_token: string; expires_in: number; user_id: string }) => {
     const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000).toISOString();
     const localPayload = {
@@ -213,23 +213,22 @@ export default function Integrations() {
     localStorage.removeItem("ml_pkce_code_verifier");
     localStorage.setItem("ml_tokens", JSON.stringify(localPayload));
 
-    // Save to Supabase ml_tokens table
+    // Upsert to Supabase ml_tokens table using (user_id, ml_user_id) constraint
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const userId = user?.id || null;
 
-      // Upsert: delete existing then insert
-      if (userId) {
-        await supabase.from("ml_tokens").delete().eq("user_id", userId);
-      }
-      await supabase.from("ml_tokens").insert({
-        user_id: userId,
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-        expires_at: expiresAt,
-        ml_user_id: String(tokenData.user_id),
-        token_type: "bearer",
-      });
+      await supabase.from("ml_tokens").upsert(
+        {
+          user_id: userId,
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          expires_at: expiresAt,
+          ml_user_id: String(tokenData.user_id),
+          token_type: "bearer",
+        },
+        { onConflict: "user_id,ml_user_id" },
+      );
     } catch (e) {
       console.error("Failed to save ML tokens to DB:", e);
     }
@@ -265,7 +264,7 @@ export default function Integrations() {
         try { tokens = JSON.parse(mlTokens); } catch (e) { /* ignore */ }
       }
 
-      // Fallback: check DB
+      // Fallback: check DB for ANY token
       if (!tokens?.access_token) {
         try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -275,16 +274,16 @@ export default function Integrations() {
             .select("*")
             .eq("user_id", user.id)
             .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
+            .limit(1);
 
-          if (dbTokens?.access_token) {
-            const expiresAt = dbTokens.expires_at ? new Date(dbTokens.expires_at).getTime() : 0;
+          const firstToken = dbTokens?.[0];
+          if (firstToken?.access_token) {
+            const expiresAt = firstToken.expires_at ? new Date(firstToken.expires_at).getTime() : 0;
             tokens = {
-              access_token: dbTokens.access_token,
-              refresh_token: dbTokens.refresh_token || undefined,
+              access_token: firstToken.access_token,
+              refresh_token: firstToken.refresh_token || undefined,
               expires_at: expiresAt,
-              user_id: dbTokens.ml_user_id || undefined,
+              user_id: firstToken.ml_user_id || undefined,
             };
             localStorage.setItem("ml_tokens", JSON.stringify(tokens));
           }
