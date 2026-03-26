@@ -61,7 +61,7 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
                   {selectedSeller.initials}
                 </div>
                 <span className="hidden text-sm font-medium text-foreground sm:inline">{selectedSeller.name}</span>
-                <ChevronDown className="ml-0.5 h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown className="ml-0.5 h-3.5 w-3.5 text-muted-foreground mx-0" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52 rounded-xl p-1.5">
