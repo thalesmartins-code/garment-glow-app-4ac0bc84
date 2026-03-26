@@ -446,9 +446,18 @@ export default function Integrations() {
     setApiKeyInput("");
   };
 
-  const handleDisconnect = (integrationId: string) => {
-    updateIntegrationStatus(integrationId, "disconnected");
+  const handleDisconnect = async (integrationId: string) => {
     if (integrationId === "ml") {
+      // Delete ALL ML tokens from DB for this user
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from("ml_tokens").delete().eq("user_id", user.id);
+          await supabase.from("ml_user_cache").delete().eq("user_id", user.id);
+        }
+      } catch (e) {
+        console.error("Failed to delete ML tokens from DB:", e);
+      }
       localStorage.removeItem("ml_tokens");
       localStorage.removeItem("ml_metrics");
       localStorage.removeItem("ml_user");
@@ -460,6 +469,7 @@ export default function Integrations() {
       localStorage.removeItem("magalu_metrics");
       setMagaluMetrics(null);
     }
+    updateIntegrationStatus(integrationId, "disconnected");
     toast({
       title: "Marketplace desconectado",
       description: "A integração foi removida com sucesso.",
