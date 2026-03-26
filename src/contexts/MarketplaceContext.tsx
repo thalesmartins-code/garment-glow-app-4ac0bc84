@@ -23,21 +23,21 @@ const defaultMarketplaces: MarketplaceDefinition[] = [
     name: "Amazon",
     icon: ShoppingCart,
     color: "from-orange-500 to-amber-600",
-    connected: false,
+    connected: true,
   },
   {
     id: "shopee",
     name: "Shopee",
     icon: Package,
     color: "from-orange-600 to-red-500",
-    connected: false,
+    connected: true,
   },
   {
     id: "magalu",
     name: "Magazine Luiza",
     icon: Truck,
     color: "from-blue-600 to-indigo-500",
-    connected: false,
+    connected: true,
   },
 ];
 
