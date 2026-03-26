@@ -848,29 +848,29 @@ export default function MercadoLivre() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KPICard
           title="Receita Total"
-          value={metrics ? currencyFmt(metrics.total_revenue) : "—"}
+          value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
           icon={<DollarSign className="w-5 h-5" />}
           variant="info"
-          loading={loading}
-          refreshing={syncing}
+          loading={effectiveLoading}
+          refreshing={effectiveSyncing}
           subtitle={periodLabel}
         />
         <KPICard
           title="Receita Aprovada"
-          value={metrics ? currencyFmt(metrics.approved_revenue) : "—"}
+          value={effectiveMetrics ? currencyFmt(effectiveMetrics.approved_revenue) : "—"}
           icon={<TrendingUp className="w-5 h-5" />}
           variant="success"
-          loading={loading}
-          refreshing={syncing}
+          loading={effectiveLoading}
+          refreshing={effectiveSyncing}
           subtitle={periodLabel}
         />
         <KPICard
           title="Quantidade de Vendas"
-          value={metrics ? String(metrics.units_sold) : "—"}
+          value={effectiveMetrics ? String(effectiveMetrics.units_sold) : "—"}
           icon={<ShoppingCart className="w-5 h-5" />}
           variant="purple"
-          loading={loading}
-          refreshing={syncing}
+          loading={effectiveLoading}
+          refreshing={effectiveSyncing}
           tooltip="Nas vendas do carrinho, cada produto diferente conta como uma nova venda."
         />
       </div>
