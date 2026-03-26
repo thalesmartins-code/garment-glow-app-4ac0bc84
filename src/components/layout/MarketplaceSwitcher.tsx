@@ -34,7 +34,7 @@ export function MarketplaceSwitcher() {
             key={mp.id}
             className={`flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-br ${mp.color}`}
           >
-            <MpIcon className="h-2.5 w-2.5 text-white" />
+            <MpIcon className="h-2 w-2 text-white" />
           </div>
         );
       })}
@@ -58,7 +58,7 @@ export function MarketplaceSwitcher() {
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br shadow-sm ${gradientClass}`}
               >
-                {Icon && <Icon className="h-3.5 w-3.5 text-white" />}
+                {Icon && <Icon className="h-3 w-3 text-white" />}
               </motion.div>
             ) : (
               <motion.div
