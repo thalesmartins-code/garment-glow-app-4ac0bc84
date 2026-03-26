@@ -1,9 +1,11 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMLStore } from "@/contexts/MLStoreContext";
+import { useMarketplace } from "@/contexts/MarketplaceContext";
 import { KPICard } from "@/components/dashboard/KPICard";
+import { getMarketplaceDailyData, getMarketplaceHourlyData, getMarketplaceProducts, getMarketplaceName } from "@/data/marketplaceMockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -154,6 +156,9 @@ export default function MercadoLivre() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { stores, selectedStore } = useMLStore();
+  const { selectedMarketplace, activeMarketplace } = useMarketplace();
+  const isML = selectedMarketplace === "mercado-livre" || selectedMarketplace === "all";
+  const marketplaceName = activeMarketplace ? activeMarketplace.name : "Mercado Livre";
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -648,7 +653,35 @@ export default function MercadoLivre() {
     }
   }, [pendingRange, pendingPeriod, syncFromAPI]);
 
-  if (!loading && !connected) {
+  // --- Mock data for non-ML marketplaces ---
+  const mockDaily = useMemo(() => !isML ? getMarketplaceDailyData(selectedMarketplace, 30) : [], [isML, selectedMarketplace]);
+  const mockHourly = useMemo(() => !isML ? getMarketplaceHourlyData(selectedMarketplace) : [], [isML, selectedMarketplace]);
+  const mockProducts = useMemo(() => !isML ? getMarketplaceProducts(selectedMarketplace) : [], [isML, selectedMarketplace]);
+
+  const effectiveDaily = isML ? daily : mockDaily;
+  const effectiveHourly = isML ? hourly : mockHourly;
+  const effectiveProducts = isML ? filteredTopProducts : mockProducts;
+  const effectiveMetrics = isML
+    ? metrics
+    : effectiveDaily.length > 0
+      ? (() => {
+          const m = {
+            total_revenue: effectiveDaily.reduce((s, d) => s + d.total, 0),
+            approved_revenue: effectiveDaily.reduce((s, d) => s + d.approved, 0),
+            total_orders: effectiveDaily.reduce((s, d) => s + d.qty, 0),
+            units_sold: effectiveDaily.reduce((s, d) => s + d.units_sold, 0),
+            unique_visits: effectiveDaily.reduce((s, d) => s + (d.unique_visits || 0), 0),
+            unique_buyers: effectiveDaily.reduce((s, d) => s + (d.unique_buyers || 0), 0),
+            avg_ticket: 0,
+            conversion_rate: 0,
+          };
+          if (m.total_orders > 0) m.avg_ticket = m.total_revenue / m.total_orders;
+          if (m.unique_visits > 0) m.conversion_rate = (m.unique_buyers / m.unique_visits) * 100;
+          return m;
+        })()
+      : null;
+
+  if (isML && !loading && !connected) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Plug className="w-16 h-16 text-muted-foreground/40" />
@@ -661,18 +694,21 @@ export default function MercadoLivre() {
     );
   }
 
-  const dailyChartData = [...daily].reverse().map((d) => ({
+  const effectiveLoading = isML ? loading : false;
+  const effectiveSyncing = isML ? syncing : false;
+
+  const dailyChartData = [...effectiveDaily].reverse().map((d) => ({
     label: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
     "Venda Total": d.total,
     "Venda Aprovada": d.approved,
     Pedidos: d.qty,
   }));
 
-  const hourlyChartData = buildHourlyChartData(hourly);
-  const showHourlyChart = isHourlyAvailable && chartMode === "hourly";
+  const hourlyChartData = buildHourlyChartData(effectiveHourly);
+  const showHourlyChart = (isML ? isHourlyAvailable : true) && chartMode === "hourly";
   const chartData = showHourlyChart ? hourlyChartData : dailyChartData;
-  const hasData = allDaily.length > 0;
-  const hasHourlyData = hourly.length > 0;
+  const hasData = isML ? allDaily.length > 0 : effectiveDaily.length > 0;
+  const hasHourlyData = effectiveHourly.length > 0;
   const chartTitle = showHourlyChart ? `Venda por Hora — ${periodLabel}` : `Vendas Diárias — ${periodLabel}`;
 
   return (
