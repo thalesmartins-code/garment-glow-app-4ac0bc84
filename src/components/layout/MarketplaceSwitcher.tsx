@@ -89,7 +89,7 @@ export function MarketplaceSwitcher() {
               </motion.p>
             </AnimatePresence>
           </div>
-          <ChevronDown className="ml-0.5 h-3.5 w-3.5 text-muted-foreground" />
+          <ChevronDown className="ml-0.5 text-muted-foreground w-[13px] h-[13px] mx-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5">
