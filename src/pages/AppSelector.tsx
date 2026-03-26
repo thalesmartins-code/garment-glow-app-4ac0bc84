@@ -12,7 +12,7 @@ const environments = [
     icon: FileSpreadsheet,
     path: "/sheets",
     gradient: "from-emerald-600 to-teal-500",
-    shadow: "hover:shadow-[0_8px_30px_hsl(142_70%_45%/0.25)]",
+    shadow: "hover:shadow-[0_8px_30px_hsl(142_70%_45%/0.15)]",
   },
   {
     id: "mercado-livre",
@@ -20,10 +20,12 @@ const environments = [
     description: "Vendas, Estoque, Anúncios, Pedidos, Publicidade e Integrações — dados em tempo real via API",
     icon: Store,
     path: "/mercado-livre",
-    gradient: "from-yellow-500 to-amber-500",
-    shadow: "hover:shadow-[0_8px_30px_hsl(38_92%_50%/0.25)]",
+    gradient: "from-sky-500 to-blue-600",
+    shadow: "hover:shadow-[0_8px_30px_hsl(217_70%_45%/0.15)]",
   },
 ];
+
+const ease = [0.4, 0, 0.2, 1] as const;
 
 export default function AppSelector() {
   const navigate = useNavigate();
@@ -33,9 +35,9 @@ export default function AppSelector() {
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
       <motion.header
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, ease }}
         className="flex items-center justify-between px-6 py-4 border-b border-border"
       >
         <div className="flex items-center gap-3">
@@ -59,9 +61,9 @@ export default function AppSelector() {
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-3xl space-y-8">
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.5, delay: 0.1, ease }}
             className="text-center space-y-2"
           >
             <h1 className="text-3xl font-bold tracking-tight">Selecione o ambiente</h1>
@@ -76,22 +78,19 @@ export default function AppSelector() {
               return (
                 <motion.button
                   key={env.id}
-                  initial={{ opacity: 0, y: 20, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.45, delay: 0.25 + index * 0.12, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  whileHover={{ y: -4, scale: 1.02 }}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 + index * 0.1, ease }}
+                  whileHover={{ y: -3 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => navigate(env.path)}
                   className={`group relative flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 text-center transition-shadow duration-300 ${env.shadow}`}
                 >
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.4, delay: 0.4 + index * 0.12, type: "spring", stiffness: 200 }}
-                    className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${env.gradient} shadow-lg`}
+                  <div
+                    className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${env.gradient} shadow-lg transition-transform duration-300 group-hover:scale-105`}
                   >
                     <Icon className="h-8 w-8 text-white" />
-                  </motion.div>
+                  </div>
                   <div className="space-y-1.5">
                     <h2 className="text-xl font-semibold">{env.title}</h2>
                     <p className="text-sm text-muted-foreground leading-relaxed">
