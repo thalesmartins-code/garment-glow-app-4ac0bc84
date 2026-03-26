@@ -72,9 +72,13 @@ export default function MLEstoque() {
 
   const items = useMemo(() => {
     if (isAll) {
-      // Merge ML real items + mock items from other marketplaces
-      const mockItems = mockData?.items ?? [];
-      return [...mlItems, ...mockItems] as any[];
+      const mlTagged = mlItems.map((i: any) => ({ ...i, _marketplace: "mercado-livre" }));
+      const mockItems = (mockData?.items ?? []).map((i: any) => {
+        const prefix = i.id?.substring(0, 3)?.toLowerCase();
+        const mp = prefix === "ama" ? "amazon" : prefix === "sho" ? "shopee" : prefix === "mag" ? "magalu" : "other";
+        return { ...i, _marketplace: mp };
+      });
+      return [...mlTagged, ...mockItems] as any[];
     }
     if (isML) return mlItems;
     return (mockData?.items as any[]) ?? [];
@@ -403,6 +407,18 @@ export default function MLEstoque() {
                               {item.has_variations && (
                                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                                   {item.variations.length} variações
+                                </Badge>
+                              )}
+                              {isAll && item._marketplace && (
+                                <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${
+                                  item._marketplace === "mercado-livre" ? "border-yellow-500 text-yellow-600" :
+                                  item._marketplace === "amazon" ? "border-orange-500 text-orange-600" :
+                                  item._marketplace === "shopee" ? "border-red-500 text-red-600" :
+                                  "border-blue-500 text-blue-600"
+                                }`}>
+                                  {item._marketplace === "mercado-livre" ? "ML" :
+                                   item._marketplace === "amazon" ? "Amazon" :
+                                   item._marketplace === "shopee" ? "Shopee" : "Magalu"}
                                 </Badge>
                               )}
                             </div>
