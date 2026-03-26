@@ -32,6 +32,7 @@ import {
   ShoppingCart,
   Tag,
   TrendingUp,
+  Store,
 } from "lucide-react";
 
 interface MarketplaceIntegration {
