@@ -89,7 +89,7 @@ export function EnvironmentSidebar({ items, footerItem }: EnvironmentSidebarProp
         </div>
       </div>
 
-      {headerSlot?.(collapsed)}
+      
 
       <nav className={cn("flex flex-1 flex-col gap-1.5 overflow-y-auto pt-6 pb-4", collapsed ? "items-center px-2" : "px-3")}>
         {visibleItems.map(renderLink)}
