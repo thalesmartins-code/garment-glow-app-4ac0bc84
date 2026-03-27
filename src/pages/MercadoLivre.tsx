@@ -985,7 +985,7 @@ export default function MercadoLivre() {
           title="Total de Compradores"
           value={effectiveMetrics ? effectiveMetrics.unique_buyers.toLocaleString("pt-BR") : "—"}
           icon={<Users className="w-5 h-5" />}
-          variant="success"
+          variant="default"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
         />
@@ -993,7 +993,7 @@ export default function MercadoLivre() {
           title="Conversão"
           value={effectiveMetrics ? `${effectiveMetrics.conversion_rate.toFixed(2)}%` : "—"}
           icon={<Percent className="w-5 h-5" />}
-          variant="default"
+          variant="success"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
         />
