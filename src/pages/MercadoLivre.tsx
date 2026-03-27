@@ -99,6 +99,7 @@ const QUICK_RANGES = [
 const LAST_ML_SYNC_KEY = "ml_last_synced_at";
 const LAST_ML_SYNC_TS_KEY = "ml_last_synced_ts";
 const AUTO_SYNC_STALE_MS = 10 * 60 * 1000;
+const SYNC_CHUNK_DAYS = 2;
 
 function todayUTC() {
   return format(new Date(), "yyyy-MM-dd");
