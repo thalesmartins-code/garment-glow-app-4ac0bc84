@@ -246,11 +246,16 @@ export default function MercadoLivre() {
 
   const periodLabel = customRange?.from
     ? customRange.to && format(startOfDay(customRange.from), "yyyy-MM-dd") !== format(startOfDay(customRange.to), "yyyy-MM-dd")
-      ? `${format(customRange.from, "dd/MM/yy")} – ${format(customRange.to, "dd/MM/yy")}`
-      : format(customRange.from, "dd/MM/yy")
+      ? `${format(customRange.from, "dd/MM")} – ${format(customRange.to, "dd/MM")}`
+      : format(customRange.from, "dd/MM")
     : period === 0
-      ? "Hoje"
-      : `Últimos ${period} dias`;
+      ? `Hoje — ${format(new Date(), "dd/MM")}`
+      : (() => {
+          const to = new Date();
+          const from = new Date();
+          from.setDate(to.getDate() - period);
+          return `${period}d — ${format(from, "dd/MM")} a ${format(to, "dd/MM")}`;
+        })();
 
   const pendingLabel = (() => {
     if (pendingRange?.from) {
