@@ -900,7 +900,7 @@ export default function MercadoLivre() {
                                       <mp.icon className="h-3.5 w-3.5 shrink-0" />
                                       <span className="truncate">{mp.name}</span>
                                     </span>
-                                    <p className="text-base font-bold leading-tight">{currencyFmt(mp.revenue)}</p>
+                                    <p className={`font-bold leading-tight ${mp.revenue >= 1000000 ? "text-xs" : mp.revenue >= 100000 ? "text-sm" : "text-base"}`}>{currencyFmt(mp.revenue)}</p>
                                     <span className="text-[11px] text-muted-foreground">{pct}%</span>
                                   </div>
                                   <div className={`rounded-xl w-8 h-8 flex items-center justify-center shrink-0 bg-gradient-to-br ${mp.color} text-white`}>
