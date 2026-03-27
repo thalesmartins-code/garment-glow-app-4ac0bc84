@@ -140,6 +140,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ml_sync_log: {
+        Row: {
+          date_from: string
+          date_to: string
+          days_synced: number
+          id: string
+          ml_user_id: string
+          orders_fetched: number
+          source: string
+          synced_at: string
+          user_id: string
+        }
+        Insert: {
+          date_from: string
+          date_to: string
+          days_synced?: number
+          id?: string
+          ml_user_id?: string
+          orders_fetched?: number
+          source?: string
+          synced_at?: string
+          user_id: string
+        }
+        Update: {
+          date_from?: string
+          date_to?: string
+          days_synced?: number
+          id?: string
+          ml_user_id?: string
+          orders_fetched?: number
+          source?: string
+          synced_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ml_tokens: {
         Row: {
           access_token: string | null
