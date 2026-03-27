@@ -1,15 +1,32 @@
 
 
-## Tabelas Venda por Hora — 4 em linha
+## Plano: Destacar "Receita Total" e restaurar "Receita Aprovada"
 
-Alterar o grid das tabelas de `grid-cols-1 lg:grid-cols-2` para `grid-cols-1 md:grid-cols-2 xl:grid-cols-4` quando "Todos" estiver selecionado, colocando as 4 tabelas na mesma linha em telas largas.
+### O que será feito
 
-### Mudanças
+1. **Mover "Receita Total" para uma linha própria acima dos demais cards**, centralizado, com destaque minimalista (maior largura, fonte maior ou borda sutil).
 
-**`src/pages/MercadoLivre.tsx`**
-- Linha ~1174: trocar `grid-cols-1 lg:grid-cols-2 gap-4` por `grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3` no grid das tabelas hourly
-- Opcionalmente fazer o mesmo para os gráficos hourly (linha ~1004) se desejado
+2. **Restaurar o card "Receita Aprovada"** na linha inferior junto aos outros 6 cards.
 
-**`src/components/mercadolivre/HourlySalesTable.tsx`**
-- Reduzir font-size e padding no modo `compact` para caber em 1/4 da tela (ex: `text-xs`, `px-1.5`, `py-1`)
+3. **Ajustar o grid inferior** para 7 colunas em telas XL (`xl:grid-cols-7`).
+
+### Alterações técnicas (arquivo: `src/pages/MercadoLivre.tsx`)
+
+- Extrair o KPICard de "Receita Total" do grid atual e colocá-lo acima, dentro de um `div` com `max-w-sm mx-auto` para centralizar.
+- Aplicar estilo de destaque minimalista: bordas sutis, padding maior, ou classe customizada no `className` do KPICard (ex: `text-center border shadow-sm`).
+- Reintroduzir o KPICard "Receita Aprovada" (variant `success`, ícone `DollarSign`) na posição original dentro do grid.
+- Grid inferior passa de `xl:grid-cols-6` para `xl:grid-cols-7` (Receita Aprovada + Qtd. Vendas + Ticket Médio + Visitas Únicas + Compradores + Conversão = 6, mais eventual ajuste).
+
+### Layout resultante
+
+```text
+┌─────────────────────────────────────────┐
+│         [ Receita Total - destaque ]     │  ← centralizado, linha própria
+└─────────────────────────────────────────┘
+
+┌──────┬──────┬──────┬──────┬──────┬──────┐
+│Rec.  │Qtd.  │Ticket│Visit.│Compr.│Conv. │  ← 6 cards em linha
+│Aprov.│Vendas│Médio │Únicas│      │      │
+└──────┴──────┴──────┴──────┴──────┴──────┘
+```
 
