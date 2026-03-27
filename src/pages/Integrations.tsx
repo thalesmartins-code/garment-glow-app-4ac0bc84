@@ -146,6 +146,7 @@ const statusConfig = {
 
 export default function Integrations() {
   const { selectedSeller } = useSeller();
+  const { stores: mlStores, refresh: refreshMLStores } = useMLStore();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [integrations, setIntegrations] = useState(() => {
@@ -169,6 +170,8 @@ export default function Integrations() {
   const [disconnectPassword, setDisconnectPassword] = useState("");
   const [disconnecting, setDisconnecting] = useState(false);
   const [disconnectError, setDisconnectError] = useState("");
+  const [editingStoreId, setEditingStoreId] = useState<string | null>(null);
+  const [editingStoreName, setEditingStoreName] = useState("");
   const [mlMetrics, setMlMetrics] = useState<{
     total_revenue: number;
     approved_revenue: number;
