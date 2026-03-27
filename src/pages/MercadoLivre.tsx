@@ -553,7 +553,7 @@ export default function MercadoLivre() {
         ]);
         if (lastUserInfo) setMlUser(lastUserInfo);
 
-        const now = new Date().toLocaleString("pt-BR");
+        const now = new Date().toISOString();
         setLastSyncedAt(now);
         localStorage.setItem(LAST_ML_SYNC_KEY, now);
         localStorage.setItem(LAST_ML_SYNC_TS_KEY, String(Date.now()));
