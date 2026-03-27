@@ -818,7 +818,7 @@ export default function MercadoLivre() {
               loading={effectiveLoading}
               refreshing={effectiveSyncing}
               subtitle={periodLabel}
-              className="text-center [&_div]:justify-center [&_span]:justify-center [&_p]:text-center"
+              className="text-center [&_div]:justify-center [&_span]:justify-center [&_p]:text-center [&_.card-content]:py-2"
             />
           </div>
         </div>
