@@ -814,7 +814,7 @@ export default function MercadoLivre() {
           <MLPageHeader title="Vendas" lastUpdated={useRealData && lastSyncedAt ? new Date(lastSyncedAt) : null} />
         </div>
         <div className="hidden md:flex flex-shrink-0 justify-center">
-          <div className="w-full max-w-xs">
+          <div className="w-72">
             <KPICard
               title="Receita Total"
               value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
