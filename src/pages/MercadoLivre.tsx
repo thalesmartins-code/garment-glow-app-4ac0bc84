@@ -894,17 +894,17 @@ export default function MercadoLivre() {
                               transition={{ duration: 0.25, delay: index * 0.05, ease: "easeOut" }}
                             >
                               <Card className="cursor-default">
-                                <CardContent className="p-2 flex gap-2 items-center">
+                                <CardContent className="p-3 flex gap-3 items-center">
                                   <div className="flex-1 min-w-0">
-                                    <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
-                                      <mp.icon className="h-3 w-3 shrink-0" />
+                                    <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                                      <mp.icon className="h-3.5 w-3.5 shrink-0" />
                                       <span className="truncate">{mp.name}</span>
                                     </span>
-                                    <p className="text-sm font-bold leading-tight">{currencyFmt(mp.revenue)}</p>
-                                    <span className="text-[10px] text-muted-foreground">{pct}%</span>
+                                    <p className="text-base font-bold leading-tight">{currencyFmt(mp.revenue)}</p>
+                                    <span className="text-[11px] text-muted-foreground">{pct}%</span>
                                   </div>
-                                  <div className={`rounded-xl w-7 h-7 flex items-center justify-center shrink-0 bg-gradient-to-br ${mp.color} text-white`}>
-                                    <mp.icon className="h-3.5 w-3.5" />
+                                  <div className={`rounded-xl w-8 h-8 flex items-center justify-center shrink-0 bg-gradient-to-br ${mp.color} text-white`}>
+                                    <mp.icon className="h-4 w-4" />
                                   </div>
                                 </CardContent>
                               </Card>
