@@ -879,7 +879,7 @@ export default function MercadoLivre() {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="grid grid-cols-4 gap-2 mt-2 overflow-hidden"
+                    className="grid grid-cols-4 gap-2 mt-2 overflow-hidden min-w-[480px] -mx-[calc((480px-288px)/2)]"
                   >
                     {perMarketplaceRevenue.map((mp, index) => {
                       const totalRevenue = perMarketplaceRevenue.reduce((sum, m) => sum + m.revenue, 0);
