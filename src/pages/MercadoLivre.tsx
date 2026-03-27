@@ -925,7 +925,7 @@ export default function MercadoLivre() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         <KPICard
           title="Receita Total"
           value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
@@ -945,7 +945,7 @@ export default function MercadoLivre() {
           subtitle={periodLabel}
         />
         <KPICard
-          title="Quantidade de Vendas"
+          title="Qtd. Vendas"
           value={effectiveMetrics ? String(effectiveMetrics.units_sold) : "—"}
           icon={<ShoppingCart className="w-5 h-5" />}
           variant="purple"
@@ -953,9 +953,6 @@ export default function MercadoLivre() {
           refreshing={effectiveSyncing}
           tooltip="Nas vendas do carrinho, cada produto diferente conta como uma nova venda."
         />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="Ticket Médio"
           value={
@@ -982,7 +979,7 @@ export default function MercadoLivre() {
           refreshing={effectiveSyncing}
         />
         <KPICard
-          title="Total de Compradores"
+          title="Compradores"
           value={effectiveMetrics ? effectiveMetrics.unique_buyers.toLocaleString("pt-BR") : "—"}
           icon={<Users className="w-5 h-5" />}
           variant="default"
