@@ -904,7 +904,7 @@ export default function MercadoLivre() {
       <AnimatePresence>
         {syncProgress && (() => {
           const pct = Math.round((syncProgress.current / syncProgress.total) * 100);
-          const barColor = pct >= 100 ? "bg-success" : pct >= 50 ? "bg-warning" : "bg-primary";
+          const barColor = pct >= 100 ? "bg-emerald-500" : pct >= 66 ? "bg-orange-500" : pct >= 33 ? "bg-primary" : "bg-primary";
           return (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
