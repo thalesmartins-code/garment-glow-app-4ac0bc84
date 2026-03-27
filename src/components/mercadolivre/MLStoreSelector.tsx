@@ -24,7 +24,7 @@ export function MLStoreSelector() {
           <SelectItem value="all">Todas as lojas</SelectItem>
           {stores.map((store) => (
             <SelectItem key={store.ml_user_id} value={store.ml_user_id}>
-              {store.nickname || `Loja ${store.ml_user_id}`}
+              {store.displayName}
             </SelectItem>
           ))}
         </SelectContent>

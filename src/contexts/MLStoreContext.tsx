@@ -5,7 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 export interface MLStore {
   ml_user_id: string;
   nickname: string | null;
+  custom_name: string | null;
   access_token: string;
+  displayName: string;
 }
 
 export interface MLSalesDaily {
@@ -118,21 +120,29 @@ export function MLStoreProvider({ children }: { children: ReactNode }) {
 
       const { data: userCaches } = await supabase
         .from("ml_user_cache")
-        .select("ml_user_id, nickname")
+        .select("ml_user_id, nickname, custom_name")
         .eq("user_id", user.id);
 
-      const nicknameMap: Record<string, string | null> = {};
-      (userCaches || []).forEach((c) => {
-        nicknameMap[String(c.ml_user_id)] = c.nickname;
+      const cacheMap: Record<string, { nickname: string | null; custom_name: string | null }> = {};
+      (userCaches || []).forEach((c: any) => {
+        cacheMap[String(c.ml_user_id)] = {
+          nickname: c.nickname,
+          custom_name: c.custom_name ?? null,
+        };
       });
 
       const storeList: MLStore[] = tokens
         .filter((t) => t.ml_user_id)
-        .map((t) => ({
-          ml_user_id: t.ml_user_id!,
-          nickname: nicknameMap[t.ml_user_id!] || null,
-          access_token: t.access_token!,
-        }));
+        .map((t) => {
+          const cache = cacheMap[t.ml_user_id!] || { nickname: null, custom_name: null };
+          return {
+            ml_user_id: t.ml_user_id!,
+            nickname: cache.nickname,
+            custom_name: cache.custom_name,
+            access_token: t.access_token!,
+            displayName: cache.custom_name || cache.nickname || `Loja ${t.ml_user_id}`,
+          };
+        });
 
       setStores(storeList);
 
