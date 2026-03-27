@@ -681,6 +681,22 @@ export default function Integrations() {
     }
   };
 
+  const handleResetStoreName = async (mlUserId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase
+        .from("ml_user_cache")
+        .update({ custom_name: null } as any)
+        .eq("user_id", user.id)
+        .eq("ml_user_id", Number(mlUserId));
+      await refreshMLStores();
+      toast({ title: "Nome resetado!", description: "O nome voltou ao padrão do Mercado Livre." });
+    } catch (e) {
+      toast({ title: "Erro", description: "Não foi possível resetar o nome.", variant: "destructive" });
+    }
+  };
+
   const sellerMarketplaces = selectedSeller?.activeMarketplaces?.filter((id) => id !== "total") || [];
   const filteredIntegrations = integrations.filter((i) => sellerMarketplaces.includes(i.id));
   const connectedCount = filteredIntegrations.filter((i) => i.status === "connected").length;
@@ -865,7 +881,23 @@ export default function Integrations() {
                           </>
                         ) : (
                           <>
-                            <span className="text-xs font-medium flex-1 truncate">{store.displayName}</span>
+                            <span className="text-xs font-medium flex-1 truncate">
+                              {store.displayName}
+                              {store.custom_name && store.nickname && (
+                                <span className="text-muted-foreground font-normal ml-1">({store.nickname})</span>
+                              )}
+                            </span>
+                            {store.custom_name && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={() => handleResetStoreName(store.ml_user_id)}
+                                title="Voltar ao nome padrão"
+                              >
+                                <X className="h-3 w-3 text-muted-foreground" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
