@@ -934,7 +934,7 @@ export default function MercadoLivre() {
               variant="default"
               size="compact"
               loading={effectiveLoading}
-              refreshing={effectiveSyncing}
+              refreshing={effectiveSyncing && !syncProgress}
               subtitle={periodLabel}
               className="text-center [&_div]:justify-center [&_span]:justify-center [&_p]:text-center [&>div]:py-1.5 bg-gradient-to-br from-[hsl(217,70%,45%)]/10 via-[hsl(217,70%,45%)]/5 to-transparent shadow-[0_0_12px_hsl(217,70%,45%,0.12)] border-[hsl(217,70%,45%)]/15 [&_p]:text-2xl [&_p]:font-bold"
             />
@@ -1117,7 +1117,7 @@ export default function MercadoLivre() {
           variant="default"
           className="bg-gradient-to-br from-[hsl(217,70%,45%)]/10 via-[hsl(217,70%,45%)]/5 to-transparent shadow-[0_0_12px_hsl(217,70%,45%,0.12)] border-[hsl(217,70%,45%)]/15 [&_p]:text-2xl [&_p]:font-bold"
           loading={effectiveLoading}
-          refreshing={effectiveSyncing}
+          refreshing={effectiveSyncing && !syncProgress}
           subtitle={periodLabel}
         />
       </div>
@@ -1130,7 +1130,7 @@ export default function MercadoLivre() {
           variant="success"
           size="compact"
           loading={effectiveLoading}
-          refreshing={effectiveSyncing}
+          refreshing={effectiveSyncing && !syncProgress}
         />
         <KPICard
           title="Qtd. Vendas"
@@ -1139,7 +1139,7 @@ export default function MercadoLivre() {
           variant="purple"
           size="compact"
           loading={effectiveLoading}
-          refreshing={effectiveSyncing}
+          refreshing={effectiveSyncing && !syncProgress}
           tooltip="Nas vendas do carrinho, cada produto diferente conta como uma nova venda."
         />
         <KPICard
@@ -1158,7 +1158,7 @@ export default function MercadoLivre() {
           variant="orange"
           size="compact"
           loading={effectiveLoading}
-          refreshing={effectiveSyncing}
+          refreshing={effectiveSyncing && !syncProgress}
         />
         <KPICard
           title="Visitas Únicas"
@@ -1167,7 +1167,7 @@ export default function MercadoLivre() {
           variant="default"
           size="compact"
           loading={effectiveLoading}
-          refreshing={effectiveSyncing}
+          refreshing={effectiveSyncing && !syncProgress}
         />
         <KPICard
           title="Compradores"
@@ -1176,7 +1176,7 @@ export default function MercadoLivre() {
           variant="default"
           size="compact"
           loading={effectiveLoading}
-          refreshing={effectiveSyncing}
+          refreshing={effectiveSyncing && !syncProgress}
         />
         <KPICard
           title="Conversão"
@@ -1185,7 +1185,7 @@ export default function MercadoLivre() {
           variant="success"
           size="compact"
           loading={effectiveLoading}
-          refreshing={effectiveSyncing}
+          refreshing={effectiveSyncing && !syncProgress}
         />
       </div>
 
