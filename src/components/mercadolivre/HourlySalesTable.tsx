@@ -55,13 +55,9 @@ export function HourlySalesTable({ hourly, title, titleIcon, compact }: Props) {
   function getCellBg(h: number, revenue: number): string {
     if (revenue === 0 || !top12Set.has(h)) return "";
     const rank = rankMap.get(h) ?? 12;
-    const t = rank / 11; // 0 = top (green), 1 = bottom (purple)
-    // Green HSL(142,71%,45%) → Purple HSL(270,70%,50%)
-    const hue = 142 + t * (270 - 142);
-    const sat = 71 + t * (70 - 71);
-    const lit = 45 + t * (50 - 45);
-    const opacity = 0.40 - rank * (0.30 / 11);
-    return `hsla(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${lit.toFixed(0)}%, ${opacity.toFixed(3)})`;
+    // Navy blue gradient: top rank = stronger, bottom = lighter
+    const opacity = 0.35 - rank * (0.25 / 11);
+    return `hsla(217, 70%, 45%, ${opacity.toFixed(3)})`;
   }
 
   function handleSort(key: SortKey) {
