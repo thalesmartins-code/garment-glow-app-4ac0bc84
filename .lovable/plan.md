@@ -1,63 +1,15 @@
 
 
-## Layout "Todos" — Venda por Hora lado a lado por marketplace
+## Tabelas Venda por Hora — 4 em linha
 
-### Objetivo
+Alterar o grid das tabelas de `grid-cols-1 lg:grid-cols-2` para `grid-cols-1 md:grid-cols-2 xl:grid-cols-4` quando "Todos" estiver selecionado, colocando as 4 tabelas na mesma linha em telas largas.
 
-Quando "Todos" estiver selecionado na pagina de Vendas, exibir o grafico e a tabela de "Venda por Hora" separados por marketplace (ML, Amazon, Shopee, Magalu), lado a lado em grid, em vez de uma unica visao agregada. Os KPI cards permanecem agregados no topo. O ranking de produtos continua abaixo de tudo.
+### Mudanças
 
-### Layout proposto
+**`src/pages/MercadoLivre.tsx`**
+- Linha ~1174: trocar `grid-cols-1 lg:grid-cols-2 gap-4` por `grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3` no grid das tabelas hourly
+- Opcionalmente fazer o mesmo para os gráficos hourly (linha ~1004) se desejado
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│  KPI Cards (agregados — sem mudanca)                    │
-├─────────────────────────────────────────────────────────┤
-│  Grafico Venda/Hora  │  Grafico Venda/Hora              │
-│  Mercado Livre       │  Amazon                          │
-├──────────────────────┼──────────────────────────────────┤
-│  Grafico Venda/Hora  │  Grafico Venda/Hora              │
-│  Shopee              │  Magalu                          │
-├─────────────────────────────────────────────────────────┤
-│  Tabela Venda/Hora   │  Tabela Venda/Hora               │
-│  Mercado Livre       │  Amazon                          │
-├──────────────────────┼──────────────────────────────────┤
-│  Tabela Venda/Hora   │  Tabela Venda/Hora               │
-│  Shopee              │  Magalu                          │
-├─────────────────────────────────────────────────────────┤
-│  Ranking Top Produtos (como esta hoje)                  │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Mudancas
-
-**1. `src/pages/MercadoLivre.tsx`**
-- Quando `isAll`, preparar dados hourly **por marketplace** (4 arrays separados): ML real, Amazon mock, Shopee mock, Magalu mock
-- Quando `isAll`, preparar dados de chart hourly por marketplace (4 chart datasets)
-- Substituir o bloco do grafico + tabela por um grid 2x2 quando `isAll`:
-  - 4 mini-graficos ComposedChart (um por marketplace), cada um com titulo indicando o marketplace
-  - 4 HourlySalesTable (um por marketplace), cada um com titulo indicando o marketplace
-- Os graficos usam o mesmo estilo visual existente, porem em tamanho menor (height ~220px)
-- A HourlySalesTable ja recebe `hourly` como prop, basta passar os dados filtrados por marketplace
-- Manter o grafico e tabela unificados para quando **nao** for "Todos"
-
-**2. `src/components/mercadolivre/HourlySalesTable.tsx`**
-- Adicionar prop opcional `title?: string` para exibir nome do marketplace no CardTitle em vez do fixo "Venda por Hora"
-- Adicionar prop opcional `compact?: boolean` para reduzir padding quando em grid 2x2
-
-**3. `src/data/marketplaceMockData.ts`**
-- Nenhuma mudanca necessaria — ja exporta `getMarketplaceHourlyData(id)` por marketplace individual
-
-### Detalhes tecnicos
-
-- O grid usa `grid-cols-1 lg:grid-cols-2` para os 4 graficos e 4 tabelas
-- Os mini-graficos reutilizam o mesmo `ComposedChart` com `ResponsiveContainer height={220}`
-- Cada grafico tera um `CardTitle` com o nome do marketplace (ex: "Venda por Hora — Mercado Livre")
-- A HourlySalesTable ja e auto-contida; basta passar hourly data diferentes e um titulo customizado
-
-### Arquivos impactados
-
-| Arquivo | Mudanca |
-|---------|---------|
-| `src/pages/MercadoLivre.tsx` | Grid 2x2 de graficos + tabelas por MP quando `isAll` |
-| `src/components/mercadolivre/HourlySalesTable.tsx` | Props `title` e `compact` opcionais |
+**`src/components/mercadolivre/HourlySalesTable.tsx`**
+- Reduzir font-size e padding no modo `compact` para caber em 1/4 da tela (ex: `text-xs`, `px-1.5`, `py-1`)
 
