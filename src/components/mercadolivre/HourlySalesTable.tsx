@@ -27,7 +27,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return dir === "desc" ? <ArrowDown className="w-3 h-3 text-primary" /> : <ArrowUp className="w-3 h-3 text-primary" />;
 }
 
-export function HourlySalesTable({ hourly, title, compact }: Props) {
+export function HourlySalesTable({ hourly, title, titleIcon, compact }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>("hour");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
