@@ -56,8 +56,10 @@ export function MLPageHeader({ title, children, lastUpdated }: Props) {
           </div>
           <p className="text-sm text-muted-foreground">
             {isAll ? "Todos os marketplaces" : mp?.name ?? "Marketplace"}
-            {nickname ? ` · Vendedor: ${nickname}` : ""}
           </p>
+          {nickname && (
+            <p className="text-xs text-muted-foreground">Vendedor: {nickname}</p>
+          )}
           <p className="text-xs text-muted-foreground/70">
             {formattedDate ? `Última sinc: ${formattedDate}` : "Nunca sincronizado"}
           </p>
