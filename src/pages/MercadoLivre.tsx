@@ -930,8 +930,7 @@ export default function MercadoLivre() {
           title="Receita Total"
           value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
           icon={<DollarSign className="w-5 h-5" />}
-          variant="neutral"
-          iconClassName="bg-blue-500/10 text-blue-500"
+          variant="default"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
           subtitle={periodLabel}
@@ -978,8 +977,7 @@ export default function MercadoLivre() {
           title="Visitas Únicas"
           value={effectiveMetrics ? effectiveMetrics.unique_visits.toLocaleString("pt-BR") : "—"}
           icon={<Eye className="w-5 h-5" />}
-          variant="neutral"
-          iconClassName="bg-blue-500/10 text-blue-500"
+          variant="default"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
         />
@@ -995,8 +993,7 @@ export default function MercadoLivre() {
           title="Conversão"
           value={effectiveMetrics ? `${effectiveMetrics.conversion_rate.toFixed(2)}%` : "—"}
           icon={<Percent className="w-5 h-5" />}
-          variant="neutral"
-          iconClassName="bg-blue-500/10 text-blue-500"
+          variant="default"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
         />
