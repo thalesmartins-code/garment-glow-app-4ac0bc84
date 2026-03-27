@@ -879,7 +879,7 @@ export default function MercadoLivre() {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="grid grid-cols-4 gap-3 mt-2 overflow-hidden"
+                    className="grid grid-cols-2 gap-2 mt-2 overflow-hidden"
                   >
                     {perMarketplaceRevenue.map((mp, index) => {
                       const totalRevenue = perMarketplaceRevenue.reduce((sum, m) => sum + m.revenue, 0);
@@ -892,13 +892,21 @@ export default function MercadoLivre() {
                               animate={{ opacity: 1, scale: 1 }}
                               exit={{ opacity: 0, scale: 0.8 }}
                               transition={{ duration: 0.25, delay: index * 0.05, ease: "easeOut" }}
-                              className="flex flex-col items-center gap-1.5 rounded-lg border bg-card/50 px-4 py-3 min-w-[100px] cursor-default"
                             >
-                              <div className={`flex items-center justify-center rounded-md bg-gradient-to-br ${mp.color} p-2 text-white`}>
-                                <mp.icon className="h-4 w-4" />
-                              </div>
-                              <span className="text-[11px] font-medium text-muted-foreground">{mp.name}</span>
-                              <span className="text-sm font-bold text-foreground">{currencyFmt(mp.revenue)}</span>
+                              <Card className="cursor-default">
+                                <CardContent className="p-3 flex gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                      <mp.icon className="h-3.5 w-3.5" />
+                                      {mp.name}
+                                    </span>
+                                    <p className="text-lg font-bold leading-tight">{currencyFmt(mp.revenue)}</p>
+                                  </div>
+                                  <div className={`rounded-xl w-8 h-8 flex items-center justify-center shrink-0 self-center bg-gradient-to-br ${mp.color} text-white`}>
+                                    <mp.icon className="h-4 w-4" />
+                                  </div>
+                                </CardContent>
+                              </Card>
                             </motion.div>
                           </TooltipTrigger>
                           <TooltipContent side="bottom">
