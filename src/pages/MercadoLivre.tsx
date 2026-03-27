@@ -941,20 +941,22 @@ export default function MercadoLivre() {
         />
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-2">
         <KPICard
           title="Receita Aprovada"
           value={effectiveMetrics ? currencyFmt(effectiveMetrics.approved_revenue) : "—"}
-          icon={<DollarSign className="w-5 h-5" />}
+          icon={<DollarSign className="w-4 h-4" />}
           variant="success"
+          size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
         />
         <KPICard
           title="Qtd. Vendas"
           value={effectiveMetrics ? String(effectiveMetrics.units_sold) : "—"}
-          icon={<ShoppingCart className="w-5 h-5" />}
+          icon={<ShoppingCart className="w-4 h-4" />}
           variant="purple"
+          size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
           tooltip="Nas vendas do carrinho, cada produto diferente conta como uma nova venda."
@@ -971,32 +973,36 @@ export default function MercadoLivre() {
                 })
               : "—"
           }
-          icon={<Tag className="w-5 h-5" />}
+          icon={<Tag className="w-4 h-4" />}
           variant="orange"
+          size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
         />
         <KPICard
           title="Visitas Únicas"
           value={effectiveMetrics ? effectiveMetrics.unique_visits.toLocaleString("pt-BR") : "—"}
-          icon={<Eye className="w-5 h-5" />}
+          icon={<Eye className="w-4 h-4" />}
           variant="default"
+          size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
         />
         <KPICard
           title="Compradores"
           value={effectiveMetrics ? effectiveMetrics.unique_buyers.toLocaleString("pt-BR") : "—"}
-          icon={<Users className="w-5 h-5" />}
+          icon={<Users className="w-4 h-4" />}
           variant="default"
+          size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
         />
         <KPICard
           title="Conversão"
           value={effectiveMetrics ? `${effectiveMetrics.conversion_rate.toFixed(2)}%` : "—"}
-          icon={<Percent className="w-5 h-5" />}
+          icon={<Percent className="w-4 h-4" />}
           variant="success"
+          size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
         />

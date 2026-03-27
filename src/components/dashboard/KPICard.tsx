@@ -26,6 +26,7 @@ interface KPICardProps {
   valueDecimals?: number;
   progressValue?: number;
   tooltip?: string;
+  size?: "default" | "compact";
 }
 
 const variantStyles: Record<CardVariant, { icon: string; trend: string; card: string }> = {
@@ -59,6 +60,7 @@ export function KPICard({
   progressValue,
   tooltip,
   iconClassName,
+  size = "default",
 }: KPICardProps) {
   const displayValue = value;
 
@@ -81,9 +83,9 @@ export function KPICard({
 
   return (
     <Card className={cn(styles.card, refreshing && "animate-pulse opacity-60 transition-opacity duration-300", className)}>
-      <CardContent className="p-4 flex gap-4">
+      <CardContent className={cn(size === "compact" ? "p-3" : "p-4", "flex gap-4")}>
         <div className="flex-1 min-w-0">
-          <span className="text-sm font-medium text-muted-foreground inline-flex items-center gap-1">
+          <span className={cn("font-medium text-muted-foreground inline-flex items-center gap-1", size === "compact" ? "text-xs" : "text-sm")}>
             {title}
             {tooltip && (
               <TooltipProvider>
@@ -98,7 +100,7 @@ export function KPICard({
               </TooltipProvider>
             )}
           </span>
-          <p className="text-[1.65rem] font-bold leading-tight">{displayValue}</p>
+          <p className={cn("font-bold leading-tight", size === "compact" ? "text-lg" : "text-[1.65rem]")}>{displayValue}</p>
           {subtitleNode ? subtitleNode : subtitle ? (
             <span className="text-xs text-muted-foreground">{subtitle}</span>
           ) : null}
@@ -142,7 +144,11 @@ export function KPICard({
         )}
         </div>
         {icon && (
-          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 self-center", iconClassName || styles.icon)}>
+          <div className={cn(
+            "rounded-xl flex items-center justify-center shrink-0 self-center",
+            size === "compact" ? "w-8 h-8" : "w-10 h-10",
+            iconClassName || styles.icon
+          )}>
             {icon}
           </div>
         )}
