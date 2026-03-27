@@ -806,8 +806,19 @@ export default function MercadoLivre() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <MLPageHeader title="Vendas" lastUpdated={useRealData && lastSyncedAt ? new Date(lastSyncedAt) : null} />
+        <div className="hidden md:block w-full max-w-[200px]">
+          <KPICard
+            title="Receita Total"
+            value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
+            icon={<DollarSign className="w-5 h-5" />}
+            variant="default"
+            loading={effectiveLoading}
+            refreshing={effectiveSyncing}
+            subtitle={periodLabel}
+          />
+        </div>
         <div className="flex items-center gap-2 flex-wrap">
           {isML && <MLStoreSelector />}
           <Popover
@@ -925,7 +936,8 @@ export default function MercadoLivre() {
         </Card>
       )}
 
-      <div className="max-w-xs mx-auto">
+      {/* Receita Total visível apenas em mobile (em desktop fica no header) */}
+      <div className="md:hidden">
         <KPICard
           title="Receita Total"
           value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
@@ -934,7 +946,6 @@ export default function MercadoLivre() {
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
           subtitle={periodLabel}
-          className=""
         />
       </div>
 
