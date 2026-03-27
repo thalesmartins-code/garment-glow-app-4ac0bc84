@@ -755,6 +755,21 @@ export default function MercadoLivre() {
     return m;
   }, [effectiveDaily]);
 
+  // Per-marketplace hourly data for "Todos" grid view
+  const perMarketplaceHourly = useMemo(() => {
+    if (!isAll) return null;
+    const mpList = [
+      { id: "mercado-livre", name: "Mercado Livre", data: hourly },
+      { id: "amazon", name: "Amazon", data: getMarketplaceHourlyData("amazon") },
+      { id: "shopee", name: "Shopee", data: getMarketplaceHourlyData("shopee") },
+      { id: "magalu", name: "Magalu", data: getMarketplaceHourlyData("magalu") },
+    ];
+    return mpList.map((mp) => ({
+      ...mp,
+      chartData: buildHourlyChartData(mp.data),
+    }));
+  }, [isAll, hourly]);
+
   if (isML && !loading && !connected) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
