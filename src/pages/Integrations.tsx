@@ -891,24 +891,22 @@ export default function Integrations() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 w-7 p-0"
                                 onClick={() => handleResetStoreName(store.ml_user_id)}
                                 title="Voltar ao nome padrão"
                               >
-                                <X className="h-3 w-3 text-muted-foreground" />
+                                <X className="w-4 h-4" />
                               </Button>
                             )}
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-7 w-7 p-0"
                               onClick={() => {
                                 setEditingStoreId(store.ml_user_id);
                                 setEditingStoreName(store.custom_name || store.nickname || "");
                               }}
                               title="Renomear loja"
                             >
-                              <Pencil className="h-3 w-3 text-muted-foreground" />
+                              <Pencil className="w-4 h-4" />
                             </Button>
                           </>
                         )}
