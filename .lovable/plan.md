@@ -1,25 +1,22 @@
 
 
-## Plan: Botão expansível com receita por marketplace abaixo do card Receita Total
+## Plan: Animação suave com framer-motion nos mini-cards
 
 ### O que será feito
-Quando "Todos" estiver selecionado, um pequeno botão (ícone chevron) aparecerá abaixo do card "Receita Total" no header. Ao clicar, uma linha de mini-cards se expande mostrando a receita total de cada marketplace individual, cada um com a cor temática do respectivo marketplace.
+Substituir a renderização condicional simples dos mini-cards por `AnimatePresence` e `motion.div` do framer-motion, adicionando animação de expansão/fade suave ao abrir e fechar.
 
 ### Detalhes técnicos
 
 **Arquivo:** `src/pages/MercadoLivre.tsx`
 
-1. Criar um `useMemo` `perMarketplaceRevenue` que calcula a receita total de cada marketplace individualmente (ML real + mocks dos demais), retornando array com `{ id, name, icon, color, revenue }`.
+1. Importar `motion, AnimatePresence` de `framer-motion`.
 
-2. Adicionar estado `showMpBreakdown` (boolean, default false).
+2. Envolver o grid dos mini-cards (linhas 873-888) com `<AnimatePresence>` e substituir a `<div>` do grid por `<motion.div>` com:
+   - `initial={{ opacity: 0, height: 0 }}`
+   - `animate={{ opacity: 1, height: "auto" }}`
+   - `exit={{ opacity: 0, height: 0 }}`
+   - `transition={{ duration: 0.3, ease: "easeInOut" }}`
+   - `className` com `overflow-hidden` adicionado
 
-3. No bloco do header (linhas ~830-843), abaixo do `<div className="w-72">` que contém o KPICard de Receita Total, adicionar condicionalmente (quando `isAll`):
-   - Um botão pequeno centralizado com ícone `ChevronDown`/`ChevronUp` que alterna `showMpBreakdown`.
-   - Quando expandido, renderizar um grid de 4 mini-cards (um por marketplace), cada um com:
-     - Fundo em gradiente usando a cor do marketplace (amarelo/âmbar para ML, laranja para Amazon, laranja-vermelho para Shopee, azul para Magalu).
-     - Ícone do marketplace (Handshake, ShoppingBag, Store, Building2).
-     - Nome abreviado e valor formatado em BRL.
-     - Estilo compacto (texto pequeno, padding reduzido).
-
-4. Os mini-cards usarão as mesmas cores definidas em `MarketplaceContext` (`from-yellow-500 to-amber-500`, etc.) aplicadas como fundo com opacidade.
+3. Cada mini-card individual também será `<motion.div>` com stagger via `transition.delay` baseado no índice (`index * 0.05`), animando de `scale: 0.8, opacity: 0` para `scale: 1, opacity: 1`.
 
