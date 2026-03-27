@@ -36,6 +36,8 @@ import {
   ShoppingBag,
   Store,
   Building2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   ComposedChart,
