@@ -1,58 +1,31 @@
 
 
-## Diagnóstico e Plano: Sincronização com dias faltantes + Registro de sincronização
+## Diagnóstico: Por que dados de dias anteriores desaparecem
 
-### Problema identificado
+### Causa raiz encontrada
 
-Após análise minuciosa do código, identifiquei **3 causas raiz** para dias faltando intermitentemente:
+A **API de visitas** retorna dados para datas **fora** do range do chunk. Os logs confirmam: `"daily visit rows: 3"` para um chunk de 1 dia.
 
-1. **Inconsistência de timezone nas datas**: Na `syncFromAPI`, `fromDateStr` e `toDateStr` usam `toISOString().substring(0,10)` (que converte para UTC), mas os chunks usam `format(chunkStart, "yyyy-MM-dd")` (que usa horário local/BRT). Se o fuso do navegador não for exatamente UTC-3, as datas podem divergir em 1 dia.
-
-2. **Dados de visitas "vazam" entre chunks**: A Edge Function busca visitas com a API `items_visits/time_window` que pode retornar datas fora do range do chunk. Quando o chunk seguinte roda, ele faz upsert para a mesma data mas sem as visitas do chunk anterior — sobrescrevendo com dados incompletos.
-
-3. **`loadFromCache` sem filtro de data**: Carrega as últimas 1000 linhas do `ml_daily_cache` sem filtrar pelo período selecionado. Se o usuário tiver muitos dados históricos, datas antigas podem empurrar as mais recentes para fora do limite de 1000.
-
-### Plano de implementação
-
-#### 1. Corrigir a sincronização (MercadoLivre.tsx)
-- Usar `format()` do date-fns de forma consistente em vez de `toISOString().substring(0,10)` para eliminar divergência de timezone
-- Mudar `SYNC_CHUNK_DAYS` de 2 para **1** (chunk diário) — isso elimina completamente o problema de sobreposição de datas entre chunks e é mais seguro para sellers de alto volume
-- Adicionar filtro de data em `loadFromCache` usando `.gte("date", fromDate).lte("date", toDate)` para evitar o limite de 1000 linhas
-
-#### 2. Criar tabela `ml_sync_log` (migration)
-Nova tabela para registrar cada sincronização realizada:
+No código da Edge Function (linhas 356-371), quando visits retorna uma data fora do chunk (ex: 03/25 no chunk de 03/26), ela **cria uma entrada diária vazia** para essa data com `total=0, qty=0` mas com visitas. Essa entrada é então salva via upsert, **sobrescrevendo** os dados reais desse dia que foram gravados pelo chunk correto anterior.
 
 ```text
-ml_sync_log
-├── id (uuid, PK)
-├── user_id (uuid, NOT NULL)
-├── ml_user_id (text, NOT NULL)
-├── date_from (date, NOT NULL)
-├── date_to (date, NOT NULL)
-├── days_synced (integer, NOT NULL)
-├── orders_fetched (integer, DEFAULT 0)
-├── source (text: 'auto' | 'manual' | 'historical')
-├── synced_at (timestamptz, DEFAULT now())
+Fluxo do bug:
+1. Chunk 03/25 roda → grava 03/25 com receita R$50k ✓
+2. Chunk 03/26 roda → visits API retorna dados de 03/25 e 03/26
+   → Cria dailySales["2026-03-25"] = {total:0, visits:X}
+   → Upsert SOBRESCREVE 03/25 com receita R$0 ✗
+3. Resultado: dia 25 aparece zerado no gráfico
 ```
 
-Com unique constraint em `(user_id, ml_user_id, date_from, date_to)` para upsert e RLS igual às demais tabelas ML (user can CRUD own rows).
+### Correção
 
-#### 3. Registrar sincronizações na Edge Function
-Após salvar os dados no cache, inserir/atualizar um registro no `ml_sync_log` com o range sincronizado e a contagem de pedidos.
+**Edge Function** (`supabase/functions/mercado-libre-integration/index.ts`):
+- Filtrar `dailyVisits` para incluir apenas datas dentro do range solicitado (`date_from` a `date_to`) antes de mesclar no `dailySales`
+- Filtrar também os pedidos para garantir que apenas datas BRT dentro do range gerem entradas no `dailySales`
+- Isso impede que o upsert sobrescreva dados de outros dias com valores zerados
 
-#### 4. Registrar sincronizações no frontend (Historical Sync)
-O `HistoricalSyncModal` também salva no `ml_sync_log` após cada chunk importado com sucesso, com `source = 'historical'`.
-
-#### 5. Exibir cobertura de sincronização no cabeçalho (MLPageHeader)
-- Adicionar badge/texto abaixo de "Última sinc" mostrando os períodos sincronizados
-- Consultar `ml_sync_log` para o usuário e loja selecionada
-- Exibir de forma compacta, ex: `Sincronizado: 20/03 a 27/03 (auto) · Jan-Mar 2026 (histórico)`
-- Tooltip com detalhes ao passar o mouse (data da sinc, pedidos, etc.)
+Mudança concreta (linhas ~356-371): ao iterar `dailyVisits`, pular datas onde `date < date_from` ou `date > date_to`. Mesmo tratamento para pedidos com datas BRT fora do range.
 
 ### Arquivos afetados
-- `src/pages/MercadoLivre.tsx` — fix de timezone, chunk diário, filtro de data no cache
-- `supabase/functions/mercado-libre-integration/index.ts` — salvar no `ml_sync_log`
-- `src/components/mercadolivre/HistoricalSyncModal.tsx` — salvar no `ml_sync_log`
-- `src/components/mercadolivre/MLPageHeader.tsx` — exibir cobertura de sinc
-- Nova migration SQL — criar tabela `ml_sync_log` com RLS
+- `supabase/functions/mercado-libre-integration/index.ts` — filtrar visits e orders por range antes de salvar
 
