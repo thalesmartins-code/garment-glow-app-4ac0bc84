@@ -934,7 +934,7 @@ export default function MercadoLivre() {
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
           subtitle={periodLabel}
-          className="shadow-sm border"
+          className=""
         />
       </div>
 
