@@ -1,0 +1,1 @@
+ALTER TABLE public.ml_user_cache ADD COLUMN IF NOT EXISTS custom_name TEXT;

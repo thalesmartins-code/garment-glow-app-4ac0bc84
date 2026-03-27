@@ -183,6 +183,7 @@ export type Database = {
         Row: {
           active_listings: number
           country: string | null
+          custom_name: string | null
           ml_user_id: number
           nickname: string | null
           permalink: string | null
@@ -192,6 +193,7 @@ export type Database = {
         Insert: {
           active_listings?: number
           country?: string | null
+          custom_name?: string | null
           ml_user_id: number
           nickname?: string | null
           permalink?: string | null
@@ -201,6 +203,7 @@ export type Database = {
         Update: {
           active_listings?: number
           country?: string | null
+          custom_name?: string | null
           ml_user_id?: number
           nickname?: string | null
           permalink?: string | null

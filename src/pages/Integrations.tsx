@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useMLStore } from "@/contexts/MLStoreContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,9 @@ import {
   Tag,
   TrendingUp,
   Store,
+  Pencil,
+  Check as CheckIcon,
+  X,
 } from "lucide-react";
 
 interface MarketplaceIntegration {
@@ -142,6 +146,7 @@ const statusConfig = {
 
 export default function Integrations() {
   const { selectedSeller } = useSeller();
+  const { stores: mlStores, refresh: refreshMLStores } = useMLStore();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [integrations, setIntegrations] = useState(() => {
@@ -165,6 +170,8 @@ export default function Integrations() {
   const [disconnectPassword, setDisconnectPassword] = useState("");
   const [disconnecting, setDisconnecting] = useState(false);
   const [disconnectError, setDisconnectError] = useState("");
+  const [editingStoreId, setEditingStoreId] = useState<string | null>(null);
+  const [editingStoreName, setEditingStoreName] = useState("");
   const [mlMetrics, setMlMetrics] = useState<{
     total_revenue: number;
     approved_revenue: number;
@@ -655,6 +662,24 @@ export default function Integrations() {
     }
   };
 
+  const handleRenameStore = async (mlUserId: string) => {
+    if (!editingStoreName.trim()) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase
+        .from("ml_user_cache")
+        .update({ custom_name: editingStoreName.trim() } as any)
+        .eq("user_id", user.id)
+        .eq("ml_user_id", Number(mlUserId));
+      setEditingStoreId(null);
+      setEditingStoreName("");
+      await refreshMLStores();
+      toast({ title: "Nome atualizado!", description: "O nome da loja foi alterado com sucesso." });
+    } catch (e) {
+      toast({ title: "Erro", description: "Não foi possível renomear a loja.", variant: "destructive" });
+    }
+  };
 
   const sellerMarketplaces = selectedSeller?.activeMarketplaces?.filter((id) => id !== "total") || [];
   const filteredIntegrations = integrations.filter((i) => sellerMarketplaces.includes(i.id));
@@ -811,6 +836,54 @@ export default function Integrations() {
                     </Badge>
                   ))}
                 </div>
+
+                {/* ML connected stores list with rename */}
+                {integration.id === "ml" && isConnected && mlStores.length > 0 && (
+                  <div className="space-y-2 pt-2 border-t border-border">
+                    <p className="text-xs font-medium text-muted-foreground">Lojas conectadas ({mlStores.length})</p>
+                    {mlStores.map((store) => (
+                      <div key={store.ml_user_id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-yellow-500 to-amber-500">
+                          <Store className="h-3 w-3 text-white" />
+                        </div>
+                        {editingStoreId === store.ml_user_id ? (
+                          <>
+                            <Input
+                              value={editingStoreName}
+                              onChange={(e) => setEditingStoreName(e.target.value)}
+                              className="h-7 text-xs flex-1"
+                              placeholder="Nome da loja"
+                              onKeyDown={(e) => e.key === "Enter" && handleRenameStore(store.ml_user_id)}
+                              autoFocus
+                            />
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleRenameStore(store.ml_user_id)}>
+                              <CheckIcon className="h-3.5 w-3.5 text-emerald-500" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setEditingStoreId(null)}>
+                              <X className="h-3.5 w-3.5 text-muted-foreground" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-xs font-medium flex-1 truncate">{store.displayName}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() => {
+                                setEditingStoreId(store.ml_user_id);
+                                setEditingStoreName(store.custom_name || store.nickname || "");
+                              }}
+                              title="Renomear loja"
+                            >
+                              <Pencil className="h-3 w-3 text-muted-foreground" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="flex items-center gap-2 pt-2 border-t border-border">
                   {isConnected ? (
