@@ -1,23 +1,25 @@
 
 
-## Plano: Destacar card Receita Total com estilo minimalista
+## Plan: Botão expansível com receita por marketplace abaixo do card Receita Total
 
-### O que muda
+### O que será feito
+Quando "Todos" estiver selecionado, um pequeno botão (ícone chevron) aparecerá abaixo do card "Receita Total" no header. Ao clicar, uma linha de mini-cards se expande mostrando a receita total de cada marketplace individual, cada um com a cor temática do respectivo marketplace.
 
-Aplicar 3 efeitos sutis ao card de Receita Total no header (desktop) e na versão mobile:
+### Detalhes técnicos
 
-1. **Fundo com gradiente suave** — Gradiente linear de `primary/5` para transparente no card
-2. **Tipografia diferenciada** — Valor com cor `primary` e título com `font-semibold`
-3. **Glow/sombra colorida** — `shadow` com tom azulado usando `ring` ou `shadow-[0_0_15px_hsl(var(--primary)/0.15)]`
+**Arquivo:** `src/pages/MercadoLivre.tsx`
 
-### Arquivo editado
+1. Criar um `useMemo` `perMarketplaceRevenue` que calcula a receita total de cada marketplace individualmente (ML real + mocks dos demais), retornando array com `{ id, name, icon, color, revenue }`.
 
-**`src/pages/MercadoLivre.tsx`** — Atualizar o `className` do KPICard de Receita Total:
+2. Adicionar estado `showMpBreakdown` (boolean, default false).
 
-- Adicionar classes de gradiente: `bg-gradient-to-r from-primary/5 to-transparent`
-- Adicionar sombra colorida: `shadow-[0_0_12px_hsl(var(--primary)/0.12)]`
-- Adicionar destaque tipográfico: `[&_p]:text-primary` (valor em cor primária) e `[&_span]:font-semibold` (título mais forte)
-- Aplicar as mesmas alterações na versão mobile do card
+3. No bloco do header (linhas ~830-843), abaixo do `<div className="w-72">` que contém o KPICard de Receita Total, adicionar condicionalmente (quando `isAll`):
+   - Um botão pequeno centralizado com ícone `ChevronDown`/`ChevronUp` que alterna `showMpBreakdown`.
+   - Quando expandido, renderizar um grid de 4 mini-cards (um por marketplace), cada um com:
+     - Fundo em gradiente usando a cor do marketplace (amarelo/âmbar para ML, laranja para Amazon, laranja-vermelho para Shopee, azul para Magalu).
+     - Ícone do marketplace (Handshake, ShoppingBag, Store, Building2).
+     - Nome abreviado e valor formatado em BRL.
+     - Estilo compacto (texto pequeno, padding reduzido).
 
-Resultado: destaque visual sutil e consistente com o design system existente, sem adicionar novos componentes ou variantes.
+4. Os mini-cards usarão as mesmas cores definidas em `MarketplaceContext` (`from-yellow-500 to-amber-500`, etc.) aplicadas como fundo com opacidade.
 
