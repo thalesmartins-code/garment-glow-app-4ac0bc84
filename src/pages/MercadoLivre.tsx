@@ -874,11 +874,11 @@ export default function MercadoLivre() {
                   {perMarketplaceRevenue.map((mp) => (
                     <div
                       key={mp.id}
-                      className={`flex flex-col items-center gap-1 rounded-lg bg-gradient-to-br ${mp.color} bg-opacity-10 p-2 min-w-[80px]`}
-                      style={{ background: undefined }}
+                      className="flex flex-col items-center gap-1 rounded-lg border bg-card/50 p-2 min-w-[80px]"
                     >
                       <div className={`flex items-center justify-center rounded-md bg-gradient-to-br ${mp.color} p-1.5 text-white`}>
                         <mp.icon className="h-3.5 w-3.5" />
+                      </div>
                       </div>
                       <span className="text-[10px] font-medium text-muted-foreground">{mp.name}</span>
                       <span className="text-xs font-bold text-foreground">{currencyFmt(mp.revenue)}</span>
