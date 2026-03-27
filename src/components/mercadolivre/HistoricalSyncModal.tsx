@@ -8,25 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
-interface DailyBreakdown {
-  date: string;
-  total: number;
-  approved: number;
-  qty: number;
-  units_sold: number;
-  cancelled: number;
-  shipped: number;
-  unique_visits: number;
-  unique_buyers: number;
-}
-
-interface HourlyBreakdown {
-  date: string;
-  hour: number;
-  total: number;
-  approved: number;
-  qty: number;
-}
 
 interface ImportSummary {
   totalDays: number;
@@ -39,7 +20,7 @@ interface ImportSummary {
 interface Props {
   accessToken: string | null;
   onSyncComplete: () => void;
-  saveToCache?: (dailyData: DailyBreakdown[], hourlyData?: HourlyBreakdown[]) => Promise<void>;
+  mlUserId?: string;
 }
 
 const MONTHS = [
@@ -56,7 +37,20 @@ function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-export function HistoricalSyncModal({ accessToken, onSyncComplete, saveToCache }: Props) {
+/** Format a local Date to "yyyy-MM-dd" without UTC conversion. */
+function toDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Last day of month for a given year/month (0-indexed). */
+function lastDayOfMonth(year: number, month: number): Date {
+  return new Date(year, month + 1, 0);
+}
+
+export function HistoricalSyncModal({ accessToken, mlUserId, onSyncComplete }: Props) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -71,6 +65,22 @@ export function HistoricalSyncModal({ accessToken, onSyncComplete, saveToCache }
   const [hasError, setHasError] = useState(false);
 
   const years = getYearOptions();
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth(); // 0-indexed
+
+  // Preview of the effective date range (respecting today cap)
+  const previewRange = (() => {
+    if (!fromMonth || !toMonth) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const from = new Date(Number(fromYear), Number(fromMonth), 1);
+    const rawTo = lastDayOfMonth(Number(toYear), Number(toMonth));
+    const to = rawTo > today ? today : rawTo;
+    if (from > to) return null;
+    const fmt = (d: Date) =>
+      `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+    return `${fmt(from)} → ${fmt(to)}`;
+  })();
 
   const resetState = () => {
     setSummary(null);
@@ -82,35 +92,34 @@ export function HistoricalSyncModal({ accessToken, onSyncComplete, saveToCache }
   const handleSync = async () => {
     if (!fromMonth || !toMonth || !accessToken || !user) return;
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const from = new Date(Number(fromYear), Number(fromMonth), 1);
-    const toMonthNum = Number(toMonth);
-    const toYearNum = Number(toYear);
-    const to = new Date(toYearNum, toMonthNum + 1, 0);
+    // Cap "to" at today so we never request future dates
+    const rawTo = lastDayOfMonth(Number(toYear), Number(toMonth));
+    const to = rawTo > today ? today : rawTo;
 
     if (from > to) {
       toast({ title: "Erro", description: "O período inicial deve ser anterior ao final.", variant: "destructive" });
       return;
     }
 
-    if (from > new Date()) {
-      toast({ title: "Erro", description: "Não é possível importar dados futuros.", variant: "destructive" });
-      return;
-    }
 
     setSyncing(true);
     resetState();
 
     const monthChunks: Array<{ date_from: string; date_to: string; label: string }> = [];
-    let cursor = new Date(from);
+    let cursor = new Date(from.getFullYear(), from.getMonth(), 1);
 
     while (cursor <= to) {
       const chunkStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-      const chunkEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0);
+      const chunkEnd = lastDayOfMonth(cursor.getFullYear(), cursor.getMonth());
       const finalEnd = chunkEnd > to ? to : chunkEnd;
 
       monthChunks.push({
-        date_from: chunkStart.toISOString().substring(0, 10),
-        date_to: finalEnd.toISOString().substring(0, 10),
+        date_from: toDateStr(chunkStart),
+        date_to: toDateStr(finalEnd),
         label: `${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`,
       });
 
@@ -144,53 +153,32 @@ export function HistoricalSyncModal({ accessToken, onSyncComplete, saveToCache }
         if (error) throw error;
         if (!data?.success) throw new Error(data?.error || `Falha ao importar ${chunk.label}`);
 
-        const dailyData: DailyBreakdown[] = (data.daily_breakdown || []).map((d: any) => ({
-          date: d.date,
-          total: Number(d.total ?? 0),
-          approved: Number(d.approved ?? 0),
-          qty: Number(d.qty ?? 0),
-          units_sold: Number(d.units_sold ?? d.qty ?? 0),
-          cancelled: Number(d.cancelled || 0),
-          shipped: Number(d.shipped || 0),
-          unique_visits: Number(d.unique_visits || 0),
-          unique_buyers: Number(d.unique_buyers || 0),
-        }));
+        // ml_user_id: use edge function response first, then prop fallback
+        const resolvedMlUserId = String(data.user?.id ?? mlUserId ?? "");
+        const dailyData: any[] = data.daily_breakdown || [];
+        const ordersCount = dailyData.reduce((s, d) => s + Number(d.qty ?? 0), 0);
 
-        const hourlyData: HourlyBreakdown[] = (data.hourly_breakdown || []).map((d: any) => ({
-          date: d.date,
-          hour: Number(d.hour ?? 0),
-          total: Number(d.total ?? 0),
-          approved: Number(d.approved ?? 0),
-          qty: Number(d.qty ?? 0),
-        }));
-
-        // Accumulate summary
         accumulated.monthsImported += 1;
         accumulated.totalDays += dailyData.length;
-        accumulated.totalOrders += dailyData.reduce((s, d) => s + d.qty, 0);
-        accumulated.totalRevenue += dailyData.reduce((s, d) => s + d.total, 0);
-        accumulated.totalApproved += dailyData.reduce((s, d) => s + d.approved, 0);
+        accumulated.totalOrders += ordersCount;
+        accumulated.totalRevenue += dailyData.reduce((s, d) => s + Number(d.total ?? 0), 0);
+        accumulated.totalApproved += dailyData.reduce((s, d) => s + Number(d.approved ?? 0), 0);
 
-        if (saveToCache && (dailyData.length > 0 || hourlyData.length > 0)) {
-          await saveToCache(dailyData, hourlyData);
-        }
-
-        // Log to ml_sync_log
-        if (user) {
-          await supabase.from("ml_sync_log" as any).upsert(
-            {
-              user_id: user.id,
-              ml_user_id: "",
-              date_from: chunk.date_from,
-              date_to: chunk.date_to,
-              days_synced: dailyData.length,
-              orders_fetched: dailyData.reduce((s, d) => s + d.qty, 0),
-              source: "historical",
-              synced_at: new Date().toISOString(),
-            },
-            { onConflict: "user_id,ml_user_id,date_from,date_to,source" },
-          );
-        }
+        // Edge function already upserts cache tables.
+        // Only record this sync in ml_sync_log.
+        await supabase.from("ml_sync_log" as any).upsert(
+          {
+            user_id: user.id,
+            ml_user_id: resolvedMlUserId,
+            date_from: chunk.date_from,
+            date_to: chunk.date_to,
+            days_synced: dailyData.length,
+            orders_fetched: ordersCount,
+            source: "historical",
+            synced_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id,ml_user_id,date_from,date_to,source" },
+        );
       }
 
       setProgressPercent(100);
@@ -227,44 +215,47 @@ export function HistoricalSyncModal({ accessToken, onSyncComplete, saveToCache }
         <div className="grid grid-cols-2 gap-4 mt-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">De</label>
-            <Select value={fromMonth} onValueChange={setFromMonth}>
-              <SelectTrigger><SelectValue placeholder="Mês" /></SelectTrigger>
-              <SelectContent>
-                {MONTHS.map((m, i) => (
-                  <SelectItem key={i} value={String(i)}>{m}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <Select value={fromYear} onValueChange={setFromYear}>
               <SelectTrigger><SelectValue placeholder="Ano" /></SelectTrigger>
               <SelectContent>
-                {years.map((y) => (
-                  <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                ))}
+                {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={fromMonth} onValueChange={setFromMonth}>
+              <SelectTrigger><SelectValue placeholder="Mês" /></SelectTrigger>
+              <SelectContent>
+                {MONTHS.map((m, i) => {
+                  const isFuture = Number(fromYear) === currentYear && i > currentMonth;
+                  return <SelectItem key={i} value={String(i)} disabled={isFuture}>{m}</SelectItem>;
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Até</label>
+            <Select value={toYear} onValueChange={setToYear}>
+              <SelectTrigger><SelectValue placeholder="Ano" /></SelectTrigger>
+              <SelectContent>
+                {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={toMonth} onValueChange={setToMonth}>
+              <SelectTrigger><SelectValue placeholder="Mês" /></SelectTrigger>
+              <SelectContent>
+                {MONTHS.map((m, i) => {
+                  const isFuture = Number(toYear) === currentYear && i > currentMonth;
+                  return <SelectItem key={i} value={String(i)} disabled={isFuture}>{m}</SelectItem>;
+                })}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Até</label>
-            <Select value={toMonth} onValueChange={setToMonth}>
-              <SelectTrigger><SelectValue placeholder="Mês" /></SelectTrigger>
-              <SelectContent>
-                {MONTHS.map((m, i) => (
-                  <SelectItem key={i} value={String(i)}>{m}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={toYear} onValueChange={setToYear}>
-              <SelectTrigger><SelectValue placeholder="Ano" /></SelectTrigger>
-              <SelectContent>
-                {years.map((y) => (
-                  <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
+        {previewRange && (
+          <p className="text-xs text-muted-foreground mt-2 text-center">
+            Período a importar: <span className="font-medium text-foreground">{previewRange}</span>
+          </p>
+        )}
 
         {/* Progress bar */}
         {(syncing || progressPercent > 0) && (
