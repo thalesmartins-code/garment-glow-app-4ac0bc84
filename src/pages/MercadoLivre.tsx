@@ -809,9 +809,11 @@ export default function MercadoLivre() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <MLPageHeader title="Vendas" lastUpdated={useRealData && lastSyncedAt ? new Date(lastSyncedAt) : null} />
-        <div className="hidden md:flex flex-1 justify-center">
+      <div className="flex items-center gap-4">
+        <div className="flex-1 min-w-0">
+          <MLPageHeader title="Vendas" lastUpdated={useRealData && lastSyncedAt ? new Date(lastSyncedAt) : null} />
+        </div>
+        <div className="hidden md:flex flex-shrink-0 justify-center">
           <div className="w-full max-w-xs">
             <KPICard
               title="Receita Total"
@@ -825,7 +827,7 @@ export default function MercadoLivre() {
             />
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex-1 min-w-0 flex items-center justify-end gap-2 flex-wrap">
           {isML && <MLStoreSelector />}
           <Popover
             open={popoverOpen}
