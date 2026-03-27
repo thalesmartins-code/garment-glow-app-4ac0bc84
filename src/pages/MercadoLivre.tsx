@@ -373,7 +373,7 @@ export default function MercadoLivre() {
     [user, isHourlyAvailable, hourlyTargetDate, selectedStore],
   );
 
-  const loadFromCache = useCallback(async (): Promise<boolean> => {
+  const loadFromCache = useCallback(async (overrideFrom?: string, overrideTo?: string): Promise<boolean> => {
     if (!user) return false;
 
     let userCacheQuery = supabase.from("ml_user_cache").select("*").eq("user_id", user.id);
@@ -381,7 +381,11 @@ export default function MercadoLivre() {
       userCacheQuery = userCacheQuery.eq("ml_user_id", Number(selectedStore));
     }
 
-    const { fromDate: filterFrom, toDate: filterTo } = getFilterDates(customRange, period);
+    // Use explicit dates if provided, otherwise derive from current state
+    const { fromDate: stateFrom, toDate: stateTo } = getFilterDates(customRange, period);
+    const filterFrom = overrideFrom ?? stateFrom;
+    const filterTo = overrideTo ?? stateTo;
+
     let dailyCacheQuery = supabase
       .from("ml_daily_cache")
       .select("*")
@@ -587,7 +591,7 @@ export default function MercadoLivre() {
         }
 
         await Promise.all([
-          loadFromCache(),
+          loadFromCache(fromDateStr, toDateStr),
           loadHourlyCache(hourlyDateOverride),
           loadProductCache(fromDateStr, toDateStr),
         ]);
