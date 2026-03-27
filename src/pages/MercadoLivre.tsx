@@ -813,7 +813,6 @@ export default function MercadoLivre() {
             <KPICard
               title="Receita Total"
               value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
-              icon={<DollarSign className="w-5 h-5" />}
               variant="default"
               size="compact"
               loading={effectiveLoading}
