@@ -835,7 +835,7 @@ export default function MercadoLivre() {
             }}
           >
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-7 text-xs">
+              <Button variant="outline" size="sm" className="text-xs">
                 <CalendarIcon className="w-3.5 h-3.5 mr-1" />
                 {periodLabel}
               </Button>
@@ -884,7 +884,6 @@ export default function MercadoLivre() {
                   size="sm"
                   className="h-7 text-xs text-muted-foreground"
                   onClick={() => {
-                    // Limpar: volta para "Hoje" sem fechar o popover
                     setPendingRange(null);
                     setPendingPeriod(0);
                   }}
@@ -904,13 +903,6 @@ export default function MercadoLivre() {
               </div>
             </PopoverContent>
           </Popover>
-          {isML && mlUser?.permalink && (
-            <Button variant="outline" size="sm" asChild>
-              <a href={mlUser.permalink} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-4 h-4 mr-1" /> Perfil ML
-              </a>
-            </Button>
-          )}
           {isML && (
             <HistoricalSyncModal
               accessToken={cachedAccessToken}
