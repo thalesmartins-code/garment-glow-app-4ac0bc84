@@ -894,13 +894,18 @@ export default function MercadoLivre() {
                               transition={{ duration: 0.25, delay: index * 0.05, ease: "easeOut" }}
                             >
                               <Card className="cursor-default">
-                                <CardContent className="p-2 flex flex-col items-center gap-1">
-                                  <div className={`rounded-lg w-7 h-7 flex items-center justify-center bg-gradient-to-br ${mp.color} text-white`}>
+                                <CardContent className="p-2 flex gap-2 items-center">
+                                  <div className="flex-1 min-w-0">
+                                    <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+                                      <mp.icon className="h-3 w-3 shrink-0" />
+                                      <span className="truncate">{mp.name}</span>
+                                    </span>
+                                    <p className="text-sm font-bold leading-tight">{currencyFmt(mp.revenue)}</p>
+                                    <span className="text-[10px] text-muted-foreground">{pct}%</span>
+                                  </div>
+                                  <div className={`rounded-xl w-7 h-7 flex items-center justify-center shrink-0 bg-gradient-to-br ${mp.color} text-white`}>
                                     <mp.icon className="h-3.5 w-3.5" />
                                   </div>
-                                  <span className="text-[10px] font-medium text-muted-foreground leading-tight">{mp.name}</span>
-                                  <p className="text-xs font-bold leading-tight">{currencyFmt(mp.revenue)}</p>
-                                  <span className="text-[10px] text-muted-foreground">{pct}%</span>
                                 </CardContent>
                               </Card>
                             </motion.div>
