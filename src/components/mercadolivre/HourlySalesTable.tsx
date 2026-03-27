@@ -12,6 +12,8 @@ interface HourlyBreakdown {
 
 interface Props {
   hourly: HourlyBreakdown[];
+  title?: string;
+  compact?: boolean;
 }
 
 type SortKey = "hour" | "revenue" | "sales";
