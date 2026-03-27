@@ -995,7 +995,41 @@ export default function MercadoLivre() {
         />
       </div>
 
-      {(dailyChartData.length > 0 || showHourlyChart) && (
+      {/* === Hourly Charts === */}
+      {isAll && perMarketplaceHourly ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {perMarketplaceHourly.map((mp) => (
+            <Card key={mp.id}>
+              <CardHeader className="pb-2 px-4 pt-4">
+                <CardTitle className="text-sm">Venda por Hora — {mp.name}</CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4">
+                <ResponsiveContainer width="100%" height={220}>
+                  <ComposedChart data={mp.chartData}>
+                    <defs>
+                      <linearGradient id={`total-${mp.id}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis yAxisId="revenue" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                    <YAxis yAxisId="orders" orientation="right" allowDecimals={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" />
+                    <RechartsTooltip
+                      formatter={(value: number, name: string) => name === "Pedidos" ? [value, name] : [currencyFmt(Number(value)), name]}
+                      contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }}
+                    />
+                    <Bar yAxisId="orders" dataKey="Pedidos" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} maxBarSize={20} />
+                    <Area yAxisId="revenue" type="monotone" dataKey="Venda Total" stroke="hsl(var(--accent))" fill={`url(#total-${mp.id})`} strokeWidth={2} />
+                    <Line yAxisId="revenue" type="monotone" dataKey="Venda Aprovada" stroke="hsl(var(--success))" strokeWidth={1.5} dot={false} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (dailyChartData.length > 0 || showHourlyChart) ? (
         <Card>
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-base">{chartTitle}</CardTitle>
@@ -1123,27 +1157,39 @@ export default function MercadoLivre() {
             )}
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-        {(useRealData ? isHourlyAvailable : true) &&
-          (effectiveSyncing && effectiveHourly.length === 0 ? (
-            <Card className="flex flex-col h-full">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Venda por Hora</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 flex items-center justify-center py-12">
-                <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                  <p className="text-xs">Carregando dados horários...</p>
-                </div>
-              </CardContent>
-            </Card>
-          ) : effectiveHourly.length > 0 ? (
-            <HourlySalesTable hourly={effectiveHourly} />
-          ) : null)}
-        <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
-      </div>
+      {/* === Hourly Tables === */}
+      {isAll && perMarketplaceHourly ? (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {perMarketplaceHourly.map((mp) => (
+              <HourlySalesTable key={mp.id} hourly={mp.data} title={`Venda por Hora — ${mp.name}`} compact />
+            ))}
+          </div>
+          <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
+        </>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+          {(useRealData ? isHourlyAvailable : true) &&
+            (effectiveSyncing && effectiveHourly.length === 0 ? (
+              <Card className="flex flex-col h-full">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Venda por Hora</CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 flex items-center justify-center py-12">
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <p className="text-xs">Carregando dados horários...</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : effectiveHourly.length > 0 ? (
+              <HourlySalesTable hourly={effectiveHourly} />
+            ) : null)}
+          <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
+        </div>
+      )}
     </div>
   );
 }
