@@ -107,7 +107,7 @@ function todayUTC() {
 function cutoffDateStr(daysBack: number) {
   if (daysBack === 0) return todayUTC();
   const d = new Date();
-  d.setDate(d.getDate() - daysBack + 1);
+  d.setDate(d.getDate() - daysBack);
   return format(d, "yyyy-MM-dd");
 }
 
