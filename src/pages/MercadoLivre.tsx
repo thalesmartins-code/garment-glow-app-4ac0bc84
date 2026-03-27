@@ -811,6 +811,7 @@ export default function MercadoLivre() {
   }, [isAll, daily]);
 
 
+  if (isML && !loading && !connected) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Plug className="w-16 h-16 text-muted-foreground/40" />
