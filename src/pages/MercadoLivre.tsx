@@ -904,7 +904,7 @@ export default function MercadoLivre() {
       <AnimatePresence>
         {syncProgress && (() => {
           const pct = Math.round((syncProgress.current / syncProgress.total) * 100);
-          const barColor = pct >= 100 ? "bg-emerald-500" : pct >= 66 ? "bg-orange-500" : pct >= 33 ? "bg-primary" : "bg-primary";
+          const barColor = pct >= 100 ? "bg-[hsl(142,70%,45%)]" : pct >= 66 ? "bg-[hsl(25,95%,53%)]" : pct >= 33 ? "bg-[hsl(217,70%,45%)]" : "bg-[hsl(217,70%,45%)]";
           return (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -914,7 +914,6 @@ export default function MercadoLivre() {
               className="flex items-center gap-3 px-3 py-1.5 rounded-md border border-border/50 bg-muted/30 text-xs text-muted-foreground"
             >
               <Loader2 className="h-3 w-3 animate-spin shrink-0" />
-              <span>{syncProgress.current}/{syncProgress.total} dias</span>
               <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
                 <div className={`h-full rounded-full transition-all duration-300 ${barColor}`} style={{ width: `${pct}%` }} />
               </div>
