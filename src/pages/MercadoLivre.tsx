@@ -838,7 +838,7 @@ export default function MercadoLivre() {
             }}
           >
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="text-xs">
+              <Button variant="outline" size="sm" className="h-8 text-sm">
                 <CalendarIcon className="w-3.5 h-3.5 mr-1" />
                 {periodLabel}
               </Button>
