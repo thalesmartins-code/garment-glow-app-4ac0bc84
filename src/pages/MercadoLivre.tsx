@@ -818,7 +818,7 @@ export default function MercadoLivre() {
               loading={effectiveLoading}
               refreshing={effectiveSyncing}
               subtitle={periodLabel}
-              className="text-center [&_div]:justify-center [&_span]:justify-center [&_p]:text-center [&>div]:py-1.5 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-[0_0_12px_hsl(var(--primary)/0.12)] border-primary/15 [&_p]:text-2xl [&_p]:font-bold"
+              className="text-center [&_div]:justify-center [&_span]:justify-center [&_p]:text-center [&>div]:py-1.5 bg-gradient-to-br from-[hsl(217,70%,45%)]/10 via-[hsl(217,70%,45%)]/5 to-transparent shadow-[0_0_12px_hsl(217,70%,45%,0.12)] border-[hsl(217,70%,45%)]/15 [&_p]:text-2xl [&_p]:font-bold"
             />
           </div>
         </div>
@@ -938,7 +938,7 @@ export default function MercadoLivre() {
           value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
           icon={<DollarSign className="w-5 h-5" />}
           variant="default"
-          className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-[0_0_12px_hsl(var(--primary)/0.12)] border-primary/15 [&_p]:text-2xl [&_p]:font-bold"
+          className="bg-gradient-to-br from-[hsl(217,70%,45%)]/10 via-[hsl(217,70%,45%)]/5 to-transparent shadow-[0_0_12px_hsl(217,70%,45%,0.12)] border-[hsl(217,70%,45%)]/15 [&_p]:text-2xl [&_p]:font-bold"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
           subtitle={periodLabel}
