@@ -699,16 +699,17 @@ export default function MercadoLivre() {
     void loadProductCache(fromDate, toDate);
   }, [selectedStore]);
 
-  // Recarrega horário E produtos sempre que o filtro mudar
+  // Recarrega diário, horário E produtos sempre que o filtro mudar
   useEffect(() => {
     if (!user) {
       setAllHourly([]);
       return;
     }
     const { fromDate, toDate } = getFilterDates(customRange, period);
+    void loadFromCache(fromDate, toDate);
     void loadHourlyCache();
     void loadProductCache(fromDate, toDate);
-  }, [user, loadHourlyCache, loadProductCache, activeFilterKey]);
+  }, [user, loadFromCache, loadHourlyCache, loadProductCache, activeFilterKey]);
 
   const handleConfirm = useCallback(() => {
     if (pendingRange?.from) {
