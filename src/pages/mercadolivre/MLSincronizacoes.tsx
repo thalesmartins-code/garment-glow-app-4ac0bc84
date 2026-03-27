@@ -95,7 +95,7 @@ export default function MLPedidos() {
 
   return (
     <div className="space-y-6">
-      <MLPageHeader title="Pedidos" />
+      <MLPageHeader title="Sincronizações" />
 
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -116,7 +116,7 @@ export default function MLPedidos() {
               <Package className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total de pedidos</p>
+              <p className="text-sm text-muted-foreground">Total de sincronizações</p>
               <p className="text-2xl font-bold">{totalOrders.toLocaleString("pt-BR")}</p>
             </div>
           </CardContent>
@@ -173,7 +173,7 @@ export default function MLPedidos() {
                       <ArrowUpDown className="h-3.5 w-3.5" />
                     </span>
                   </TableHead>
-                  <TableHead>Pedidos</TableHead>
+                  <TableHead>Sincronizações</TableHead>
                   <TableHead>Dias</TableHead>
                   <TableHead>Origem</TableHead>
                   <TableHead>Sincronizado em</TableHead>
