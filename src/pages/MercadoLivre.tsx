@@ -1173,7 +1173,7 @@ export default function MercadoLivre() {
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {perMarketplaceHourly.map((mp) => (
-              <HourlySalesTable key={mp.id} hourly={mp.data} title={`Venda por Hora — ${mp.name}`} compact />
+              <HourlySalesTable key={mp.id} hourly={mp.data} title={`Venda por Hora — ${mp.name}`} titleIcon={mp.icon} compact />
             ))}
           </div>
           <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
