@@ -805,7 +805,7 @@ export default function MercadoLivre() {
   const chartData = showHourlyChart ? hourlyChartData : dailyChartData;
   const hasData = useRealData ? allDaily.length > 0 || effectiveDaily.length > 0 : effectiveDaily.length > 0;
   const hasHourlyData = effectiveHourly.length > 0;
-  const chartTitle = showHourlyChart ? `Venda por Hora — ${periodLabel}` : `Vendas Diárias — ${periodLabel}`;
+  const chartTitle = showHourlyChart ? `Venda / Hora — ${periodLabel}` : `Vendas Diárias — ${periodLabel}`;
 
   return (
     <div className="space-y-6">
@@ -1026,7 +1026,7 @@ export default function MercadoLivre() {
                 <CardTitle className="text-sm">
                   <span className="inline-flex items-center gap-1.5">
                     {mp.icon}
-                    Venda por Hora — {mp.name}
+                    Venda / Hora — {mp.name}
                   </span>
                 </CardTitle>
               </CardHeader>
@@ -1084,7 +1084,7 @@ export default function MercadoLivre() {
               <div className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center">
                 <p className="text-sm font-medium text-foreground">Sem dados horários para este período</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Sincronize novamente para carregar a visão de venda por hora de Hoje ou dos últimos 7 dias.
+                  Sincronize novamente para carregar a visão de venda / hora de Hoje ou dos últimos 7 dias.
                 </p>
               </div>
             ) : (
@@ -1191,7 +1191,7 @@ export default function MercadoLivre() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
             {perMarketplaceHourly.map((mp) => (
-              <HourlySalesTable key={mp.id} hourly={mp.data} title={`Venda por Hora — ${mp.name}`} titleIcon={mp.icon} compact />
+              <HourlySalesTable key={mp.id} hourly={mp.data} title={`Venda / Hora — ${mp.name}`} titleIcon={mp.icon} compact />
             ))}
           </div>
           <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
@@ -1202,7 +1202,7 @@ export default function MercadoLivre() {
             (effectiveSyncing && effectiveHourly.length === 0 ? (
               <Card className="flex flex-col h-full">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Venda por Hora</CardTitle>
+                  <CardTitle className="text-base">Venda / Hora</CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 flex items-center justify-center py-12">
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
