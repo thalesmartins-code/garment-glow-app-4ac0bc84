@@ -976,8 +976,8 @@ export default function MercadoLivre() {
         <KPICard
           title="Visitas Únicas"
           value={effectiveMetrics ? effectiveMetrics.unique_visits.toLocaleString("pt-BR") : "—"}
-          icon={<Eye className="w-5 h-5" />}
-          variant="info"
+          icon={<Eye className="w-5 h-5 text-blue-500" />}
+          variant="neutral"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
         />
