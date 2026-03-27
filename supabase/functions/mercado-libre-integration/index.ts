@@ -275,7 +275,7 @@ serve(async (req) => {
         }
       }
 
-      if (date && hour !== null && Number.isFinite(hour)) {
+      if (date && date >= brtDateFrom && date <= brtDateTo && hour !== null && Number.isFinite(hour)) {
         const hourlyKey = `${date}-${String(hour).padStart(2, "0")}`;
         if (!hourlySales[hourlyKey]) {
           hourlySales[hourlyKey] = { date, hour, total: 0, approved: 0, qty: 0, units_sold: 0 };
@@ -289,7 +289,7 @@ serve(async (req) => {
       }
 
       // Aggregate product-level sales per day
-      if (date && order.order_items) {
+      if (date && date >= brtDateFrom && date <= brtDateTo && order.order_items) {
         for (const item of order.order_items) {
           const itemId = item.item?.id;
           if (!itemId) continue;
