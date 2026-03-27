@@ -58,7 +58,8 @@ export function KPICard({
   valueDecimals = 0,
   progressValue,
   tooltip,
-}: KPICardProps & { iconClassName?: string }) {
+  iconClassName,
+}: KPICardProps) {
   const displayValue = value;
 
   const styles = variantStyles[variant];
