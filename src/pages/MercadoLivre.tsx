@@ -1001,7 +1001,7 @@ export default function MercadoLivre() {
 
       {/* === Hourly Charts === */}
       {isAll && perMarketplaceHourly ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           {perMarketplaceHourly.map((mp) => (
             <Card key={mp.id}>
               <CardHeader className="pb-2 px-4 pt-4">
@@ -1171,7 +1171,7 @@ export default function MercadoLivre() {
       {/* === Hourly Tables === */}
       {isAll && perMarketplaceHourly ? (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
             {perMarketplaceHourly.map((mp) => (
               <HourlySalesTable key={mp.id} hourly={mp.data} title={`Venda por Hora — ${mp.name}`} titleIcon={mp.icon} compact />
             ))}

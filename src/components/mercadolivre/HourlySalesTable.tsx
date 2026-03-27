@@ -80,10 +80,10 @@ export function HourlySalesTable({ hourly, title, titleIcon, compact }: Props) {
 
   return (
     <Card className="flex flex-col h-full">
-      <CardHeader className={compact ? "pb-2 px-3 pt-3" : "pb-3"}>
+      <CardHeader className={compact ? "pb-1 px-2 pt-2" : "pb-3"}>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className={compact ? "text-sm" : "text-base"}>
+            <CardTitle className={compact ? "text-xs" : "text-base"}>
               <span className="inline-flex items-center gap-1.5">
                 {titleIcon}
                 {title || "Venda por Hora"}
@@ -107,13 +107,13 @@ export function HourlySalesTable({ hourly, title, titleIcon, compact }: Props) {
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 overflow-auto pt-0">
-        <table className="w-full text-sm">
+      <CardContent className={`flex-1 overflow-auto pt-0 ${compact ? "px-2" : ""}`}>
+        <table className={`w-full ${compact ? "text-xs" : "text-sm"}`}>
           <thead className="sticky top-0 bg-card z-10">
             <tr className="border-b border-border">
               <th
-                className="text-left py-2 px-2 font-medium text-muted-foreground cursor-pointer select-none"
-                style={{ width: 80 }}
+                className={`text-left ${compact ? "py-1 px-1.5" : "py-2 px-2"} font-medium text-muted-foreground cursor-pointer select-none`}
+                style={{ width: compact ? 55 : 80 }}
                 onClick={() => handleSort("hour")}
               >
                 <span className="inline-flex items-center gap-1">
@@ -121,7 +121,7 @@ export function HourlySalesTable({ hourly, title, titleIcon, compact }: Props) {
                 </span>
               </th>
               <th
-                className="text-left py-2 px-2 font-medium text-muted-foreground cursor-pointer select-none"
+                className={`text-left ${compact ? "py-1 px-1.5" : "py-2 px-2"} font-medium text-muted-foreground cursor-pointer select-none`}
                 onClick={() => handleSort("revenue")}
               >
                 <span className="inline-flex items-center gap-1">
@@ -129,8 +129,8 @@ export function HourlySalesTable({ hourly, title, titleIcon, compact }: Props) {
                 </span>
               </th>
               <th
-                className="py-2 px-2 font-medium text-muted-foreground cursor-pointer select-none"
-                style={{ width: 80 }}
+                className={`${compact ? "py-1 px-1.5" : "py-2 px-2"} font-medium text-muted-foreground cursor-pointer select-none`}
+                style={{ width: compact ? 50 : 80 }}
                 onClick={() => handleSort("sales")}
               >
                 <span className="inline-flex items-center justify-end gap-1 w-full">
@@ -148,16 +148,16 @@ export function HourlySalesTable({ hourly, title, titleIcon, compact }: Props) {
 
               return (
                 <tr key={h} className="border-b border-border/50">
-                  <td className="py-1.5 px-2 tabular-nums" style={{ width: 80, ...cellStyle }}>
+                  <td className={`${compact ? "py-1 px-1.5" : "py-1.5 px-2"} tabular-nums`} style={{ width: compact ? 55 : 80, ...cellStyle }}>
                     {String(h).padStart(2, "0")}:00
                   </td>
 
-                  <td className="py-1.5 px-2" style={cellStyle}>
+                  <td className={`${compact ? "py-1 px-1.5" : "py-1.5 px-2"}`} style={cellStyle}>
                     {isEmpty ? (
                       <span className="text-muted-foreground">—</span>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="tabular-nums font-medium" style={{ minWidth: "7rem" }}>
+                        <span className="tabular-nums font-medium" style={{ minWidth: compact ? "4.5rem" : "7rem" }}>
                           {currencyFmt(revenue)}
                         </span>
                         <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
@@ -167,7 +167,7 @@ export function HourlySalesTable({ hourly, title, titleIcon, compact }: Props) {
                     )}
                   </td>
 
-                  <td className="py-1.5 px-2 text-right" style={{ width: 80, ...cellStyle }}>
+                  <td className={`${compact ? "py-1 px-1.5" : "py-1.5 px-2"} text-right`} style={{ width: compact ? 50 : 80, ...cellStyle }}>
                     {isEmpty ? (
                       <span className="text-muted-foreground">—</span>
                     ) : (
@@ -180,9 +180,9 @@ export function HourlySalesTable({ hourly, title, titleIcon, compact }: Props) {
           </tbody>
           <tfoot className="border-t-2 border-border bg-muted/50">
             <tr className="font-semibold">
-              <td className="py-2 px-2">Total</td>
-              <td className="py-2 px-2 text-left">{currencyFmt(totalRevenue)}</td>
-              <td className="py-2 px-2 text-right">{totalSales}</td>
+              <td className={`${compact ? "py-1 px-1.5" : "py-2 px-2"}`}>Total</td>
+              <td className={`${compact ? "py-1 px-1.5" : "py-2 px-2"} text-left`}>{currencyFmt(totalRevenue)}</td>
+              <td className={`${compact ? "py-1 px-1.5" : "py-2 px-2"} text-right`}>{totalSales}</td>
             </tr>
           </tfoot>
         </table>
