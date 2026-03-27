@@ -977,7 +977,7 @@ export default function MercadoLivre() {
           title="Visitas Únicas"
           value={effectiveMetrics ? effectiveMetrics.unique_visits.toLocaleString("pt-BR") : "—"}
           icon={<Eye className="w-5 h-5" />}
-          variant="neutral"
+          variant="info"
           loading={effectiveLoading}
           refreshing={effectiveSyncing}
         />
