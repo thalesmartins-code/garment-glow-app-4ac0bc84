@@ -326,6 +326,78 @@ export type Database = {
         }
         Relationships: []
       }
+      shopee_sales: {
+        Row: {
+          avg_order_value: number
+          buyers: number
+          cancelled_orders: number
+          cancelled_revenue: number
+          clicks: number
+          conversion_rate: number
+          date: string
+          existing_buyers: number
+          hour: number | null
+          id: string
+          imported_at: string
+          new_buyers: number
+          orders: number
+          potential_buyers: number
+          repeat_purchase_rate: number
+          returned_orders: number
+          returned_revenue: number
+          revenue: number
+          revenue_without_discounts: number
+          user_id: string
+          visitors: number
+        }
+        Insert: {
+          avg_order_value?: number
+          buyers?: number
+          cancelled_orders?: number
+          cancelled_revenue?: number
+          clicks?: number
+          conversion_rate?: number
+          date: string
+          existing_buyers?: number
+          hour?: number | null
+          id?: string
+          imported_at?: string
+          new_buyers?: number
+          orders?: number
+          potential_buyers?: number
+          repeat_purchase_rate?: number
+          returned_orders?: number
+          returned_revenue?: number
+          revenue?: number
+          revenue_without_discounts?: number
+          user_id: string
+          visitors?: number
+        }
+        Update: {
+          avg_order_value?: number
+          buyers?: number
+          cancelled_orders?: number
+          cancelled_revenue?: number
+          clicks?: number
+          conversion_rate?: number
+          date?: string
+          existing_buyers?: number
+          hour?: number | null
+          id?: string
+          imported_at?: string
+          new_buyers?: number
+          orders?: number
+          potential_buyers?: number
+          repeat_purchase_rate?: number
+          returned_orders?: number
+          returned_revenue?: number
+          revenue?: number
+          revenue_without_discounts?: number
+          user_id?: string
+          visitors?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
