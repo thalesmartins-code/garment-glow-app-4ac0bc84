@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Upload, ShoppingBag, Package, Store, Shirt } from "lucide-react";
+import { Upload, ShoppingBag, Package, Store, Footprints, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFileType } from "@/utils/csvParser";
 import {
