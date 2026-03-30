@@ -1,62 +1,66 @@
 
 
-# Importação de Dados por Marketplace (API)
+# Parser Nativo Shopee — Relatórios Diário e Mensal
 
-## Resumo
+## Análise dos Arquivos
 
-Criar uma nova página de Importação no ambiente de API (`/api/importacao`) com parsers nativos para arquivos exportados da Shopee, Amazon e Magalu. Os dados serão armazenados em tabelas separadas por marketplace no Supabase.
+Ambos os arquivos seguem o mesmo formato CSV com duas seções:
 
-## Dependência: Arquivos de Exemplo
+1. **Linha 1-2**: Resumo do período (cabeçalho + 1 linha agregada)
+2. **Linha 3**: Vazia
+3. **Linha 4+**: Dados detalhados (por hora no diário, por dia no mensal)
 
-Antes de implementar os parsers, preciso receber um arquivo de exemplo de cada plataforma para mapear as colunas corretamente. A estrutura da página e o fluxo de upload podem ser criados agora; os parsers serão finalizados após análise dos arquivos.
+### Colunas relevantes (Produto Pago)
+| Coluna CSV | Campo interno | Tipo |
+|---|---|---|
+| Data | date | string (dd/mm/yyyy ou dd/mm/yyyy HH:mm) |
+| Vendas (BRL) | revenue | number (formato BR: 10.227,04) |
+| Vendas Sem os Descontos da Shopee | revenue_without_discounts | number |
+| Pedidos | orders | number |
+| Vendas por Pedido | avg_order_value | number |
+| Cliques Por Produto | clicks | number |
+| Visitantes | visitors | number |
+| Taxa de Conversão de Pedidos | conversion_rate | percent string |
+| Pedidos Cancelados | cancelled_orders | number |
+| Vendas Canceladas | cancelled_revenue | number |
+| Pedidos Devolvidos / Reembolsados | returned_orders | number |
+| Vendas Devolvidas / Reembolsadas | returned_revenue | number |
+| # de compradores | buyers | number |
+| # de novos compradores | new_buyers | number |
+| # de compradores existentes | existing_buyers | number |
+| # de compradores em potencial | potential_buyers | number |
+| Repetir Índice de Compras | repeat_purchase_rate | percent string |
+
+### Detecção automática do tipo
+- Se a coluna Data contém hora (HH:mm) → relatório diário/horário
+- Se a coluna Data contém apenas dd/mm/yyyy → relatório mensal/diário
 
 ## Etapas
 
-### 1. Criar tabelas no Supabase
+### 1. Criar tabela `shopee_sales` no Supabase
+Colunas baseadas nos campos acima, com `user_id`, `date`, `hour` (nullable para mensal), e todas as métricas. Unique constraint em `(user_id, date, hour)` para permitir upserts. RLS por `user_id = auth.uid()`.
 
-Criar uma tabela por marketplace para armazenar os dados importados:
-- `shopee_sales` - vendas importadas da Shopee
-- `amazon_sales` - vendas importadas da Amazon
-- `magalu_sales` - vendas importadas da Magalu
+### 2. Atualizar parser em `marketplaceParsers.ts`
+Implementar `parseShopeeFile()` que:
+- Pula a seção de resumo (linhas 1-3)
+- Lê os dados detalhados a partir da linha 4
+- Converte números BR (1.234,56 → 1234.56)
+- Converte percentuais (4,57% → 0.0457)
+- Detecta se é horário ou diário pela presença de hora na data
+- Retorna array normalizado de `ParsedImportRow`
 
-Cada tabela terá colunas base (id, user_id, data, receita, pedidos, etc.) mais colunas específicas de cada plataforma (a definir após análise dos arquivos). RLS com acesso por `user_id = auth.uid()`.
+### 3. Atualizar `MLImportacao.tsx`
+- Adicionar colunas extras no preview (visitantes, conversão, cancelados)
+- Conectar botão "Importar" ao Supabase (upsert na `shopee_sales`)
 
-### 2. Criar a página `/api/importacao`
+### 4. Tabelas Amazon e Magalu
+Ficam pendentes até receber os arquivos de exemplo dessas plataformas.
 
-Nova página `src/pages/mercadolivre/MLImportacao.tsx` com:
-- Seletor de marketplace (Shopee, Amazon, Magalu) com ícones
-- Área de upload (drag-and-drop) para CSV/Excel
-- Preview dos dados parseados antes de confirmar
-- Botão de importação que salva no Supabase
-- Histórico de importações por marketplace
-
-### 3. Criar parsers nativos
-
-Um parser por plataforma em `src/utils/marketplaceParsers.ts`:
-- `parseShopeeFile(content)` - mapeia colunas do relatório Shopee
-- `parseAmazonFile(content)` - mapeia colunas do relatório Amazon
-- `parseMagaluFile(content)` - mapeia colunas do relatório Magalu
-
-Cada parser normaliza os dados para um formato interno comum.
-
-### 4. Registrar rotas e navegação
-
-- Adicionar item "Importação" no `ApiSidebar` (ícone Upload)
-- Registrar rota `/api/importacao` no `App.tsx`
-- Adicionar permissão no `roleAccess.ts` para admin e editor
-
-## Arquivos a criar/editar
+## Arquivos
 
 | Arquivo | Ação |
 |---|---|
-| `src/pages/mercadolivre/MLImportacao.tsx` | Criar |
-| `src/utils/marketplaceParsers.ts` | Criar |
-| `src/components/layout/ApiSidebar.tsx` | Editar - adicionar item |
-| `src/App.tsx` | Editar - adicionar rota |
-| `src/config/roleAccess.ts` | Editar - adicionar permissão |
-| `supabase/migrations/` | Criar - tabelas por marketplace |
-
-## Aguardando
-
-Envie os arquivos de exemplo das 3 plataformas para eu criar os parsers e definir as colunas das tabelas.
+| `supabase/migrations/` | Criar — tabela `shopee_sales` |
+| `src/utils/marketplaceParsers.ts` | Editar — parser nativo Shopee |
+| `src/pages/mercadolivre/MLImportacao.tsx` | Editar — preview + upsert |
 
