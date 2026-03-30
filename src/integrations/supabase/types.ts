@@ -326,6 +326,51 @@ export type Database = {
         }
         Relationships: []
       }
+      shopee_orders: {
+        Row: {
+          agreed_price: number
+          id: string
+          imported_at: string
+          order_date: string
+          order_id: string
+          order_status: string
+          product_name: string
+          quantity: number
+          sku: string
+          subtotal: number
+          user_id: string
+          variation: string
+        }
+        Insert: {
+          agreed_price?: number
+          id?: string
+          imported_at?: string
+          order_date: string
+          order_id: string
+          order_status?: string
+          product_name?: string
+          quantity?: number
+          sku?: string
+          subtotal?: number
+          user_id: string
+          variation?: string
+        }
+        Update: {
+          agreed_price?: number
+          id?: string
+          imported_at?: string
+          order_date?: string
+          order_id?: string
+          order_status?: string
+          product_name?: string
+          quantity?: number
+          sku?: string
+          subtotal?: number
+          user_id?: string
+          variation?: string
+        }
+        Relationships: []
+      }
       shopee_sales: {
         Row: {
           avg_order_value: number
