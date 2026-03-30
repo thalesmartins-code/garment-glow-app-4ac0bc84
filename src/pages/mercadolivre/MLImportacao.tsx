@@ -2,10 +2,19 @@ import { useState, useCallback } from "react";
 import { Upload, ShoppingBag, Package, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFileType } from "@/utils/csvParser";
-import { parseMarketplaceFile, type MarketplaceType, type ParsedImportRow } from "@/utils/marketplaceParsers";
+import {
+  parseMarketplaceFile,
+  parseShopeeOrdersFile,
+  type MarketplaceType,
+  type ShopeeFileType,
+  type ParsedImportRow,
+  type ParsedOrderRow,
+} from "@/utils/marketplaceParsers";
 import { MarketplaceSelector } from "@/components/import/marketplace/MarketplaceSelector";
 import { FileUploadCard } from "@/components/import/marketplace/FileUploadCard";
 import { ImportPreviewTable } from "@/components/import/marketplace/ImportPreviewTable";
+import { ImportOrdersPreviewTable } from "@/components/import/marketplace/ImportOrdersPreviewTable";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const marketplaces: { id: MarketplaceType; label: string; icon: React.ElementType; color: string }[] = [
   { id: "shopee", label: "Shopee", icon: ShoppingBag, color: "bg-orange-500/10 text-orange-600 border-orange-500/30" },
@@ -15,8 +24,10 @@ const marketplaces: { id: MarketplaceType; label: string; icon: React.ElementTyp
 
 export default function MLImportacao() {
   const [selectedMarketplace, setSelectedMarketplace] = useState<MarketplaceType | null>(null);
+  const [shopeeFileType, setShopeeFileType] = useState<ShopeeFileType>("produto_pago");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ParsedImportRow[]>([]);
+  const [parsedOrders, setParsedOrders] = useState<ParsedOrderRow[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
 
   const handleFile = useCallback((file: File) => {
@@ -29,6 +40,7 @@ export default function MLImportacao() {
     setSelectedFile(file);
     setParseError(null);
     setParsedData([]);
+    setParsedOrders([]);
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -36,8 +48,13 @@ export default function MLImportacao() {
       if (!result || !selectedMarketplace) return;
 
       try {
-        const data = parseMarketplaceFile(selectedMarketplace, result, fileType as "csv" | "excel");
-        setParsedData(data);
+        if (selectedMarketplace === "shopee" && shopeeFileType === "pedidos") {
+          const data = parseShopeeOrdersFile(result, fileType as "csv" | "excel");
+          setParsedOrders(data);
+        } else {
+          const data = parseMarketplaceFile(selectedMarketplace, result, fileType as "csv" | "excel");
+          setParsedData(data);
+        }
       } catch (err: any) {
         setParseError(err.message || "Erro ao processar arquivo.");
       }
@@ -48,11 +65,12 @@ export default function MLImportacao() {
     } else {
       reader.readAsArrayBuffer(file);
     }
-  }, [selectedMarketplace]);
+  }, [selectedMarketplace, shopeeFileType]);
 
   const clearFile = () => {
     setSelectedFile(null);
     setParsedData([]);
+    setParsedOrders([]);
     setParseError(null);
   };
 
@@ -71,9 +89,25 @@ export default function MLImportacao() {
         onSelect={(id) => { setSelectedMarketplace(id); clearFile(); }}
       />
 
+      {selectedMarketplace === "shopee" && (
+        <Tabs
+          value={shopeeFileType}
+          onValueChange={(v) => { setShopeeFileType(v as ShopeeFileType); clearFile(); }}
+        >
+          <TabsList>
+            <TabsTrigger value="produto_pago">Produto Pago (Vendas)</TabsTrigger>
+            <TabsTrigger value="pedidos">Pedidos (Produtos)</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
+
       {selectedMarketplace && (
         <FileUploadCard
-          marketplaceLabel={mp?.label || ""}
+          marketplaceLabel={
+            selectedMarketplace === "shopee"
+              ? `Shopee — ${shopeeFileType === "produto_pago" ? "Produto Pago" : "Pedidos"}`
+              : mp?.label || ""
+          }
           selectedFile={selectedFile}
           parseError={parseError}
           onFile={handleFile}
@@ -85,6 +119,13 @@ export default function MLImportacao() {
         <ImportPreviewTable
           data={parsedData}
           marketplace={selectedMarketplace}
+          onImportComplete={clearFile}
+        />
+      )}
+
+      {parsedOrders.length > 0 && (
+        <ImportOrdersPreviewTable
+          data={parsedOrders}
           onImportComplete={clearFile}
         />
       )}

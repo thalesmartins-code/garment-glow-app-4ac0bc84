@@ -1,8 +1,9 @@
 export type MarketplaceType = "shopee" | "amazon" | "magalu";
+export type ShopeeFileType = "produto_pago" | "pedidos";
 
 export interface ParsedImportRow {
-  date: string;        // yyyy-mm-dd
-  hour: number | null; // 0-23 or null
+  date: string;
+  hour: number | null;
   revenue: number;
   revenueWithoutDiscounts: number;
   orders: number;
@@ -22,6 +23,18 @@ export interface ParsedImportRow {
   raw: Record<string, string>;
 }
 
+export interface ParsedOrderRow {
+  orderId: string;
+  orderStatus: string;
+  orderDate: string;
+  sku: string;
+  productName: string;
+  variation: string;
+  agreedPrice: number;
+  quantity: number;
+  subtotal: number;
+}
+
 export function parseMarketplaceFile(
   marketplace: MarketplaceType,
   content: string | ArrayBuffer,
@@ -36,13 +49,20 @@ export function parseMarketplaceFile(
   throw new Error(`Parser para ${marketplace} ainda não implementado. Envie um arquivo de exemplo.`);
 }
 
-// ─── Shopee CSV ────────────────────────────────────────────────
+export function parseShopeeOrdersFile(
+  content: string | ArrayBuffer,
+  fileType: "csv" | "excel"
+): ParsedOrderRow[] {
+  if (fileType === "excel") {
+    throw new Error("Shopee Pedidos: use o arquivo CSV exportado da plataforma.");
+  }
+  return parseShopeeOrdersCSV(content as string);
+}
+
+// ─── Shopee CSV (Produto Pago) ─────────────────────────────────
 
 function parseShopeeCSV(content: string): ParsedImportRow[] {
   const lines = content.split(/\r?\n/).filter(l => l.trim());
-  // Find second header row (line 4 = index 3 in the array after filtering)
-  // The structure is: header, summary, empty, header, data...
-  // After filtering empty lines: header(0), summary(1), header(2), data(3+)
 
   let dataStartIdx = -1;
   for (let i = 1; i < lines.length; i++) {
@@ -92,7 +112,61 @@ function parseShopeeCSV(content: string): ParsedImportRow[] {
   return rows;
 }
 
-/** Parse "dd/mm/yyyy" or "dd/mm/yyyy HH:mm" into { date: "yyyy-mm-dd", hour } */
+// ─── Shopee CSV (Pedidos) ──────────────────────────────────────
+
+function parseShopeeOrdersCSV(content: string): ParsedOrderRow[] {
+  const lines = content.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) throw new Error("Arquivo de pedidos Shopee vazio.");
+
+  // Header is line 0, data starts at line 1
+  // Find column indices from header
+  const header = splitCsvLine(lines[0]);
+  const colMap: Record<string, number> = {};
+  header.forEach((h, i) => { colMap[h.trim()] = i; });
+
+  const iOrderId = colMap["ID do pedido"] ?? 0;
+  const iStatus = colMap["Status do pedido"] ?? 1;
+  const iDate = colMap["Data de criação do pedido"] ?? 8;
+  const iSku = colMap["Nº de referência do SKU principal"] ?? 16;
+  const iName = colMap["Nome do Produto"] ?? 17;
+  const iVariation = colMap["Nome da variação"] ?? 19;
+  const iPrice = colMap["Preço acordado"] ?? 22;
+  const iQty = colMap["Quantidade"] ?? 23;
+  const iSubtotal = colMap["Subtotal do produto"] ?? 24;
+
+  const rows: ParsedOrderRow[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const values = splitCsvLine(lines[i]);
+    if (values.length < 10 || !values[iOrderId]?.trim()) continue;
+
+    const rawDate = values[iDate]?.trim() || "";
+    // Format: "2026-03-29 00:09" or "29/03/2026"
+    let orderDate = rawDate.split(" ")[0];
+    if (orderDate.includes("/")) {
+      const [d, m, y] = orderDate.split("/");
+      orderDate = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+    }
+
+    rows.push({
+      orderId: values[iOrderId]?.trim() || "",
+      orderStatus: values[iStatus]?.trim() || "",
+      orderDate,
+      sku: values[iSku]?.trim() || "",
+      productName: values[iName]?.trim() || "",
+      variation: values[iVariation]?.trim() || "",
+      agreedPrice: parseBRNumber(values[iPrice]),
+      quantity: parseInt(values[iQty]) || 0,
+      subtotal: parseBRNumber(values[iSubtotal]),
+    });
+  }
+
+  if (rows.length === 0) throw new Error("Nenhuma linha válida encontrada no arquivo de pedidos Shopee.");
+  return rows;
+}
+
+// ─── Helpers ───────────────────────────────────────────────────
+
 function parseShopeeDate(raw: string): { date: string; hour: number | null } {
   const parts = raw.split(" ");
   const [d, m, y] = parts[0].split("/");
@@ -104,7 +178,6 @@ function parseShopeeDate(raw: string): { date: string; hour: number | null } {
   return { date, hour };
 }
 
-/** Parse Brazilian number: "10.227,04" → 10227.04 */
 function parseBRNumber(val: string | undefined): number {
   if (!val) return 0;
   const cleaned = val.replace(/"/g, "").replace(/[^\d.,-]/g, "");
@@ -114,7 +187,6 @@ function parseBRNumber(val: string | undefined): number {
   return parseFloat(cleaned) || 0;
 }
 
-/** Parse "4,57%" → 4.57 (keeps as percentage, not decimal) */
 function parsePercent(val: string | undefined): number {
   if (!val) return 0;
   const cleaned = val.replace(/"/g, "").replace("%", "").trim();
