@@ -191,6 +191,7 @@ export default function MercadoLivre() {
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => salesCache.lastSyncedAt ?? localStorage.getItem(LAST_ML_SYNC_KEY));
   const [syncProgress, setSyncProgress] = useState<{ current: number; total: number } | null>(null);
   const cacheLoadedRef = useRef(salesCache.daily.length > 0);
+  const loadDailyReqRef = useRef(0); // incremented on each loadFromCache call; stale responses are ignored
 
   // Sync local state back to context on changes
   useEffect(() => {
@@ -378,6 +379,9 @@ export default function MercadoLivre() {
   const loadFromCache = useCallback(async (overrideFrom?: string, overrideTo?: string): Promise<boolean> => {
     if (!user) return false;
 
+    // Stamp this request; any older in-flight call that resolves after us will be discarded.
+    const reqId = ++loadDailyReqRef.current;
+
     let userCacheQuery = supabase.from("ml_user_cache").select("*").eq("user_id", user.id);
     if (selectedStore !== "all") {
       userCacheQuery = userCacheQuery.eq("ml_user_id", Number(selectedStore));
@@ -404,6 +408,9 @@ export default function MercadoLivre() {
       userCacheQuery.maybeSingle(),
       dailyCacheQuery,
     ]);
+
+    // Discard stale response if a newer request has been issued
+    if (reqId !== loadDailyReqRef.current) return false;
 
     if (userCacheData) {
       setMlUser({
