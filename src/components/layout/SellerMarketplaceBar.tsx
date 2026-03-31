@@ -73,7 +73,12 @@ export function SellerMarketplaceBar({ className }: Props) {
             <DropdownMenuItem
               key={seller.id}
               onClick={() => setSelectedSeller(seller.id)}
-              className="cursor-pointer gap-2.5 rounded-lg px-2 py-2"
+              className={cn(
+                "cursor-pointer gap-2.5 rounded-lg px-2.5 py-2.5 transition-colors duration-150",
+                selectedSeller?.id === seller.id
+                  ? "bg-primary/8 text-primary font-medium"
+                  : "hover:bg-accent/70"
+              )}
             >
               {seller.logo_url ? (
                 <img
