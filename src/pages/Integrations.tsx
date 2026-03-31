@@ -12,6 +12,7 @@ import { useSeller } from "@/contexts/SellerContext";
 import { SellerMarketplaceBar } from "@/components/layout/SellerMarketplaceBar";
 import { Seller } from "@/types/seller";
 import { supabase } from "@/integrations/supabase/client";
+import { getMarketplaceBrand, SELLER_TO_MP_ID } from "@/config/marketplaceConfig";
 import createMagaluClient from "@magalucloud/sdk-idmagalu-js";
 import {
   Dialog,
@@ -827,9 +828,20 @@ export default function Integrations() {
               }`}
             >
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
+                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-3xl">{integration.logo}</span>
+                    {(() => {
+                      const brand = getMarketplaceBrand(integration.id);
+                      if (brand) {
+                        const BrandIcon = brand.icon;
+                        return (
+                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${brand.gradient}`}>
+                            <BrandIcon className="h-5 w-5 text-white" />
+                          </div>
+                        );
+                      }
+                      return <span className="text-3xl">{integration.logo}</span>;
+                    })()}
                     <div>
                       <CardTitle className="text-base">{integration.name}</CardTitle>
                       <div className="flex items-center gap-1.5 mt-1">

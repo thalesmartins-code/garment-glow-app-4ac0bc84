@@ -9,6 +9,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSeller } from "@/contexts/SellerContext";
 import { ALL_MARKETPLACES } from "@/types/seller";
+import { getMarketplaceBrand } from "@/config/marketplaceConfig";
 import { cn } from "@/lib/utils";
 
 const MP_MAP = Object.fromEntries(ALL_MARKETPLACES.map((m) => [m.id, m]));
@@ -73,13 +74,21 @@ export function StoreGroupSelector({ className }: Props) {
         if (stores.length === 1) {
           const store = stores[0];
           const isActive = !allSelected && selectedStoreIds.includes(store.id);
+          const brand = getMarketplaceBrand(store.marketplace);
+          const BrandIcon = brand?.icon;
           return (
             <button
               key={store.id}
               onClick={() => handleStoreClick(store.id)}
               className={cn(chipBase, isActive ? chipActive : chipInactive)}
             >
-              <span>{mp.logo}</span>
+              {BrandIcon ? (
+                <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br ${brand.gradient}`}>
+                  <BrandIcon className="h-2.5 w-2.5 text-white" />
+                </div>
+              ) : (
+                <span>{mp.logo}</span>
+              )}
               <span>{store.store_name}</span>
             </button>
           );
@@ -90,13 +99,22 @@ export function StoreGroupSelector({ className }: Props) {
         const selectedInGroup = mpStoreIds.filter((id) => selectedStoreIds.includes(id));
         const hasSelection = !allSelected && selectedInGroup.length > 0;
 
+        const groupBrand = getMarketplaceBrand(mpId);
+        const GroupIcon = groupBrand?.icon;
+
         return (
           <DropdownMenu key={mpId}>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(chipBase, hasSelection ? chipActive : chipInactive)}
               >
-                <span>{mp.logo}</span>
+                {GroupIcon ? (
+                  <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br ${groupBrand.gradient}`}>
+                    <GroupIcon className="h-2.5 w-2.5 text-white" />
+                  </div>
+                ) : (
+                  <span>{mp.logo}</span>
+                )}
                 <span>{mp.name}</span>
                 {hasSelection && (
                   <span className="text-[10px] opacity-70">

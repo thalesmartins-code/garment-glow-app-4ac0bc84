@@ -1,4 +1,4 @@
-import { Handshake, Package, ShoppingBag, Store, Footprints, ShoppingCart } from "lucide-react";
+import { Handshake, Package, ShoppingBag, Store, Footprints, ShoppingCart, CircleDot, Home, BarChart3 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface MarketplaceBrand {
@@ -58,11 +58,34 @@ export const MARKETPLACE_BRANDS: MarketplaceBrand[] = [
     gradient: "from-gray-500 to-gray-600",
     badge: "bg-gray-100 text-gray-900 border-gray-300 dark:bg-gray-800/50 dark:text-gray-100 dark:border-gray-600",
   },
+  {
+    id: "americanas",
+    name: "Americanas",
+    icon: CircleDot,
+    gradient: "from-red-500 to-red-600",
+    badge: "bg-red-500/10 text-red-600 border-red-500/30",
+  },
+  {
+    id: "casasbahia",
+    name: "Casas Bahia",
+    icon: Home,
+    gradient: "from-blue-500 to-blue-600",
+    badge: "bg-blue-500/10 text-blue-600 border-blue-500/30",
+  },
+  {
+    id: "total",
+    name: "Total",
+    icon: BarChart3,
+    gradient: "from-gray-600 to-gray-700",
+    badge: "bg-gray-500/10 text-gray-600 border-gray-500/30",
+  },
 ];
 
-/** Lookup by marketplace id */
-export const getMarketplaceBrand = (id: string): MarketplaceBrand | undefined =>
-  MARKETPLACE_BRANDS.find((m) => m.id === id);
+/** Lookup by marketplace id (full id like "mercado-livre" or shortcode like "ml") */
+export const getMarketplaceBrand = (id: string): MarketplaceBrand | undefined => {
+  const fullId = SELLER_TO_MP_ID[id] ?? id;
+  return MARKETPLACE_BRANDS.find((m) => m.id === fullId);
+};
 
 /** Map from seller shortcodes to marketplace ids */
 export const SELLER_TO_MP_ID: Record<string, string> = {
@@ -72,6 +95,9 @@ export const SELLER_TO_MP_ID: Record<string, string> = {
   magalu: "magalu",
   netshoes: "netshoes",
   dafiti: "dafiti",
+  americanas: "americanas",
+  casasbahia: "casasbahia",
+  total: "total",
 };
 
 /** Map from marketplace ids to seller shortcodes */
@@ -82,4 +108,7 @@ export const MP_TO_SELLER_ID: Record<string, string> = {
   magalu: "magalu",
   netshoes: "netshoes",
   dafiti: "dafiti",
+  americanas: "americanas",
+  casasbahia: "casasbahia",
+  total: "total",
 };

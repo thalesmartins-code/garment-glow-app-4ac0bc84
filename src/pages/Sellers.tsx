@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Check, Power, Store, X, ShoppingBag } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, Power, X, Store } from "lucide-react";
 import { useSeller } from "@/contexts/SellerContext";
 import { ALL_MARKETPLACES } from "@/types/seller";
+import { getMarketplaceBrand } from "@/config/marketplaceConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -290,10 +291,18 @@ export default function Sellers() {
                 )}
                 {seller.stores.map((store) => {
                   const mp = ALL_MARKETPLACES.find((m) => m.id === store.marketplace);
+                  const brand = getMarketplaceBrand(store.marketplace);
+                  const BrandIcon = brand?.icon;
                   return (
                     <div key={store.id} className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-muted/50 text-sm">
                       <span className="flex items-center gap-1.5">
-                        <span>{mp?.logo ?? "🏪"}</span>
+                        {BrandIcon ? (
+                          <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br ${brand.gradient}`}>
+                            <BrandIcon className="h-2.5 w-2.5 text-white" />
+                          </div>
+                        ) : (
+                          <span>{mp?.logo ?? "🏪"}</span>
+                        )}
                         <span className="font-medium">{store.store_name}</span>
                       </span>
                       <AlertDialog>
@@ -341,10 +350,10 @@ export default function Sellers() {
                   onOpenChange={(o) => { if (!o) { setAddStoreForSeller(null); resetStoreForm(); } }}
                 >
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-1" onClick={() => setAddStoreForSeller(seller.id)}>
-                      <ShoppingBag className="h-3.5 w-3.5" />
-                      <span>Add loja</span>
-                    </Button>
+                     <Button variant="outline" size="sm" className="gap-1" onClick={() => setAddStoreForSeller(seller.id)}>
+                       <Plus className="h-3.5 w-3.5" />
+                       <span>Add loja</span>
+                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
@@ -361,11 +370,24 @@ export default function Sellers() {
                         }}>
                           <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                           <SelectContent>
-                            {MARKETPLACES_NO_TOTAL.map((mp) => (
-                              <SelectItem key={mp.id} value={mp.id}>
-                                <span className="flex items-center gap-2">{mp.logo} {mp.name}</span>
-                              </SelectItem>
-                            ))}
+                             {MARKETPLACES_NO_TOTAL.map((mp) => {
+                               const brand = getMarketplaceBrand(mp.id);
+                               const BrandIcon = brand?.icon;
+                               return (
+                                 <SelectItem key={mp.id} value={mp.id}>
+                                   <span className="flex items-center gap-2">
+                                     {BrandIcon ? (
+                                       <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br ${brand.gradient}`}>
+                                         <BrandIcon className="h-2.5 w-2.5 text-white" />
+                                       </div>
+                                     ) : (
+                                       <span>{mp.logo}</span>
+                                     )}
+                                     {mp.name}
+                                   </span>
+                                 </SelectItem>
+                               );
+                             })}
                           </SelectContent>
                         </Select>
                       </div>
