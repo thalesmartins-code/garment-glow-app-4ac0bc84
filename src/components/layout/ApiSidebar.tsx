@@ -8,7 +8,7 @@ const apiItems = [
   { icon: ClipboardList, label: "Pedidos", path: "/api/pedidos" },
   { icon: Megaphone, label: "Publicidade", path: "/api/anuncios" },
   { icon: Upload, label: "Importação", path: "/api/importacao" },
-  { icon: DatabaseZap, label: "Sincronizações", path: "/api/sincronizacoes" },
+  
   { icon: Users, label: "Sellers", path: "/api/sellers" },
   { icon: Plug, label: "Integrações", path: "/api/integracoes" },
 ];

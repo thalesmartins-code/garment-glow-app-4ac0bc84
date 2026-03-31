@@ -128,6 +128,12 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
               <SlidersHorizontal className="mr-2 h-4 w-4" />
               Configurações
             </DropdownMenuItem>
+            {isApi && (
+              <DropdownMenuItem onClick={() => navigate("/api/sincronizacoes")}>
+                <DatabaseZap className="mr-2 h-4 w-4" />
+                Sincronizações
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive" onClick={signOut}>
               <LogOut className="mr-2 h-4 w-4" />
