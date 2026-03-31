@@ -80,9 +80,16 @@ export default function MLImportacao() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Importação</h1>
-        <p className="text-muted-foreground">Importe dados de vendas da Shopee, Amazon e Magalu a partir dos relatórios nativos.</p>
+      <div className="flex items-start justify-between gap-4 py-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <Upload className="h-5 w-5 text-primary" />
+            Importação
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Importe dados de vendas da Shopee, Amazon, Magalu, Dafiti e Netshoes a partir dos relatórios nativos.
+          </p>
+        </div>
       </div>
 
       <MarketplaceSelector
