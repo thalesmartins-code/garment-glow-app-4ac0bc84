@@ -869,12 +869,17 @@ export default function MercadoLivre() {
   // Per-marketplace hourly data for "Todos" grid view
   const perMarketplaceHourly = useMemo(() => {
     if (!isAll) return null;
-    const mpList = [
-      { id: "mercado-livre", name: "Mercado Livre", data: hourly, icon: <Handshake className="w-4 h-4 text-amber-500" /> },
-      { id: "amazon", name: "Amazon", data: getMarketplaceHourlyData("amazon"), icon: <ShoppingBag className="w-4 h-4 text-orange-500" /> },
-      { id: "shopee", name: "Shopee", data: getMarketplaceHourlyData("shopee"), icon: <Store className="w-4 h-4 text-red-500" /> },
-      { id: "magalu", name: "Magalu", data: getMarketplaceHourlyData("magalu"), icon: <Building2 className="w-4 h-4 text-blue-500" /> },
-    ];
+    const mpIds = ["mercado-livre", "amazon", "shopee", "magalu"] as const;
+    const mpList = mpIds.map((id) => {
+      const brand = getMarketplaceBrand(id)!;
+      const MpIcon = brand.icon;
+      return {
+        id,
+        name: brand.name,
+        data: id === "mercado-livre" ? hourly : getMarketplaceHourlyData(id),
+        icon: <MpIcon className="w-4 h-4" />,
+      };
+    });
     return mpList.map((mp) => ({
       ...mp,
       chartData: buildHourlyChartData(mp.data),
