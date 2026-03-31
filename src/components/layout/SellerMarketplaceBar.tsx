@@ -40,7 +40,7 @@ export function SellerMarketplaceBar({ className }: Props) {
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 gap-2 px-2 text-sm font-medium hover:bg-accent/60"
+            className="h-7 gap-2 px-2 text-sm font-medium hover:bg-muted/40"
           >
             <div className="relative flex items-center gap-2 min-w-[130px]">
               <AnimatePresence mode="wait">
