@@ -1,5 +1,6 @@
-import { Handshake, Package, ShoppingBag, Store, Zap, ShoppingCart, CircleDot, Home, BarChart3 } from "lucide-react";
+import { Handshake, Package, ShoppingBag, Store, ShoppingCart, CircleDot, Home, BarChart3 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { SportShoe } from "@/components/icons/SportShoe";
 
 export interface MarketplaceBrand {
   id: string;
