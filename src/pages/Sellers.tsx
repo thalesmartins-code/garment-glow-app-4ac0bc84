@@ -350,10 +350,10 @@ export default function Sellers() {
                   onOpenChange={(o) => { if (!o) { setAddStoreForSeller(null); resetStoreForm(); } }}
                 >
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-1" onClick={() => setAddStoreForSeller(seller.id)}>
-                      <ShoppingBag className="h-3.5 w-3.5" />
-                      <span>Add loja</span>
-                    </Button>
+                     <Button variant="outline" size="sm" className="gap-1" onClick={() => setAddStoreForSeller(seller.id)}>
+                       <Plus className="h-3.5 w-3.5" />
+                       <span>Add loja</span>
+                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
