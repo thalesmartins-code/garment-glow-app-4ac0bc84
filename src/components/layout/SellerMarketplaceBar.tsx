@@ -79,7 +79,7 @@ export function SellerMarketplaceBar({ className, showStores = true }: Props) {
                 "cursor-pointer gap-2.5 rounded-lg px-2.5 py-2.5 transition-colors duration-150",
                 selectedSeller?.id === seller.id
                   ? "bg-primary/8 text-primary font-medium"
-                  : "hover:bg-accent/70"
+                  : "hover:bg-muted focus:bg-muted"
               )}
             >
               {seller.logo_url ? (
