@@ -165,8 +165,10 @@ export default function Sellers() {
         {sellers.map((seller) => (
           <Card
             key={seller.id}
-            className={`transition-all ${!seller.is_active ? "opacity-60" : ""} ${
-              selectedSeller?.id === seller.id ? "ring-2 ring-primary" : ""
+            className={`transition-all rounded-xl border shadow-sm hover:shadow-md ${!seller.is_active ? "opacity-60" : ""} ${
+              selectedSeller?.id === seller.id
+                ? "border-primary/40 bg-primary/[0.02] shadow-primary/10"
+                : "border-border"
             }`}
           >
             <CardHeader className="pb-2">
