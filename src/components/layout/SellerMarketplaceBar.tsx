@@ -4,11 +4,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSeller } from "@/contexts/SellerContext";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   className?: string;
@@ -42,18 +42,29 @@ export function SellerMarketplaceBar({ className }: Props) {
             size="sm"
             className="h-7 gap-2 px-2 text-sm font-medium hover:bg-accent/60"
           >
-            {selectedSeller?.logo_url ? (
-              <img
-                src={selectedSeller.logo_url}
-                alt={selectedSeller.name}
-                className="h-5 w-5 rounded object-cover"
-              />
-            ) : (
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary/10 text-[10px] font-bold text-primary">
-                {selectedSeller?.initials ?? "?"}
-              </span>
-            )}
-            <span className="max-w-[110px] truncate">{selectedSeller?.name ?? "Seller"}</span>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedSeller?.id ?? "empty"}
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="flex items-center gap-2"
+              >
+                {selectedSeller?.logo_url ? (
+                  <img
+                    src={selectedSeller.logo_url}
+                    alt={selectedSeller.name}
+                    className="h-5 w-5 rounded object-cover"
+                  />
+                ) : (
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary/10 text-[10px] font-bold text-primary">
+                    {selectedSeller?.initials ?? "?"}
+                  </span>
+                )}
+                <span className="max-w-[110px] truncate">{selectedSeller?.name ?? "Seller"}</span>
+              </motion.div>
+            </AnimatePresence>
             <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
