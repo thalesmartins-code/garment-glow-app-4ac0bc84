@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
-import { Store, ShoppingCart, Package, Truck, Footprints, Shirt } from "lucide-react";
+import { Handshake, ShoppingBag, Package, Store, ShoppingCart, Footprints } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useSeller } from "@/contexts/SellerContext";
 
