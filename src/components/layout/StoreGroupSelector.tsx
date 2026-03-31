@@ -74,13 +74,21 @@ export function StoreGroupSelector({ className }: Props) {
         if (stores.length === 1) {
           const store = stores[0];
           const isActive = !allSelected && selectedStoreIds.includes(store.id);
+          const brand = getMarketplaceBrand(store.marketplace);
+          const BrandIcon = brand?.icon;
           return (
             <button
               key={store.id}
               onClick={() => handleStoreClick(store.id)}
               className={cn(chipBase, isActive ? chipActive : chipInactive)}
             >
-              <span>{mp.logo}</span>
+              {BrandIcon ? (
+                <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br ${brand.gradient}`}>
+                  <BrandIcon className="h-2.5 w-2.5 text-white" />
+                </div>
+              ) : (
+                <span>{mp.logo}</span>
+              )}
               <span>{store.store_name}</span>
             </button>
           );
