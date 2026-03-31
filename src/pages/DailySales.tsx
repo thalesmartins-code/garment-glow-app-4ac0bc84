@@ -39,9 +39,9 @@ const DailySales = () => {
   const activeMarketplaces = getActiveMarketplaces();
 
   const marketplaceOptions = useMemo(() => {
-    const options = [{ value: "all", label: "Todos", logo: "📊" }];
+    const options = [{ value: "all", label: "Todos" }];
     activeMarketplaces.forEach((mp) => {
-      options.push({ value: mp.id, label: mp.name, logo: mp.logo ?? "📦" });
+      options.push({ value: mp.id, label: mp.name });
     });
     return options;
   }, [activeMarketplaces]);

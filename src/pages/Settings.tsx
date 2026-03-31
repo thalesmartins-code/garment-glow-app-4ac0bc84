@@ -157,7 +157,18 @@ export default function Settings() {
                 {activeMarketplaces.map((mp) => (
                     <SelectItem key={mp.id} value={mp.id}>
                       <div className="flex items-center gap-2">
-                        <span className="text-base">{mp.logo}</span>
+                        {(() => {
+                          const brand = getMarketplaceBrand(mp.id);
+                          if (brand) {
+                            const BIcon = brand.icon;
+                            return (
+                              <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br ${brand.gradient}`}>
+                                <BIcon className="h-2.5 w-2.5 text-white" />
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
                         {mp.name}
                       </div>
                     </SelectItem>

@@ -527,7 +527,18 @@ export function DailySalesTable({
                     <TableRow key={mp.id} className={index % 2 === 0 ? "bg-muted/30" : ""}>
                       <TableCell className="font-medium">
                         <span className="flex items-center gap-2">
-                          <span>{mp.logo}</span>
+                          {(() => {
+                            const brand = getMarketplaceBrand(mp.id);
+                            if (brand) {
+                              const BIcon = brand.icon;
+                              return (
+                                <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br ${brand.gradient}`}>
+                                  <BIcon className="h-2.5 w-2.5 text-white" />
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                           <span>{mp.name}</span>
                         </span>
                       </TableCell>
