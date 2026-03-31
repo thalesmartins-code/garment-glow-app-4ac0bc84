@@ -11,7 +11,7 @@ export interface MarketplaceDefinition {
   connected: boolean;
 }
 
-// Maps SellerContext marketplace ids → MarketplaceContext ids
+// Maps SellerContext marketplace shortcodes → MarketplaceContext ids
 const SELLER_TO_MP: Record<string, string> = {
   "ml":     "mercado-livre",
   "amz":    "amazon",
@@ -19,7 +19,7 @@ const SELLER_TO_MP: Record<string, string> = {
   "magalu": "magalu",
 };
 
-// Maps MarketplaceContext ids → SellerContext ids
+// Maps MarketplaceContext ids → SellerContext shortcodes
 const MP_TO_SELLER: Record<string, string> = {
   "mercado-livre": "ml",
   "amazon":        "amz",
@@ -60,7 +60,7 @@ const allMarketplaces: MarketplaceDefinition[] = [
 
 interface MarketplaceState {
   marketplaces: MarketplaceDefinition[];
-  selectedMarketplace: string; // "all" | marketplace id | "ml-store:USER_ID"
+  selectedMarketplace: string; // "all" | MarketplaceDefinition.id | "ml-store:USER_ID"
   setSelectedMarketplace: (id: string) => void;
   activeMarketplace: MarketplaceDefinition | null;
   connectedMarketplaces: MarketplaceDefinition[];
@@ -73,28 +73,49 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
     selectedMarketplace: sellerMkt,
     setSelectedMarketplace: setSellerMkt,
     availableMarketplaces: sellerMps,
+    selectedSeller,
   } = useSeller();
 
-  // Track ml sub-store selection locally (e.g. "ml-store:USER_ID")
+  // Track legacy ml sub-store selection (e.g. "ml-store:USER_ID")
   const [mlSubStoreKey, setMlSubStoreKey] = useState<string | null>(null);
 
-  // Clear ml sub-store when seller switches away from ml
-  useEffect(() => {
-    if (sellerMkt !== "ml") setMlSubStoreKey(null);
-  }, [sellerMkt]);
+  /**
+   * Resolve the MarketplaceContext-style id from a sellerMkt value.
+   * sellerMkt can be:
+   *   "all"           → "all"
+   *   "ml"|"amz"...   → "mercado-livre"|"amazon"... (shortcode)
+   *   <store UUID>    → look up store, map its marketplace shortcode
+   */
+  const resolveMpId = useCallback(
+    (mkt: string): string => {
+      if (mkt === "all") return "all";
+      if (SELLER_TO_MP[mkt]) return SELLER_TO_MP[mkt];
+      // Store UUID: find the store and map its marketplace
+      const store = selectedSeller?.stores.find((s) => s.id === mkt);
+      if (store) return SELLER_TO_MP[store.marketplace] ?? store.marketplace;
+      return "all";
+    },
+    [selectedSeller]
+  );
 
-  // Derive the MarketplaceContext-style id from SellerContext + optional sub-store
-  const selectedMarketplace =
-    mlSubStoreKey ??
-    (sellerMkt === "all" ? "all" : (SELLER_TO_MP[sellerMkt] ?? "all"));
+  // Clear ml sub-store when not on ML marketplace
+  useEffect(() => {
+    const mpId = resolveMpId(sellerMkt);
+    if (mpId !== "mercado-livre") setMlSubStoreKey(null);
+  }, [sellerMkt, resolveMpId]);
+
+  // Derive the MarketplaceContext-style selected value
+  const selectedMarketplace = mlSubStoreKey ?? resolveMpId(sellerMkt);
 
   const setSelectedMarketplace = useCallback(
     (id: string) => {
       if (id.startsWith("ml-store:")) {
+        // Legacy ML sub-store key — keep locally, set sellerMkt to "ml"
         setMlSubStoreKey(id);
         setSellerMkt("ml");
       } else {
         setMlSubStoreKey(null);
+        // Could be "all", a MarketplaceContext id ("mercado-livre"), or a store UUID
         const sellerId = MP_TO_SELLER[id] ?? (id === "all" ? "all" : id);
         setSellerMkt(sellerId);
       }
@@ -102,7 +123,7 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
     [setSellerMkt]
   );
 
-  // Build marketplace list, marking ones the seller doesn't have as not connected
+  // Build marketplace list; mark ones the seller doesn't have as not connected
   const sellerMpIds = new Set(sellerMps.map((m) => SELLER_TO_MP[m.id] ?? m.id));
   const marketplaces: MarketplaceDefinition[] = allMarketplaces.map((m) => ({
     ...m,
@@ -111,7 +132,6 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
 
   const connectedMarketplaces = marketplaces.filter((m) => m.connected);
 
-  // For ml-store selection, activeMarketplace is the ML definition
   const activeMarketplace =
     selectedMarketplace === "all"
       ? null
