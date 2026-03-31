@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/popover";
 
 // Default empty marketplace options
-const defaultMarketplaceOptions: { value: string; label: string; logo: string }[] = [];
+const defaultMarketplaceOptions: { value: string; label: string }[] = [];
 
 interface FilterBarProps {
   selectedPeriod: PeriodFilter;
