@@ -188,7 +188,7 @@ export default function Sellers() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        variant="ghost" size="icon" className={`h-7 w-7 ${seller.is_active ? "hover:bg-orange-100 dark:hover:bg-orange-950" : "hover:bg-green-100 dark:hover:bg-green-950"}`}
+                        variant="ghost" size="icon" className="h-7 w-7 hover:bg-green-100 dark:hover:bg-green-950"
                         onClick={() => toggleSellerActive(seller.id)}
                       >
                         <Power className={`h-3.5 w-3.5 ${seller.is_active ? "text-green-500" : "text-muted-foreground"}`} />
