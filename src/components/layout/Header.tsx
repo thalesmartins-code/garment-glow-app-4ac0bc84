@@ -85,7 +85,7 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
                   <DropdownMenuItem
                     key={seller.id}
                     onClick={() => setSelectedSeller(seller.id)}
-                    className={`cursor-pointer gap-2.5 rounded-lg px-2 py-2 ${isActive ? "bg-accent/10" : ""}`}
+                    className={`cursor-pointer gap-2.5 rounded-lg px-2 py-2 hover:bg-muted focus:bg-muted ${isActive ? "bg-muted" : ""}`}
                   >
                     <div
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg overflow-hidden ${
