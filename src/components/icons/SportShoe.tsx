@@ -21,9 +21,13 @@ export const SportShoe = forwardRef<SVGSVGElement, LucideProps>(
       className={className}
       {...props}
     >
-      <path d="M3 18h18a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2h-3l-2-3-3 1-2-2-3 1-2-2H4a2 2 0 0 0-2 2v5a2 2 0 0 0 1 1.73V18Z" />
-      <path d="M5 14v-1.5a2 2 0 0 1 2-2l1.5.5 2-1 2 1.5 2-1L17 13" />
-      <line x1="3" y1="18" x2="22" y2="18" />
+      {/* Sole */}
+      <path d="M2 17h20v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1Z" />
+      {/* Shoe body */}
+      <path d="M4 17v-3a3 3 0 0 1 3-3h1l2-3h2l1 2h4a4 4 0 0 1 4 4v3" />
+      {/* Lace detail */}
+      <path d="M10 11l1 2" />
+      <path d="M8 12l1 2" />
     </svg>
   )
 );
