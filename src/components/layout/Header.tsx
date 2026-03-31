@@ -58,9 +58,9 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
                   className="flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-accent-foreground"
                   style={{ background: "var(--gradient-primary)" }}
                 >
-                  {selectedSeller.initials}
+                  {selectedSeller?.initials ?? "?"}
                 </div>
-                <span className="hidden text-sm font-medium text-foreground sm:inline">{selectedSeller.name}</span>
+                <span className="hidden text-sm font-medium text-foreground sm:inline">{selectedSeller?.name ?? "Seller"}</span>
                 <ChevronDown className="ml-0.5 h-3.5 w-3.5 text-muted-foreground mx-0" />
               </Button>
             </DropdownMenuTrigger>
@@ -71,7 +71,7 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {activeSellers.map((seller) => {
-                const isActive = seller.id === selectedSeller.id;
+                const isActive = seller.id === selectedSeller?.id;
 
                 return (
                   <DropdownMenuItem

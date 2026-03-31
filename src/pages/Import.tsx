@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Upload, Database, Store, History, FileUp, AlertTriangle, RefreshCw, Sheet, Eye } from "lucide-react";
 import { FileUploader } from "@/components/import/FileUploader";
 import { DataPreview } from "@/components/import/DataPreview";
@@ -36,7 +36,14 @@ import { useSalesDataDB } from "@/hooks/useSalesDataDB";
 export default function Import() {
   const [parseResult, setParseResult] = useState<ImportResult | null>(null);
   const { activeSellers, sellers } = useSeller();
-  const [selectedSeller, setSelectedSeller] = useState(activeSellers[0]?.id || sellers[0]?.id);
+  const [selectedSeller, setSelectedSeller] = useState<string | undefined>(activeSellers[0]?.id || sellers[0]?.id);
+
+  // Sync when sellers load from DB (they arrive async)
+  useEffect(() => {
+    if (!selectedSeller && (activeSellers.length > 0 || sellers.length > 0)) {
+      setSelectedSeller(activeSellers[0]?.id || sellers[0]?.id);
+    }
+  }, [activeSellers, sellers, selectedSeller]);
   const { 
     appendSales, 
     deleteSale,
