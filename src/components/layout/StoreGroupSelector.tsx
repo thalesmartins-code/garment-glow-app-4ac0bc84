@@ -34,7 +34,7 @@ export function StoreGroupSelector({ className }: Props) {
     }
     return Array.from(map.entries()).map(([mpId, stores]) => ({
       mpId,
-      mp: MP_MAP[mpId] ?? { id: mpId, name: mpId, logo: "🏪" },
+      mp: MP_MAP[mpId] ?? { id: mpId, name: mpId },
       stores,
     }));
   }, [activeStores]);
