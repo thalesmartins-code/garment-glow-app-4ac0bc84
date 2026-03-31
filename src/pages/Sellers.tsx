@@ -263,7 +263,7 @@ export default function Sellers() {
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={async () => {
+                            <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={async () => {
                               await deleteStore(store.id);
                               toast({ title: `${store.store_name} removida` });
                             }}>Remover</AlertDialogAction>
