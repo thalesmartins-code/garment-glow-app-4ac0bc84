@@ -54,7 +54,7 @@ export function parseShopeeOrdersFile(
   fileType: "csv" | "excel"
 ): ParsedOrderRow[] {
   if (fileType === "excel") {
-    throw new Error("Shopee Pedidos: use o arquivo CSV exportado da plataforma.");
+    throw new Error("Shopee Produtos: use o arquivo CSV exportado da plataforma.");
   }
   return parseShopeeOrdersCSV(content as string);
 }
