@@ -129,40 +129,8 @@ export default function Import() {
   return (
     <div className="space-y-6">
 
-        {/* Seller Selector Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Selecionar Seller</CardTitle>
-            <CardDescription>
-              Escolha para qual seller os dados serão importados
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1.5">
-                <Store className="h-4 w-4 text-muted-foreground" />
-                Seller
-              </Label>
-              <Select value={selectedSeller} onValueChange={setSelectedSeller}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                {activeSellers.map((seller) => (
-                    <SelectItem key={seller.id} value={seller.id}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-                          <span className="text-xs font-bold text-primary">{seller.initials}</span>
-                        </div>
-                        {seller.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Seller + Marketplace selector */}
+        <SellerMarketplaceBar showStores={false} />
 
         {/* Status Card for Selected Seller */}
         {hasDataForSeller && (
