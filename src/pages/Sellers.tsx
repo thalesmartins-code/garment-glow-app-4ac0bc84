@@ -214,9 +214,30 @@ export default function Sellers() {
                       <DialogHeader>
                         <DialogTitle>Editar Seller</DialogTitle>
                       </DialogHeader>
-                      <div className="space-y-2">
-                        <Label>Nome</Label>
-                        <Input value={editSellerName} onChange={(e) => setEditSellerName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleUpdateSeller()} />
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Nome</Label>
+                          <Input value={editSellerName} onChange={(e) => setEditSellerName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleUpdateSeller()} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>URL do Logo</Label>
+                          <Input
+                            value={editSellerLogo}
+                            onChange={(e) => setEditSellerLogo(e.target.value)}
+                            placeholder="https://exemplo.com/logo.jpg"
+                          />
+                          {editSellerLogo && (
+                            <div className="flex items-center gap-3 mt-2">
+                              <img
+                                src={editSellerLogo}
+                                alt="Preview"
+                                className="h-12 w-12 rounded-lg object-cover border"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                              />
+                              <span className="text-xs text-muted-foreground">Preview do logo</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <DialogFooter>
                         <Button variant="outline" onClick={() => setEditSellerId(null)}>Cancelar</Button>
