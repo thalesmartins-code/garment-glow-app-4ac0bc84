@@ -165,8 +165,10 @@ export default function Sellers() {
         {sellers.map((seller) => (
           <Card
             key={seller.id}
-            className={`transition-all ${!seller.is_active ? "opacity-60" : ""} ${
-              selectedSeller?.id === seller.id ? "ring-2 ring-primary" : ""
+            className={`transition-all rounded-xl border shadow-sm hover:shadow-md ${!seller.is_active ? "opacity-60" : ""} ${
+              selectedSeller?.id === seller.id
+                ? "border-primary/40 bg-primary/[0.02] shadow-primary/10"
+                : "border-border"
             }`}
           >
             <CardHeader className="pb-2">
@@ -197,7 +199,7 @@ export default function Sellers() {
 
                 <div className="flex items-center gap-1 shrink-0">
                   {selectedSeller?.id === seller.id && (
-                    <Badge variant="secondary" className="text-xs h-5">Ativo</Badge>
+                    <Badge className="text-[10px] h-5 bg-primary/10 text-primary border-0 font-medium">Ativo</Badge>
                   )}
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -322,9 +324,15 @@ export default function Sellers() {
               {/* Footer actions */}
               <div className="flex gap-2 pt-1 border-t">
                 {selectedSeller?.id !== seller.id && (
-                  <Button variant="outline" size="sm" className="flex-1" onClick={() => setSelectedSeller(seller.id)}>
+                  <Button variant="outline" size="sm" className="flex-1 rounded-lg" onClick={() => setSelectedSeller(seller.id)}>
                     Selecionar
                   </Button>
+                )}
+                {selectedSeller?.id === seller.id && (
+                  <div className="flex-1 flex items-center justify-center text-xs font-medium text-primary gap-1.5">
+                    <Check className="h-3.5 w-3.5" />
+                    Selecionado
+                  </div>
                 )}
 
                 {/* Add store button */}
