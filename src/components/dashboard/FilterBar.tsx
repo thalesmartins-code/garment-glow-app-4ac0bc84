@@ -29,7 +29,7 @@ interface FilterBarProps {
   onRefresh: () => void;
   isRefreshing?: boolean;
   lastUpdate?: string;
-  marketplaceOptions?: { value: string; label: string; logo: string }[];
+  marketplaceOptions?: { value: string; label: string }[];
   customDateRange?: { from: Date; to: Date };
   onCustomDateRangeChange?: (range: { from: Date; to: Date }) => void;
 }
