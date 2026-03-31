@@ -289,7 +289,7 @@ export default function Sellers() {
                 {seller.stores.length === 0 && (
                   <p className="text-xs text-muted-foreground italic">Nenhuma loja cadastrada</p>
                 )}
-                {seller.stores.map((store) => {
+                {[...seller.stores].sort((a, b) => a.store_name.localeCompare(b.store_name)).map((store) => {
                   const mp = ALL_MARKETPLACES.find((m) => m.id === store.marketplace);
                   const brand = getMarketplaceBrand(store.marketplace);
                   const BrandIcon = brand?.icon;
