@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Upload, Database, Store, History, FileUp, AlertTriangle, RefreshCw, Sheet, Eye } from "lucide-react";
 import { FileUploader } from "@/components/import/FileUploader";
 import { DataPreview } from "@/components/import/DataPreview";
