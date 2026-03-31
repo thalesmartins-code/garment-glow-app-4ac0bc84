@@ -206,7 +206,7 @@ export default function Sellers() {
                   {/* Edit seller name */}
                   <Dialog open={editSellerId === seller.id} onOpenChange={(o) => { if (!o) setEditSellerId(null); }}>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-muted" onClick={() => openEditSeller(seller.id, seller.name)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-muted" onClick={() => openEditSeller(seller.id, seller.name, seller.logo_url)}>
                         <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                       </Button>
                     </DialogTrigger>
