@@ -128,7 +128,7 @@ export function SellerProvider({ children }: { children: React.ReactNode }) {
     return newSeller;
   }, [user]);
 
-  const updateSeller = useCallback(async (id: string, data: { name?: string; is_active?: boolean }) => {
+  const updateSeller = useCallback(async (id: string, data: { name?: string; is_active?: boolean; logo_url?: string | null }) => {
     const updates: any = { ...data };
     if (data.name) updates.initials = generateInitials(data.name);
     const { error } = await supabase.from("sellers" as any).update(updates).eq("id", id);
