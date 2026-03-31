@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
 import { useMLStore } from "@/contexts/MLStoreContext";
-import { Badge } from "@/components/ui/badge";
+
 
 export function MarketplaceSwitcher() {
   const { marketplaces, selectedMarketplace, setSelectedMarketplace, connectedMarketplaces } =
@@ -68,7 +68,7 @@ export function MarketplaceSwitcher() {
 
   const allDotsExpanded = (
     <div className="flex items-center gap-1">
-      {marketplaces.map((mp) => {
+      {connectedMarketplaces.map((mp) => {
         const MpIcon = mp.icon;
         return (
           <div
@@ -170,8 +170,7 @@ export function MarketplaceSwitcher() {
 
         <DropdownMenuSeparator />
 
-        {/* Individual marketplaces */}
-        {marketplaces.map((mp) => {
+        {connectedMarketplaces.map((mp) => {
           const isML = mp.id === "mercado-livre";
           const MpIcon = mp.icon;
 
@@ -236,11 +235,10 @@ export function MarketplaceSwitcher() {
           return (
             <DropdownMenuItem
               key={mp.id}
-              onClick={() => mp.connected && handleSelectMarketplace(mp.id)}
-              disabled={!mp.connected}
+              onClick={() => handleSelectMarketplace(mp.id)}
               className={`cursor-pointer gap-2.5 rounded-lg px-2 py-2 ${
                 isActive ? "bg-accent/10" : ""
-              } ${!mp.connected ? "opacity-50" : ""}`}
+              }`}
             >
               <div
                 className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${mp.color} text-white`}
@@ -252,11 +250,6 @@ export function MarketplaceSwitcher() {
               >
                 {mp.id === "mercado-livre" && singleMLName ? singleMLName : mp.name}
               </span>
-              {!mp.connected && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                  Em breve
-                </Badge>
-              )}
               {isActive && <Check className="h-4 w-4 shrink-0 text-accent" />}
             </DropdownMenuItem>
           );

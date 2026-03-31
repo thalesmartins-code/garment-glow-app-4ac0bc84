@@ -54,12 +54,20 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
                 variant="ghost"
                 className="h-10 gap-2.5 rounded-xl border-0 bg-secondary/50 px-3 hover:bg-secondary"
               >
-                <div
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-accent-foreground"
-                  style={{ background: "var(--gradient-primary)" }}
-                >
-                  {selectedSeller?.initials ?? "?"}
-                </div>
+                {selectedSeller?.logo_url ? (
+                  <img
+                    src={selectedSeller.logo_url}
+                    alt={selectedSeller.name}
+                    className="h-7 w-7 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-accent-foreground"
+                    style={{ background: "var(--gradient-primary)" }}
+                  >
+                    {selectedSeller?.initials ?? "?"}
+                  </div>
+                )}
                 <span className="hidden text-sm font-medium text-foreground sm:inline">{selectedSeller?.name ?? "Seller"}</span>
                 <ChevronDown className="ml-0.5 h-3.5 w-3.5 text-muted-foreground mx-0" />
               </Button>
@@ -80,12 +88,16 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
                     className={`cursor-pointer gap-2.5 rounded-lg px-2 py-2 ${isActive ? "bg-accent/10" : ""}`}
                   >
                     <div
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${
-                        isActive ? "text-accent-foreground" : "bg-secondary text-secondary-foreground"
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg overflow-hidden ${
+                        isActive && !seller.logo_url ? "text-accent-foreground" : !seller.logo_url ? "bg-secondary text-secondary-foreground" : ""
                       }`}
-                      style={isActive ? { background: "var(--gradient-primary)" } : undefined}
+                      style={isActive && !seller.logo_url ? { background: "var(--gradient-primary)" } : undefined}
                     >
-                      {seller.initials}
+                      {seller.logo_url ? (
+                        <img src={seller.logo_url} alt={seller.name} className="h-7 w-7 rounded-lg object-cover" />
+                      ) : (
+                        <span className="text-[11px] font-bold">{seller.initials}</span>
+                      )}
                     </div>
                     <span className={`flex-1 text-sm ${isActive ? "font-semibold" : "font-medium"}`}>
                       {seller.name}
