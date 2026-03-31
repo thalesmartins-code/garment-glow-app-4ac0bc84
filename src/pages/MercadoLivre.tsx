@@ -890,12 +890,11 @@ export default function MercadoLivre() {
 
   const perMarketplaceRevenue = useMemo(() => {
     if (!isAll) return [];
-    const marketplaceConfigs = [
-      { id: "mercado-livre", name: "Mercado Livre", icon: Handshake, color: "from-yellow-500 to-amber-500" },
-      { id: "amazon", name: "Amazon", icon: ShoppingBag, color: "from-orange-500 to-amber-600" },
-      { id: "shopee", name: "Shopee", icon: Store, color: "from-orange-600 to-red-500" },
-      { id: "magalu", name: "Magalu", icon: Building2, color: "from-blue-600 to-indigo-500" },
-    ];
+    const mpIds = ["mercado-livre", "amazon", "shopee", "magalu"] as const;
+    const marketplaceConfigs = mpIds.map((id) => {
+      const brand = getMarketplaceBrand(id)!;
+      return { id, name: brand.name, icon: brand.icon, color: brand.gradient };
+    });
     return marketplaceConfigs.map((mp) => {
       const mpDaily = mp.id === "mercado-livre" ? daily : getMarketplaceDailyData(mp.id, 30);
       const revenue = mpDaily.reduce((s, d) => s + d.total, 0);
