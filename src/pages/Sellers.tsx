@@ -107,12 +107,21 @@ export default function Sellers() {
 
   return (
     <div className="space-y-6">
-      {/* Action Bar */}
-      <div className="flex justify-end">
+      {/* Page Header */}
+      <div className="flex items-start justify-between gap-4 py-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <Store className="h-5 w-5 text-primary" />
+            Sellers
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Gerencie seus sellers e suas respectivas lojas por marketplace.
+          </p>
+        </div>
         <Dialog open={addSellerOpen} onOpenChange={setAddSellerOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setNewSellerName("")}>
-              <Plus className="h-4 w-4 mr-2" /> Novo Seller
+            <Button size="sm" className="h-8 text-sm" onClick={() => setNewSellerName("")}>
+              <Plus className="h-4 w-4 mr-1.5" /> Novo Seller
             </Button>
           </DialogTrigger>
           <DialogContent>
