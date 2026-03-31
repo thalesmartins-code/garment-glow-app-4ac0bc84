@@ -50,7 +50,7 @@ export default function MLImportacao() {
       if (!result || !selectedMarketplace) return;
 
       try {
-        if (selectedMarketplace === "shopee" && shopeeFileType === "pedidos") {
+        if (selectedMarketplace === "shopee" && shopeeFileType === "produtos") {
           const data = parseShopeeOrdersFile(result, fileType as "csv" | "excel");
           setParsedOrders(data);
         } else {

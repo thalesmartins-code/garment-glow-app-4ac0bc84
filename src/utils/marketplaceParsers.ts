@@ -1,5 +1,5 @@
 export type MarketplaceType = "shopee" | "amazon" | "magalu" | "dafiti" | "netshoes";
-export type ShopeeFileType = "produto_pago" | "pedidos";
+export type ShopeeFileType = "produto_pago" | "produtos";
 
 export interface ParsedImportRow {
   date: string;
