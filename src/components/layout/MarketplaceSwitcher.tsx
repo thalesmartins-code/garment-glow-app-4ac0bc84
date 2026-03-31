@@ -117,11 +117,13 @@ export function MarketplaceSwitcher() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br shadow-sm ${gradientClass}`}
+                className="relative shrink-0"
               >
-                {Icon && <Icon className="h-3 w-3 text-white" />}
+                <div className={`flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br shadow-sm ${gradientClass}`}>
+                  {Icon && <Icon className="h-3 w-3 text-white" />}
+                </div>
                 {selectedStoreIds.length > 1 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                  <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground ring-2 ring-background">
                     {selectedStoreIds.length}
                   </span>
                 )}
