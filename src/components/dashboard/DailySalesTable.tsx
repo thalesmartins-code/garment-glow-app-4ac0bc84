@@ -187,7 +187,6 @@ export function DailySalesTable({
     return ALL_MARKETPLACES.map((mp) => ({
       id: mp.id,
       name: mp.name,
-      logo: mp.logo,
       vendaTotal: 0,
       metaVendas: 0,
       gap: 0,
