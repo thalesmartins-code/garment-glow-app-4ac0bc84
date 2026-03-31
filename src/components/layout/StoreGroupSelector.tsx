@@ -34,7 +34,7 @@ export function StoreGroupSelector({ className }: Props) {
     }
     return Array.from(map.entries()).map(([mpId, stores]) => ({
       mpId,
-      mp: MP_MAP[mpId] ?? { id: mpId, name: mpId, logo: "🏪" },
+      mp: MP_MAP[mpId] ?? { id: mpId, name: mpId },
       stores,
     }));
   }, [activeStores]);
@@ -87,7 +87,7 @@ export function StoreGroupSelector({ className }: Props) {
                   <BrandIcon className="h-2.5 w-2.5 text-white" />
                 </div>
               ) : (
-                <span>{mp.logo}</span>
+                <span>{mp.name.charAt(0)}</span>
               )}
               <span>{store.store_name}</span>
             </button>
@@ -113,7 +113,7 @@ export function StoreGroupSelector({ className }: Props) {
                     <GroupIcon className="h-2.5 w-2.5 text-white" />
                   </div>
                 ) : (
-                  <span>{mp.logo}</span>
+                  <span>{mp.name.charAt(0)}</span>
                 )}
                 <span>{mp.name}</span>
                 {hasSelection && (

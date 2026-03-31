@@ -178,7 +178,7 @@ export function useSellerSalesData(): UseSellerSalesDataReturn {
         return {
           id: mp.id,
           marketplace: marketplaceInfo?.name ?? mp.id,
-          logo: marketplaceInfo?.logo ?? "📊",
+          logo: marketplaceInfo?.name?.charAt(0) ?? "T",
           vendaTotal: Math.round(vendaTotal * 100) / 100,
           vendaAprovadaReal: Math.round(vendaAprovadaReal * 100) / 100,
           qtdVendas,
@@ -241,7 +241,7 @@ export function useSellerSalesData(): UseSellerSalesDataReturn {
         return {
           id: mp.id,
           marketplace: marketplaceInfo?.name ?? mp.id,
-          logo: marketplaceInfo?.logo ?? "📊",
+          logo: marketplaceInfo?.name?.charAt(0) ?? "T",
           vendaTotal: Math.round(vendaTotal * 100) / 100,
           vendaAprovadaReal: Math.round(vendaAprovadaReal * 100) / 100,
           qtdVendas: totalQtd,

@@ -22,15 +22,15 @@ export interface Seller {
 }
 
 export const ALL_MARKETPLACES = [
-  { id: "ml",          name: "Mercado Livre",  logo: "🟡" },
-  { id: "amz",         name: "Amazon",         logo: "📦" },
-  { id: "shopee",      name: "Shopee",         logo: "🧡" },
-  { id: "magalu",      name: "Magazine Luiza", logo: "🔵" },
-  { id: "americanas",  name: "Americanas",     logo: "🔴" },
-  { id: "casasbahia",  name: "Casas Bahia",    logo: "🏠" },
-  { id: "dafiti",      name: "Dafiti",         logo: "👗" },
-  { id: "netshoes",    name: "Netshoes",       logo: "👟" },
-  { id: "total",       name: "Total",          logo: "📊" },
+  { id: "ml",          name: "Mercado Livre" },
+  { id: "amz",         name: "Amazon" },
+  { id: "shopee",      name: "Shopee" },
+  { id: "magalu",      name: "Magazine Luiza" },
+  { id: "americanas",  name: "Americanas" },
+  { id: "casasbahia",  name: "Casas Bahia" },
+  { id: "dafiti",      name: "Dafiti" },
+  { id: "netshoes",    name: "Netshoes" },
+  { id: "total",       name: "Total" },
 ] as const;
 
 export type MarketplaceId = typeof ALL_MARKETPLACES[number]["id"];

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { getMarketplaceBrand } from "@/config/marketplaceConfig";
 import { ChevronUp, ChevronDown, ChevronsUpDown, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarketplaceSales } from "@/data/mockData";
@@ -158,7 +159,11 @@ export function SalesTable({
                 <TableRow key={mp.id}>
                   <TableCell className="font-medium">
                     <span className="flex items-center gap-2">
-                      <span className="text-lg">{mp.logo}</span>
+                      {(() => {
+                        const brand = getMarketplaceBrand(mp.id);
+                        if (brand) { const B = brand.icon; return <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br ${brand.gradient}`}><B className="h-2.5 w-2.5 text-white" /></div>; }
+                        return null;
+                      })()}
                       <span>{mp.marketplace}</span>
                     </span>
                   </TableCell>
@@ -205,7 +210,11 @@ export function SalesTable({
             <tr className="font-semibold">
               <td className="px-4 py-4">
                 <span className="flex items-center gap-2">
-                  <span className="text-lg">📊</span>
+                  {(() => {
+                    const brand = getMarketplaceBrand("total");
+                    if (brand) { const B = brand.icon; return <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br ${brand.gradient}`}><B className="h-2.5 w-2.5 text-white" /></div>; }
+                    return null;
+                  })()}
                   <span>Total Geral</span>
                 </span>
               </td>
