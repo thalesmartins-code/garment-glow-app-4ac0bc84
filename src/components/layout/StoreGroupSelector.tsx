@@ -113,7 +113,7 @@ export function StoreGroupSelector({ className }: Props) {
                     <GroupIcon className="h-2.5 w-2.5 text-white" />
                   </div>
                 ) : (
-                  <span>{mp.logo}</span>
+                  <span>{mp.name.charAt(0)}</span>
                 )}
                 <span>{mp.name}</span>
                 {hasSelection && (
