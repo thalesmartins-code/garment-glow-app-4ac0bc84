@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
-import { Store, ShoppingCart, Package, Truck, Footprints, Shirt } from "lucide-react";
+import { Handshake, ShoppingBag, Package, Store, ShoppingCart, Footprints } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useSeller } from "@/contexts/SellerContext";
 
@@ -35,14 +35,14 @@ const allMarketplaces: MarketplaceDefinition[] = [
   {
     id: "mercado-livre",
     name: "Mercado Livre",
-    icon: Store,
+    icon: Handshake,
     color: "from-yellow-500 to-amber-500",
     connected: true,
   },
   {
     id: "amazon",
     name: "Amazon",
-    icon: ShoppingCart,
+    icon: ShoppingBag,
     color: "from-orange-500 to-amber-600",
     connected: true,
   },
@@ -56,7 +56,7 @@ const allMarketplaces: MarketplaceDefinition[] = [
   {
     id: "magalu",
     name: "Magazine Luiza",
-    icon: Truck,
+    icon: Store,
     color: "from-blue-600 to-indigo-500",
     connected: true,
   },
@@ -70,8 +70,8 @@ const allMarketplaces: MarketplaceDefinition[] = [
   {
     id: "dafiti",
     name: "Dafiti",
-    icon: Shirt,
-    color: "from-pink-500 to-rose-500",
+    icon: ShoppingCart,
+    color: "from-gray-500 to-gray-600",
     connected: true,
   },
 ];
