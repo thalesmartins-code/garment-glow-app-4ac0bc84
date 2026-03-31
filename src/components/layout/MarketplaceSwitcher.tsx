@@ -169,8 +169,8 @@ export function MarketplaceSwitcher() {
       <DropdownMenuContent align="end" className="w-52 rounded-lg p-1">
         {/* "All" option */}
         <DropdownMenuItem
-          onClick={handleToggleAll}
-          className={`cursor-pointer gap-2 rounded-md px-2 py-1.5 ${allSelected ? "bg-muted" : ""}`}
+          onSelect={(e) => { e.preventDefault(); handleToggleAll(); }}
+          className={`cursor-pointer gap-2 rounded-md px-2 py-1.5 focus:bg-muted/50 ${allSelected ? "bg-muted/60" : ""}`}
         >
           <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           <span className={`flex-1 text-sm ${allSelected ? "font-medium" : ""}`}>
@@ -195,8 +195,8 @@ export function MarketplaceSwitcher() {
               <div key={mpKey}>
                 {groupIdx > 0 && <DropdownMenuSeparator className="my-1" />}
                 <DropdownMenuItem
-                  onClick={() => handleToggleStore(store.id)}
-                  className={`cursor-pointer gap-2 rounded-md px-2 py-1.5 ${isChecked ? "bg-muted" : ""}`}
+                  onSelect={(e) => { e.preventDefault(); handleToggleStore(store.id); }}
+                  className={`cursor-pointer gap-2 rounded-md px-2 py-1.5 focus:bg-muted/50 ${isChecked ? "bg-muted/60" : ""}`}
                 >
                   <div
                     className={`flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br ${color}`}
@@ -231,8 +231,8 @@ export function MarketplaceSwitcher() {
                 return (
                   <DropdownMenuItem
                     key={store.id}
-                    onClick={() => handleToggleStore(store.id)}
-                    className={`cursor-pointer gap-2 rounded-md px-2 py-1.5 pl-7 ${isChecked ? "bg-muted" : ""}`}
+                    onSelect={(e) => { e.preventDefault(); handleToggleStore(store.id); }}
+                    className={`cursor-pointer gap-2 rounded-md px-2 py-1.5 pl-7 focus:bg-muted/50 ${isChecked ? "bg-muted/60" : ""}`}
                   >
                     <span className={`flex-1 text-sm truncate ${isChecked ? "font-medium" : ""}`}>
                       {store.store_name}
