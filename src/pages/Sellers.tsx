@@ -163,7 +163,7 @@ export default function Sellers() {
 
       {/* Sellers Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {sellers.map((seller) => (
+        {[...sellers].sort((a, b) => b.stores.length - a.stores.length || a.name.localeCompare(b.name)).map((seller) => (
           <Card
             key={seller.id}
             className={`transition-all duration-300 ease-in-out rounded-xl border shadow-sm hover:shadow-md ${!seller.is_active ? "opacity-60" : ""} ${
