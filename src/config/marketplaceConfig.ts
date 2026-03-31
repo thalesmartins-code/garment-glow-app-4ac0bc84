@@ -1,5 +1,6 @@
-import { Handshake, Package, ShoppingBag, Store, Zap, ShoppingCart, CircleDot, Home, BarChart3 } from "lucide-react";
+import { Handshake, Package, ShoppingBag, Store, ShoppingCart, CircleDot, Home, BarChart3 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { SportShoe } from "@/components/icons/SportShoe";
 
 export interface MarketplaceBrand {
   id: string;
@@ -47,7 +48,7 @@ export const MARKETPLACE_BRANDS: MarketplaceBrand[] = [
   {
     id: "netshoes",
     name: "Netshoes",
-    icon: Zap,
+    icon: SportShoe as unknown as LucideIcon,
     gradient: "from-purple-600 to-violet-500",
     badge: "bg-purple-500/10 text-purple-700 border-purple-500/30",
   },
