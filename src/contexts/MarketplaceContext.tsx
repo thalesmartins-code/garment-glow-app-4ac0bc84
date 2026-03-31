@@ -42,14 +42,14 @@ const allMarketplaces: MarketplaceDefinition[] = [
   {
     id: "amazon",
     name: "Amazon",
-    icon: ShoppingBag,
+    icon: Package,
     color: "from-orange-500 to-amber-600",
     connected: true,
   },
   {
     id: "shopee",
     name: "Shopee",
-    icon: Package,
+    icon: ShoppingBag,
     color: "from-orange-600 to-red-500",
     connected: true,
   },

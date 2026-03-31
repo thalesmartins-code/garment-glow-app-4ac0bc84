@@ -1,4 +1,5 @@
-import { Check, ChevronDown, Layers, Store } from "lucide-react";
+import { useMemo } from "react";
+import { Check, ChevronDown, Layers, Store as StoreIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +15,6 @@ import { useMarketplace, type MarketplaceDefinition } from "@/contexts/Marketpla
 import { useSeller } from "@/contexts/SellerContext";
 import { ALL_MARKETPLACES } from "@/types/seller";
 
-// Map seller store marketplace ids to MarketplaceContext definitions
 const SELLER_TO_MP_ID: Record<string, string> = {
   ml: "mercado-livre",
   amz: "amazon",
@@ -36,14 +36,24 @@ export function MarketplaceSwitcher() {
   const sellerStores = selectedSeller?.stores.filter((s) => s.is_active) ?? [];
   const allSelected = selectedStoreIds.length === 0;
 
-  // Find marketplace definition for a seller store
   const getMpDef = (storeMarketplace: string): MarketplaceDefinition | undefined => {
     const mpId = SELLER_TO_MP_ID[storeMarketplace] ?? storeMarketplace;
     return marketplaces.find((m) => m.id === mpId);
   };
 
-  const getStoreLogo = (storeMarketplace: string): string =>
-    ALL_MARKETPLACES.find((m) => m.id === storeMarketplace)?.logo ?? "🏪";
+  // Group stores by marketplace
+  const storeGroups = useMemo(() => {
+    const map = new Map<string, typeof sellerStores>();
+    for (const store of sellerStores) {
+      if (!map.has(store.marketplace)) map.set(store.marketplace, []);
+      map.get(store.marketplace)!.push(store);
+    }
+    return Array.from(map.entries()).map(([mpKey, stores]) => ({
+      mpKey,
+      mpDef: getMpDef(mpKey),
+      stores,
+    }));
+  }, [sellerStores, marketplaces]);
 
   // Build trigger label + icon
   const firstSelected = !allSelected
@@ -64,11 +74,9 @@ export function MarketplaceSwitcher() {
 
   const handleToggleStore = (storeId: string) => {
     if (allSelected) {
-      // Start specific selection with just this store
       setSelectedStoreIds([storeId]);
     } else {
       if (selectedStoreIds.length === 1 && selectedStoreIds[0] === storeId) {
-        // Deselecting last → revert to "all"
         setSelectedStoreIds([]);
       } else {
         toggleStoreId(storeId);
@@ -158,7 +166,7 @@ export function MarketplaceSwitcher() {
 
       <DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5">
         <DropdownMenuLabel className="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground">
-          <Store className="h-3.5 w-3.5" />
+          <StoreIcon className="h-3.5 w-3.5" />
           Lojas
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -183,33 +191,48 @@ export function MarketplaceSwitcher() {
 
         <DropdownMenuSeparator />
 
-        {/* Individual stores with checkboxes */}
-        {sellerStores.map((store) => {
-          const mpDef = getMpDef(store.marketplace);
-          const MpIcon = mpDef?.icon ?? Store;
+        {/* Stores grouped by marketplace */}
+        {storeGroups.map(({ mpKey, mpDef, stores }, groupIdx) => {
+          const MpIcon = mpDef?.icon ?? StoreIcon;
           const color = mpDef?.color ?? "from-gray-500 to-gray-600";
-          const isChecked = !allSelected && selectedStoreIds.includes(store.id);
+          const mpName = mpDef?.name ?? mpKey;
 
           return (
-            <DropdownMenuItem
-              key={store.id}
-              onClick={() => handleToggleStore(store.id)}
-              className={`cursor-pointer gap-2.5 rounded-lg px-2 py-2 ${isChecked ? "bg-accent/10" : ""}`}
-            >
-              <div
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${color} text-white`}
-              >
-                <MpIcon className="h-4 w-4" />
+            <div key={mpKey}>
+              {groupIdx > 0 && <DropdownMenuSeparator className="my-1" />}
+              {/* Marketplace group label */}
+              <div className="flex items-center gap-2 px-2 py-1.5">
+                <div
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${color} text-white`}
+                >
+                  <MpIcon className="h-3 w-3" />
+                </div>
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  {mpName}
+                </span>
               </div>
-              <span className={`flex-1 text-sm truncate ${isChecked ? "font-semibold" : "font-medium"}`}>
-                {store.store_name}
-              </span>
-              <Checkbox
-                checked={isChecked}
-                className="h-3.5 w-3.5 pointer-events-none"
-                tabIndex={-1}
-              />
-            </DropdownMenuItem>
+
+              {/* Stores in this marketplace */}
+              {stores.map((store) => {
+                const isChecked = !allSelected && selectedStoreIds.includes(store.id);
+                return (
+                  <DropdownMenuItem
+                    key={store.id}
+                    onClick={() => handleToggleStore(store.id)}
+                    className={`cursor-pointer gap-2.5 rounded-lg px-2 py-2 pl-9 ${isChecked ? "bg-accent/10" : ""}`}
+                  >
+                    <span className={`flex-1 text-sm truncate ${isChecked ? "font-semibold" : "font-medium"}`}>
+                      {store.store_name}
+                    </span>
+                    <Checkbox
+                      checked={isChecked}
+                      className="h-3.5 w-3.5 pointer-events-none"
+                      tabIndex={-1}
+                    />
+                  </DropdownMenuItem>
+                );
+              })}
+            </div>
           );
         })}
 
