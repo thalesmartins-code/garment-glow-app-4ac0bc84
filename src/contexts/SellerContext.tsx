@@ -17,7 +17,7 @@ interface SellerContextType {
   loading: boolean;
   // Seller CRUD
   addSeller: (name: string) => Promise<Seller | null>;
-  updateSeller: (id: string, data: { name?: string; is_active?: boolean }) => Promise<void>;
+  updateSeller: (id: string, data: { name?: string; is_active?: boolean; logo_url?: string | null }) => Promise<void>;
   deleteSeller: (id: string) => Promise<boolean>;
   // Store CRUD
   addStore: (sellerId: string, input: AddStoreInput) => Promise<SellerStore | null>;
@@ -55,7 +55,7 @@ export function SellerProvider({ children }: { children: React.ReactNode }) {
       const [{ data: sellerRows }, { data: storeRows }] = await Promise.all([
         supabase
           .from("sellers" as any)
-          .select("id, name, initials, is_active, created_at")
+          .select("id, name, initials, logo_url, is_active, created_at")
           .eq("user_id", user.id)
           .order("created_at", { ascending: true }),
         supabase
@@ -128,7 +128,7 @@ export function SellerProvider({ children }: { children: React.ReactNode }) {
     return newSeller;
   }, [user]);
 
-  const updateSeller = useCallback(async (id: string, data: { name?: string; is_active?: boolean }) => {
+  const updateSeller = useCallback(async (id: string, data: { name?: string; is_active?: boolean; logo_url?: string | null }) => {
     const updates: any = { ...data };
     if (data.name) updates.initials = generateInitials(data.name);
     const { error } = await supabase.from("sellers" as any).update(updates).eq("id", id);

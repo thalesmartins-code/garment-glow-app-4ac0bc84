@@ -1,0 +1,2 @@
+UPDATE sellers SET logo_url = 'https://http2.mlstatic.com/D_NQ_NP_788484-MLA84290244651_052025-F.jpg' WHERE LOWER(name) LIKE '%sandrini%';
+UPDATE sellers SET logo_url = 'https://http2.mlstatic.com/D_NQ_NP_943366-MLA91442251991_092025-F.jpg' WHERE LOWER(name) LIKE '%buyclock%';

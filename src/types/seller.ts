@@ -12,6 +12,7 @@ export interface Seller {
   id: string;
   name: string;
   initials: string;
+  logo_url: string | null;
   is_active: boolean;
   created_at: string;
   stores: SellerStore[];
@@ -42,7 +43,7 @@ export function generateInitials(name: string): string {
 
 /** Build a Seller object from DB rows, computing derived fields */
 export function buildSeller(
-  row: { id: string; name: string; initials: string | null; is_active: boolean; created_at: string },
+  row: { id: string; name: string; initials: string | null; logo_url?: string | null; is_active: boolean; created_at: string },
   stores: SellerStore[]
 ): Seller {
   const activeMarketplaces = [...new Set(stores.map((s) => s.marketplace))];
@@ -50,10 +51,11 @@ export function buildSeller(
     id: row.id,
     name: row.name,
     initials: row.initials ?? generateInitials(row.name),
+    logo_url: row.logo_url ?? null,
     is_active: row.is_active,
-    isActive: row.is_active,   // legacy compat
+    isActive: row.is_active,
     created_at: row.created_at,
     stores,
-    activeMarketplaces,        // legacy compat
+    activeMarketplaces,
   };
 }

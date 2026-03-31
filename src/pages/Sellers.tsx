@@ -45,18 +45,24 @@ export default function Sellers() {
   // --- Edit seller dialog ---
   const [editSellerId, setEditSellerId] = useState<string | null>(null);
   const [editSellerName, setEditSellerName] = useState("");
+  const [editSellerLogo, setEditSellerLogo] = useState("");
 
-  const openEditSeller = (id: string, name: string) => {
+  const openEditSeller = (id: string, name: string, logo_url: string | null) => {
     setEditSellerId(id);
     setEditSellerName(name);
+    setEditSellerLogo(logo_url ?? "");
   };
 
   const handleUpdateSeller = async () => {
     if (!editSellerId || !editSellerName.trim()) return;
-    await updateSeller(editSellerId, { name: editSellerName.trim() });
+    await updateSeller(editSellerId, {
+      name: editSellerName.trim(),
+      logo_url: editSellerLogo.trim() || null,
+    });
     toast({ title: "Seller atualizado" });
     setEditSellerId(null);
     setEditSellerName("");
+    setEditSellerLogo("");
   };
 
   // --- Add store dialog ---
@@ -166,13 +172,21 @@ export default function Sellers() {
             <CardHeader className="pb-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                    seller.is_active ? "bg-primary/10" : "bg-muted"
-                  }`}>
-                    <span className={`text-sm font-bold ${seller.is_active ? "text-primary" : "text-muted-foreground"}`}>
-                      {seller.initials}
-                    </span>
-                  </div>
+                  {seller.logo_url ? (
+                    <img
+                      src={seller.logo_url}
+                      alt={seller.name}
+                      className="w-10 h-10 rounded-lg object-cover shrink-0 border"
+                    />
+                  ) : (
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                      seller.is_active ? "bg-primary/10" : "bg-muted"
+                    }`}>
+                      <span className={`text-sm font-bold ${seller.is_active ? "text-primary" : "text-muted-foreground"}`}>
+                        {seller.initials}
+                      </span>
+                    </div>
+                  )}
                   <div>
                     <CardTitle className="text-base">{seller.name}</CardTitle>
                     <CardDescription className="text-xs">
@@ -200,7 +214,7 @@ export default function Sellers() {
                   {/* Edit seller name */}
                   <Dialog open={editSellerId === seller.id} onOpenChange={(o) => { if (!o) setEditSellerId(null); }}>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-muted" onClick={() => openEditSeller(seller.id, seller.name)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-muted" onClick={() => openEditSeller(seller.id, seller.name, seller.logo_url)}>
                         <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                       </Button>
                     </DialogTrigger>
@@ -208,9 +222,30 @@ export default function Sellers() {
                       <DialogHeader>
                         <DialogTitle>Editar Seller</DialogTitle>
                       </DialogHeader>
-                      <div className="space-y-2">
-                        <Label>Nome</Label>
-                        <Input value={editSellerName} onChange={(e) => setEditSellerName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleUpdateSeller()} />
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Nome</Label>
+                          <Input value={editSellerName} onChange={(e) => setEditSellerName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleUpdateSeller()} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>URL do Logo</Label>
+                          <Input
+                            value={editSellerLogo}
+                            onChange={(e) => setEditSellerLogo(e.target.value)}
+                            placeholder="https://exemplo.com/logo.jpg"
+                          />
+                          {editSellerLogo && (
+                            <div className="flex items-center gap-3 mt-2">
+                              <img
+                                src={editSellerLogo}
+                                alt="Preview"
+                                className="h-12 w-12 rounded-lg object-cover border"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                              />
+                              <span className="text-xs text-muted-foreground">Preview do logo</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <DialogFooter>
                         <Button variant="outline" onClick={() => setEditSellerId(null)}>Cancelar</Button>

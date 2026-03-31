@@ -370,6 +370,7 @@ export type Database = {
           id: string
           initials: string | null
           is_active: boolean
+          logo_url: string | null
           name: string
           user_id: string
         }
@@ -378,6 +379,7 @@ export type Database = {
           id?: string
           initials?: string | null
           is_active?: boolean
+          logo_url?: string | null
           name: string
           user_id: string
         }
@@ -386,6 +388,7 @@ export type Database = {
           id?: string
           initials?: string | null
           is_active?: boolean
+          logo_url?: string | null
           name?: string
           user_id?: string
         }
