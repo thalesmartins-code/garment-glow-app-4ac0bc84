@@ -13,9 +13,10 @@ import { StoreGroupSelector } from "./StoreGroupSelector";
 
 interface Props {
   className?: string;
+  showStores?: boolean;
 }
 
-export function SellerMarketplaceBar({ className }: Props) {
+export function SellerMarketplaceBar({ className, showStores = true }: Props) {
   const {
     activeSellers,
     sellers,
