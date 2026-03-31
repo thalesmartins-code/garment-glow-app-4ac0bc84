@@ -17,6 +17,7 @@ export const roleAccess: Record<string, AppRole[]> = {
   "/api/anuncios": ["admin", "editor", "viewer"],
   "/api/sincronizacoes": ["admin", "editor", "viewer"],
   "/api/importacao": ["admin", "editor"],
+  "/api/sellers": ["admin", "editor"],
   "/api/integracoes": ["admin", "editor"],
   "/api/perfil": ["admin", "editor", "viewer"],
 };
