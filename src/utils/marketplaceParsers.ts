@@ -1,5 +1,5 @@
 export type MarketplaceType = "shopee" | "amazon" | "magalu" | "dafiti" | "netshoes";
-export type ShopeeFileType = "produto_pago" | "pedidos";
+export type ShopeeFileType = "produto_pago" | "produtos";
 
 export interface ParsedImportRow {
   date: string;
@@ -54,7 +54,7 @@ export function parseShopeeOrdersFile(
   fileType: "csv" | "excel"
 ): ParsedOrderRow[] {
   if (fileType === "excel") {
-    throw new Error("Shopee Pedidos: use o arquivo CSV exportado da plataforma.");
+    throw new Error("Shopee Produtos: use o arquivo CSV exportado da plataforma.");
   }
   return parseShopeeOrdersCSV(content as string);
 }
@@ -112,7 +112,7 @@ function parseShopeeCSV(content: string): ParsedImportRow[] {
   return rows;
 }
 
-// ─── Shopee CSV (Pedidos) ──────────────────────────────────────
+// ─── Shopee CSV (Produtos) ──────────────────────────────────────
 
 function parseShopeeOrdersCSV(content: string): ParsedOrderRow[] {
   const lines = content.split(/\r?\n/).filter(l => l.trim());
@@ -161,7 +161,7 @@ function parseShopeeOrdersCSV(content: string): ParsedOrderRow[] {
     });
   }
 
-  if (rows.length === 0) throw new Error("Nenhuma linha válida encontrada no arquivo de pedidos Shopee.");
+  if (rows.length === 0) throw new Error("Nenhuma linha válida encontrada no arquivo de produtos Shopee.");
   return rows;
 }
 
