@@ -20,6 +20,8 @@ const SELLER_TO_MP_ID: Record<string, string> = {
   amz: "amazon",
   shopee: "shopee",
   magalu: "magalu",
+  netshoes: "netshoes",
+  dafiti: "dafiti",
 };
 
 export function MarketplaceSwitcher() {
