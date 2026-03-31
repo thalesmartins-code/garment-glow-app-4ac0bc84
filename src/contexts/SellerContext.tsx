@@ -175,7 +175,7 @@ export function SellerProvider({ children }: { children: React.ReactNode }) {
       .select()
       .single();
     if (error || !data) { console.error(error); return null; }
-    const newStore = data as SellerStore;
+    const newStore = data as unknown as SellerStore;
     setSellers((prev) =>
       prev.map((s) => {
         if (s.id !== sellerId) return s;

@@ -34,8 +34,8 @@ export default function Settings() {
 
   // Get active marketplaces for the selected seller
   const activeMarketplaces = getActiveMarketplaces();
-  const [selectedSeller, setSelectedSeller] = useState(globalSelectedSeller.id);
-  const [selectedMarketplace, setSelectedMarketplace] = useState(activeMarketplaces[0]?.id || "ml");
+  const [selectedSeller, setSelectedSeller] = useState(globalSelectedSeller?.id ?? "");
+  const [selectedMarketplace, setSelectedMarketplace] = useState<string>(activeMarketplaces[0]?.id || "ml");
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(1);
 
