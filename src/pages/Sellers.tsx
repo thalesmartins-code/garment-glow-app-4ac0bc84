@@ -199,7 +199,7 @@ export default function Sellers() {
 
                 <div className="flex items-center gap-1 shrink-0">
                   {selectedSeller?.id === seller.id && (
-                    <Badge variant="secondary" className="text-xs h-5">Ativo</Badge>
+                    <Badge className="text-[10px] h-5 bg-primary/10 text-primary border-0 font-medium">Ativo</Badge>
                   )}
                   <Tooltip>
                     <TooltipTrigger asChild>
