@@ -252,7 +252,7 @@ export default function Sellers() {
                       </span>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground hover:text-destructive">
+                          <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
                             <X className="h-3 w-3" />
                           </Button>
                         </AlertDialogTrigger>
