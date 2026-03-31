@@ -88,12 +88,16 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
                     className={`cursor-pointer gap-2.5 rounded-lg px-2 py-2 ${isActive ? "bg-accent/10" : ""}`}
                   >
                     <div
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${
-                        isActive ? "text-accent-foreground" : "bg-secondary text-secondary-foreground"
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg overflow-hidden ${
+                        isActive && !seller.logo_url ? "text-accent-foreground" : !seller.logo_url ? "bg-secondary text-secondary-foreground" : ""
                       }`}
-                      style={isActive ? { background: "var(--gradient-primary)" } : undefined}
+                      style={isActive && !seller.logo_url ? { background: "var(--gradient-primary)" } : undefined}
                     >
-                      {seller.initials}
+                      {seller.logo_url ? (
+                        <img src={seller.logo_url} alt={seller.name} className="h-7 w-7 rounded-lg object-cover" />
+                      ) : (
+                        <span className="text-[11px] font-bold">{seller.initials}</span>
+                      )}
                     </div>
                     <span className={`flex-1 text-sm ${isActive ? "font-semibold" : "font-medium"}`}>
                       {seller.name}
