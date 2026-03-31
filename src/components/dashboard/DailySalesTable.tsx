@@ -36,7 +36,7 @@ interface DailySalesTableProps {
   loading?: boolean;
   selectedMarketplace?: string;
   onMarketplaceChange?: (marketplace: string) => void;
-  marketplaceOptions?: { value: string; label: string; logo: string }[];
+  marketplaceOptions?: { value: string; label: string }[];
   selectedMonth: number;
   selectedYear: number;
   onMonthChange: (month: number) => void;
