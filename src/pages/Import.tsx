@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Upload, Database, Store, History, FileUp, AlertTriangle, RefreshCw, Sheet, Eye } from "lucide-react";
 import { FileUploader } from "@/components/import/FileUploader";
 import { DataPreview } from "@/components/import/DataPreview";
@@ -13,13 +13,7 @@ import { generateTargetId } from "@/types/settings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SellerMarketplaceBar } from "@/components/layout/SellerMarketplaceBar";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -35,15 +29,8 @@ import { useSalesDataDB } from "@/hooks/useSalesDataDB";
 
 export default function Import() {
   const [parseResult, setParseResult] = useState<ImportResult | null>(null);
-  const { activeSellers, sellers } = useSeller();
-  const [selectedSeller, setSelectedSeller] = useState<string | undefined>(activeSellers[0]?.id || sellers[0]?.id);
-
-  // Sync when sellers load from DB (they arrive async)
-  useEffect(() => {
-    if (!selectedSeller && (activeSellers.length > 0 || sellers.length > 0)) {
-      setSelectedSeller(activeSellers[0]?.id || sellers[0]?.id);
-    }
-  }, [activeSellers, sellers, selectedSeller]);
+  const { activeSellers, sellers, selectedSeller: selectedSellerObj } = useSeller();
+  const selectedSeller = selectedSellerObj?.id;
   const { 
     appendSales, 
     deleteSale,
@@ -63,7 +50,7 @@ export default function Import() {
 
   const sellerData = getImportedDataForSeller(selectedSeller);
   const hasDataForSeller = hasImportedDataForSeller(selectedSeller);
-  const selectedSellerObj = sellers.find(s => s.id === selectedSeller);
+  const sellerName = selectedSellerObj?.name;
 
   const handleFileSelect = (content: string | ArrayBuffer, fileType: "csv" | "excel") => {
     let result: ImportResult;
@@ -91,7 +78,7 @@ export default function Import() {
       appendSales(parseResult.data, selectedSeller);
       toast({
         title: "Dados importados com sucesso!",
-        description: `${parseResult.validRows} registros foram importados para ${selectedSellerObj?.name}.`,
+        description: `${parseResult.validRows} registros foram importados para ${sellerName}.`,
       });
       setParseResult(null);
     }
@@ -100,7 +87,7 @@ export default function Import() {
   const handleImportWithDuplicates = (replaceExisting: boolean) => {
     if (!parseResult || !duplicateInfo) return;
     
-    const selectedSellerName = selectedSellerObj?.name || selectedSeller;
+    const selectedSellerName = sellerName || selectedSeller;
     
     if (replaceExisting) {
       // Import all data (appendSales will replace duplicates)
@@ -142,40 +129,8 @@ export default function Import() {
   return (
     <div className="space-y-6">
 
-        {/* Seller Selector Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Selecionar Seller</CardTitle>
-            <CardDescription>
-              Escolha para qual seller os dados serão importados
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1.5">
-                <Store className="h-4 w-4 text-muted-foreground" />
-                Seller
-              </Label>
-              <Select value={selectedSeller} onValueChange={setSelectedSeller}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                {activeSellers.map((seller) => (
-                    <SelectItem key={seller.id} value={seller.id}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-                          <span className="text-xs font-bold text-primary">{seller.initials}</span>
-                        </div>
-                        {seller.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Seller + Marketplace selector */}
+        <SellerMarketplaceBar showStores={false} />
 
         {/* Status Card for Selected Seller */}
         {hasDataForSeller && (
@@ -184,7 +139,7 @@ export default function Import() {
               <Database className="w-5 h-5 text-primary" />
               <div>
                 <p className="text-sm font-medium">
-                  {sellerData.length} registros para {selectedSellerObj?.name}
+                  {sellerData.length} registros para {sellerName}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Dados disponíveis no Dashboard e Vendas Diárias
@@ -400,7 +355,7 @@ export default function Import() {
                       {parseResult.validRows > 0 && (
                         <div className="flex flex-wrap gap-3 pt-4 border-t">
                           <Button onClick={handleImportClick}>
-                            Importar {parseResult.validRows} Registros para {selectedSellerObj?.name}
+                            Importar {parseResult.validRows} Registros para {sellerName}
                           </Button>
                         </div>
                       )}
@@ -414,7 +369,7 @@ export default function Import() {
           <TabsContent value="history">
             <ImportHistory
               sellerId={selectedSeller}
-              sellerName={selectedSellerObj?.name || selectedSeller}
+              sellerName={sellerName || selectedSeller}
               data={sellerData}
               onDeleteRecord={handleDeleteRecord}
             />

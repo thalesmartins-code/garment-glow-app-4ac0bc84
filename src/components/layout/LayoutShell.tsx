@@ -9,15 +9,18 @@ interface LayoutShellProps {
   showMarketplaceSwitcher?: boolean;
 }
 
+const HIDE_SELLER_SWITCHER_ROUTES = ["/sheets/integracoes", "/sheets/sellers", "/sheets/importacao"];
+
 export function LayoutShell({ sidebar, showSellerSwitcher = true, showMarketplaceSwitcher = false }: LayoutShellProps) {
   const location = useLocation();
   const { title, subtitle } = getRouteMeta(location.pathname);
+  const hideSwitcher = HIDE_SELLER_SWITCHER_ROUTES.includes(location.pathname);
 
   return (
     <div className="flex h-screen bg-background">
       {sidebar}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header title={title} subtitle={subtitle} showSellerSwitcher={showSellerSwitcher} showMarketplaceSwitcher={showMarketplaceSwitcher} />
+        <Header title={title} subtitle={subtitle} showSellerSwitcher={!hideSwitcher && showSellerSwitcher} showMarketplaceSwitcher={showMarketplaceSwitcher} />
         <main className="flex-1 overflow-auto p-8">
           <Outlet />
         </main>
