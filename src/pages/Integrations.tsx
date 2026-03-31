@@ -12,6 +12,7 @@ import { useSeller } from "@/contexts/SellerContext";
 import { SellerMarketplaceBar } from "@/components/layout/SellerMarketplaceBar";
 import { Seller } from "@/types/seller";
 import { supabase } from "@/integrations/supabase/client";
+import { getMarketplaceBrand, SELLER_TO_MP_ID } from "@/config/marketplaceConfig";
 import createMagaluClient from "@magalucloud/sdk-idmagalu-js";
 import {
   Dialog,
