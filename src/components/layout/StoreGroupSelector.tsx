@@ -117,7 +117,7 @@ export function StoreGroupSelector({ className }: Props) {
                       "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors",
                       isChecked
                         ? "bg-primary/8 text-primary font-medium"
-                        : "hover:bg-accent/60 text-foreground"
+                        : "hover:bg-muted/50 text-foreground"
                     )}
                   >
                     <Checkbox
