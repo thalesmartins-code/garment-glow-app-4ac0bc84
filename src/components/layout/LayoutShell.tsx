@@ -9,7 +9,7 @@ interface LayoutShellProps {
   showMarketplaceSwitcher?: boolean;
 }
 
-const HIDE_SELLER_SWITCHER_ROUTES = ["/sheets/integracoes", "/sheets/sellers", "/sheets/importacao"];
+const HIDE_SELLER_SWITCHER_ROUTES = ["/sheets/integracoes", "/sheets/sellers", "/sheets/importacao", "/api/integracoes", "/api/sellers", "/api/importacao"];
 
 export function LayoutShell({ sidebar, showSellerSwitcher = true, showMarketplaceSwitcher = false }: LayoutShellProps) {
   const location = useLocation();

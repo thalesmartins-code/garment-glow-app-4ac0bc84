@@ -16,6 +16,13 @@ export const routeTitles: Record<string, { title: string; subtitle: string }> = 
   "/api/pedidos": { title: "Pedidos", subtitle: "Acompanhamento de pedidos e envios" },
   "/api/anuncios": { title: "Publicidade", subtitle: "Gestão e performance de publicidade" },
   "/api/perfil": { title: "Perfil", subtitle: "Gerencie suas informações pessoais" },
+  "/api/sellers": { title: "Sellers", subtitle: "Gerencie sellers e marketplaces ativos" },
+  "/api/integracoes": {
+    title: "Integrações",
+    subtitle: "Conecte suas contas de marketplaces para sincronizar dados automaticamente",
+  },
+  "/api/importacao": { title: "Importação", subtitle: "Importe dados de vendas dos marketplaces" },
+  "/api/sincronizacoes": { title: "Sincronizações", subtitle: "Histórico e logs de sincronização" },
 };
 
 export function getRouteMeta(pathname: string) {
