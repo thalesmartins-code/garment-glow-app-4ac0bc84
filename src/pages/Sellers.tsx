@@ -300,9 +300,7 @@ export default function Sellers() {
                           <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br ${brand.gradient}`}>
                             <BrandIcon className="h-2.5 w-2.5 text-white" />
                           </div>
-                        ) : (
-                          <span>{mp?.logo ?? "🏪"}</span>
-                        )}
+                         ) : null}
                         <span className="font-medium">{store.store_name}</span>
                       </span>
                       <AlertDialog>
