@@ -1318,18 +1318,6 @@ export default function MercadoLivre() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-                      formatter={(value: number, name: string) => name === "Pedidos" ? [value, name] : [currencyFmt(Number(value)), name]}
-                      contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }}
-                    />
-                    <Bar yAxisId="orders" dataKey="Pedidos" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} maxBarSize={20} />
-                    <Area yAxisId="revenue" type="monotone" dataKey="Venda Total" stroke="hsl(var(--accent))" fill={`url(#total-${mp.id})`} strokeWidth={2} />
-                    <Line yAxisId="revenue" type="monotone" dataKey="Venda Aprovada" stroke="hsl(var(--success))" strokeWidth={1.5} dot={false} />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
       ) : (dailyChartData.length > 0 || showHourlyChart) ? (
         <Card>
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
