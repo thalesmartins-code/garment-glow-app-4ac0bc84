@@ -215,9 +215,13 @@ function generateInventoryItems(seed: number, marketplace: string, count: number
 
 // Config per marketplace
 const MP_CONFIG: Record<string, { seed: number; orders: [number, number]; ticket: [number, number]; inventoryCount: number }> = {
-  amazon:  { seed: 42,  orders: [15, 45], ticket: [80, 250],  inventoryCount: 25 },
-  shopee:  { seed: 137, orders: [30, 80], ticket: [40, 120],  inventoryCount: 20 },
-  magalu:  { seed: 256, orders: [10, 30], ticket: [100, 350], inventoryCount: 15 },
+  amazon:     { seed: 42,  orders: [15, 45], ticket: [80, 250],  inventoryCount: 25 },
+  shopee:     { seed: 137, orders: [30, 80], ticket: [40, 120],  inventoryCount: 20 },
+  magalu:     { seed: 256, orders: [10, 30], ticket: [100, 350], inventoryCount: 15 },
+  netshoes:   { seed: 311, orders: [5, 20],  ticket: [90, 280],  inventoryCount: 10 },
+  dafiti:     { seed: 389, orders: [8, 25],  ticket: [70, 220],  inventoryCount: 12 },
+  americanas: { seed: 444, orders: [12, 35], ticket: [60, 200],  inventoryCount: 15 },
+  casasbahia: { seed: 502, orders: [8, 28],  ticket: [120, 400], inventoryCount: 12 },
 };
 
 export function getMarketplaceDailyData(marketplaceId: string, daysBack = 30): DailyBreakdown[] {
