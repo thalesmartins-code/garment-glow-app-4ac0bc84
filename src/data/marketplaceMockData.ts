@@ -253,7 +253,7 @@ export function getMarketplaceInventory(marketplaceId: string): { items: MockInv
 }
 
 // Aggregate mock data from Amazon + Shopee + Magalu
-const MOCK_MARKETPLACE_IDS = ["amazon", "shopee", "magalu", "netshoes", "dafiti", "americanas", "casasbahia"];
+const MOCK_MARKETPLACE_IDS = ["mercado-livre", "amazon", "shopee", "magalu", "netshoes", "dafiti", "americanas", "casasbahia"];
 
 export function getAllMarketplaceMockDaily(daysBack = 30): DailyBreakdown[] {
   const allData = MOCK_MARKETPLACE_IDS.map((id) => getMarketplaceDailyData(id, daysBack));

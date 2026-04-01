@@ -24,6 +24,7 @@ import { format, subDays } from "date-fns";
 const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 const CHART_MARKETPLACES = [
+  { key: "mercado-livre", color: "#e6b422", name: "Mercado Livre" },
   { key: "amazon", color: "#131A22", name: "Amazon" },
   { key: "shopee", color: "#d4532a", name: "Shopee" },
   { key: "magalu", color: "#3b6dba", name: "Magalu" },
