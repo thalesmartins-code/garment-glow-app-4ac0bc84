@@ -33,7 +33,7 @@ const GRADIENT_HEX: Record<string, string> = {
   "from-[#d4532a] to-[#b8412a]": "#d4532a",
   "from-[#3b6dba] to-[#4a5ea8]": "#3b6dba",
   "from-[#7a4db5] to-[#6a3fa0]": "#7a4db5",
-  "from-gray-500 to-gray-600": "hsl(0, 0%, 45%)",
+  "from-[#2a9d8f] to-[#238b80]": "#2a9d8f",
   "from-[#c44040] to-[#a83535]": "#c44040",
   "from-[#3a7cc4] to-[#2e6aab]": "#3a7cc4",
   "from-gray-600 to-gray-700": "hsl(0, 0%, 40%)",

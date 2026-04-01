@@ -55,8 +55,8 @@ export const MARKETPLACE_BRANDS: MarketplaceBrand[] = [
     id: "dafiti",
     name: "Dafiti",
     icon: ShoppingCart,
-    gradient: "from-gray-500 to-gray-600",
-    badge: "bg-gray-100 text-gray-900 border-gray-300 dark:bg-gray-800/50 dark:text-gray-100 dark:border-gray-600",
+    gradient: "from-[#2a9d8f] to-[#238b80]",
+    badge: "bg-[#2a9d8f]/10 text-[#2a9d8f] border-[#2a9d8f]/30",
   },
   {
     id: "americanas",
