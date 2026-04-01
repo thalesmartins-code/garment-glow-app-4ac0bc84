@@ -889,6 +889,27 @@ export default function MercadoLivre() {
 
   const [showMpBreakdown, setShowMpBreakdown] = useState(false);
 
+  const MARKETPLACE_STROKE_COLORS: Record<string, string> = {
+    "mercado-livre": "hsl(45, 93%, 47%)",
+    amazon: "hsl(25, 95%, 53%)",
+    shopee: "hsl(15, 85%, 50%)",
+    magalu: "hsl(225, 70%, 55%)",
+  };
+
+  // Overlaid hourly chart data: { label, hour, "Mercado Livre": val, "Amazon": val, ... }
+  const overlaidHourlyData = useMemo(() => {
+    if (!isAll || !perMarketplaceHourly) return null;
+    const buckets = Array.from({ length: 24 }, (_, hour) => {
+      const row: Record<string, any> = { label: `${String(hour).padStart(2, "0")}h`, hour };
+      for (const mp of perMarketplaceHourly) {
+        const hourData = mp.data.filter((d) => d.hour === hour);
+        row[mp.name] = hourData.reduce((s, d) => s + d.total, 0);
+      }
+      return row;
+    });
+    return buckets;
+  }, [isAll, perMarketplaceHourly]);
+
   const perMarketplaceRevenue = useMemo(() => {
     if (!isAll) return [];
     const mpIds = ["mercado-livre", "amazon", "shopee", "magalu"] as const;
@@ -901,6 +922,33 @@ export default function MercadoLivre() {
       const revenue = mpDaily.reduce((s, d) => s + d.total, 0);
       return { ...mp, revenue };
     });
+  }, [isAll, daily]);
+
+  // Accordion breakdown groups
+  const marketplaceGroups = useMemo<MarketplaceGroup[]>(() => {
+    if (!isAll) return [];
+    const mpIds = ["mercado-livre", "amazon", "shopee", "magalu"] as const;
+    return mpIds.map((id) => {
+      const brand = getMarketplaceBrand(id)!;
+      const mpDaily = id === "mercado-livre" ? daily : getMarketplaceDailyData(id, 30);
+      const revenue = mpDaily.reduce((s, d) => s + d.total, 0);
+      const orders = mpDaily.reduce((s, d) => s + d.qty, 0);
+      return {
+        id,
+        name: brand.name,
+        icon: brand.icon,
+        gradient: brand.gradient,
+        revenue,
+        stores: [
+          {
+            name: brand.name,
+            revenue,
+            orders,
+            avgTicket: orders > 0 ? revenue / orders : 0,
+          },
+        ],
+      };
+    }).filter((g) => g.revenue > 0);
   }, [isAll, daily]);
 
 
