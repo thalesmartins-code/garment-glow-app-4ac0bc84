@@ -1,47 +1,55 @@
 
 
-## Refatorar RevenueByMarketplace: Barra resumida + Expandir para detalhes
+## Dashboard de Venda por Hora — Exemplos visuais de cada formato
 
-### O que muda
+O usuário quer ver exemplos antes de escolher. Vou criar uma nova página dedicada (`/api/vendas-hora`) com **4 abas (tabs)** mostrando cada formato lado a lado, para que o usuário possa comparar e escolher o preferido.
 
-**Estado minimizado (padrão):** Uma única barra horizontal segmentada mostrando a proporção de faturamento de cada marketplace por cor, com o total ao lado. Clicável.
+### Formatos apresentados
 
-**Estado expandido (ao clicar):** Mostra o detalhamento atual com barras por marketplace e por loja, com barras alinhadas à margem esquerda (remover `min-w-[100px]` dos labels, usar layout fixo com grid ou widths fixos para que as barras comecem todas no mesmo ponto).
-
+**Tab 1 — Heatmap (Hora × Dia)**
 ```text
-MINIMIZADO:
-┌─────────────────────────────────────────────────────┐
-│ ▸ Faturamento por Marketplace    R$ 87.200          │
-│   ██████████████████████████░░░░░░░░░░░░░░░░░░░░░░  │
-│   (segmentos coloridos proporcionais)               │
-└─────────────────────────────────────────────────────┘
-
-EXPANDIDO (clicou):
-┌─────────────────────────────────────────────────────┐
-│ ▾ Faturamento por Marketplace    R$ 87.200          │
-│   ██████████████████████████░░░░░░░░░░░░░░░░░░░░░░  │
-│                                                     │
-│ 🟡 ML      ████████████████████████████  R$ 45.200  │
-│   ML SP    ██████████████████           R$ 28.100   │
-│   ML RJ    ████████████                 R$ 17.100   │
-│                                                     │
-│ 🟠 Shopee  ████████████████             R$ 22.800   │
-│   ...                                               │
-└─────────────────────────────────────────────────────┘
+         Seg   Ter   Qua   Qui   Sex   Sáb   Dom
+  00h    ░░    ░░    ░░    ░░    ░░    ░░    ░░
+  06h    ░░    ▒▒    ░░    ▒▒    ░░    ░░    ░░
+  10h    ▓▓    ▓▓    ██    ▓▓    ██    ▒▒    ░░
+  14h    ██    ██    ██    ██    ██    ▓▓    ▒▒
+  20h    ▓▓    ▒▒    ▓▓    ▒▒    ▒▒    ░░    ░░
 ```
+Grid 24 linhas × 7 colunas, cor por intensidade de receita. Tooltip ao hover com valor.
 
-### Arquivo alterado
+**Tab 2 — Barras empilhadas por marketplace**
+```text
+  00h  ░
+  06h  ████
+  10h  ████████████████
+  14h  ████████████████████████
+  20h  ██████████████
+```
+Cada barra tem segmentos coloridos por marketplace.
 
-| Arquivo | Alteração |
-|---------|-----------|
-| `src/components/mercadolivre/RevenueByMarketplace.tsx` | Adicionar estado `expanded`, barra segmentada resumida, Collapsible para detalhes, alinhar barras à esquerda |
+**Tab 3 — Radar/Polar**
+Gráfico radial com 24 eixos (horas), preenchido com área. Mostra o "formato" do dia de vendas.
+
+**Tab 4 — Heatmap + Tabela**
+Heatmap no topo + tabela `HourlySalesTable` abaixo com os dados detalhados.
+
+### Arquivos
+
+| Arquivo | Ação |
+|---------|------|
+| `src/pages/mercadolivre/VendasPorHora.tsx` | Criar — página com 4 tabs, cada uma renderizando um formato diferente |
+| `src/components/mercadolivre/HourlyHeatmap.tsx` | Criar — componente heatmap (hora × dia da semana) |
+| `src/components/mercadolivre/HourlyStackedBars.tsx` | Criar — barras empilhadas por hora/marketplace |
+| `src/components/mercadolivre/HourlyRadar.tsx` | Criar — radar chart 24h usando Recharts |
+| `src/components/layout/ApiSidebar.tsx` | Adicionar item "Venda/Hora" com ícone Clock |
+| `src/App.tsx` | Adicionar rota `/api/vendas-hora` |
 
 ### Detalhes técnicos
 
-- Usar `useState(false)` para controlar expanded/collapsed
-- Barra segmentada: um `div` flex com segmentos coloridos proporcionais ao `pct` de cada marketplace, com tooltip ou legenda inline
-- Usar `AnimatePresence` + `motion.div` para animar a abertura/fechamento
-- Alinhar barras: trocar `min-w-[100px]` dos labels por `w-[100px]` fixo (ou usar CSS grid com colunas fixas) para que todas as barras iniciem na mesma posição horizontal
-- Ícone chevron (▸/▾) no header indica estado
-- A barra segmentada fica sempre visível (tanto minimizado quanto expandido)
+- Recharts para barras empilhadas e radar (já instalado)
+- Heatmap: CSS grid puro com células coloridas via opacidade dinâmica (sem lib extra)
+- Dados: reutilizar `HourlyBreakdown` do `MarketplaceContext` + mock data existente (`getMarketplaceHourlyData`, `getAllMarketplaceMockHourly`)
+- Filtro de período no topo da página (reutilizar lógica de QUICK_RANGES)
+- Framer-motion para animações de entrada
+- Após o usuário escolher o formato preferido, removeremos os outros e finalizaremos o componente
 
