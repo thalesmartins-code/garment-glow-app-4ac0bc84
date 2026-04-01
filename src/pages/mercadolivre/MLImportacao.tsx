@@ -16,6 +16,7 @@ import { ImportPreviewTable } from "@/components/import/marketplace/ImportPrevie
 import { ImportOrdersPreviewTable } from "@/components/import/marketplace/ImportOrdersPreviewTable";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MARKETPLACE_BRANDS } from "@/config/marketplaceConfig";
+import { SellerMarketplaceBar } from "@/components/layout/SellerMarketplaceBar";
 
 const marketplaces: { id: MarketplaceType; label: string; icon: React.ElementType; color: string }[] =
   MARKETPLACE_BRANDS
@@ -89,6 +90,8 @@ export default function MLImportacao() {
           </p>
         </div>
       </div>
+
+      <SellerMarketplaceBar showStores={false} />
 
       <MarketplaceSelector
         marketplaces={marketplaces}
