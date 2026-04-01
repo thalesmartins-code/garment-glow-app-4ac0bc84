@@ -41,8 +41,8 @@ export const MARKETPLACE_BRANDS: MarketplaceBrand[] = [
     id: "magalu",
     name: "Magazine Luiza",
     icon: Store,
-    gradient: "from-blue-600 to-indigo-500",
-    badge: "bg-blue-500/10 text-blue-600 border-blue-500/30",
+    gradient: "from-[#3b6dba] to-[#4a5ea8]",
+    badge: "bg-[#3b6dba]/10 text-[#3b6dba] border-[#3b6dba]/30",
   },
   {
     id: "netshoes",
