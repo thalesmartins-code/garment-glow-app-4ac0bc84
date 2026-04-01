@@ -28,14 +28,14 @@ const currencyFmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const GRADIENT_HEX: Record<string, string> = {
-  "from-yellow-500 to-amber-500": "hsl(45, 93%, 47%)",
-  "from-[#2162a1] to-[#1a4f85]": "#2162a1",
-  "from-orange-600 to-red-500": "hsl(15, 85%, 50%)",
-  "from-blue-600 to-indigo-500": "hsl(225, 70%, 55%)",
-  "from-purple-600 to-violet-500": "hsl(270, 60%, 55%)",
+  "from-[#e6b422] to-[#c9981a]": "#e6b422",
+  "from-[#131A22] to-[#232F3E]": "#131A22",
+  "from-[#d4532a] to-[#b8412a]": "#d4532a",
+  "from-[#3b6dba] to-[#4a5ea8]": "#3b6dba",
+  "from-[#7a4db5] to-[#6a3fa0]": "#7a4db5",
   "from-gray-500 to-gray-600": "hsl(0, 0%, 45%)",
-  "from-red-500 to-red-600": "hsl(0, 72%, 51%)",
-  "from-blue-500 to-blue-600": "hsl(217, 70%, 55%)",
+  "from-[#c44040] to-[#a83535]": "#c44040",
+  "from-[#3a7cc4] to-[#2e6aab]": "#3a7cc4",
   "from-gray-600 to-gray-700": "hsl(0, 0%, 40%)",
 };
 
