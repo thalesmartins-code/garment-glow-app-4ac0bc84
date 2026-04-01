@@ -62,8 +62,8 @@ export const MARKETPLACE_BRANDS: MarketplaceBrand[] = [
     id: "americanas",
     name: "Americanas",
     icon: CircleDot,
-    gradient: "from-red-500 to-red-600",
-    badge: "bg-red-500/10 text-red-600 border-red-500/30",
+    gradient: "from-[#c44040] to-[#a83535]",
+    badge: "bg-[#c44040]/10 text-[#c44040] border-[#c44040]/30",
   },
   {
     id: "casasbahia",
