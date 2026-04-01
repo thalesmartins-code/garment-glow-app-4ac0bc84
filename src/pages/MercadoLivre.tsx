@@ -912,19 +912,6 @@ export default function MercadoLivre() {
     return buckets;
   }, [isAll, perMarketplaceHourly]);
 
-  const perMarketplaceRevenue = useMemo(() => {
-    if (!isAll) return [];
-    const mpIds = ["mercado-livre", "amazon", "shopee", "magalu"] as const;
-    const marketplaceConfigs = mpIds.map((id) => {
-      const brand = getMarketplaceBrand(id)!;
-      return { id, name: brand.name, icon: brand.icon, color: brand.gradient };
-    });
-    return marketplaceConfigs.map((mp) => {
-      const mpDaily = mp.id === "mercado-livre" ? daily : getMarketplaceDailyData(mp.id, 30);
-      const revenue = mpDaily.reduce((s, d) => s + d.total, 0);
-      return { ...mp, revenue };
-    });
-  }, [isAll, daily]);
 
   // Revenue by marketplace + store breakdown for "Todos" view
   const revenueByMarketplace = useMemo<MarketplaceRevenueGroup[]>(() => {
