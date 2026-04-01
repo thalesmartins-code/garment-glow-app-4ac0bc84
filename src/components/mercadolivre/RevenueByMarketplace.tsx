@@ -65,7 +65,13 @@ export function RevenueByMarketplace({ groups }: Props) {
           const Icon = g.icon;
 
           return (
-            <div key={g.mpId} className="space-y-1.5">
+            <motion.div
+              key={g.mpId}
+              className="space-y-1.5"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: idx * 0.08, ease: "easeOut" }}
+            >
               {/* Marketplace row */}
               <div className="flex items-center gap-2">
                 <div
@@ -76,9 +82,12 @@ export function RevenueByMarketplace({ groups }: Props) {
                 </div>
                 <span className="text-sm font-medium text-foreground min-w-[100px]">{g.mpName}</span>
                 <div className="flex-1 h-5 rounded-md bg-muted/50 overflow-hidden">
-                  <div
-                    className="h-full rounded-md transition-all duration-500"
-                    style={{ width: `${barW}%`, background: color, opacity: 0.85 }}
+                  <motion.div
+                    className="h-full rounded-md"
+                    style={{ background: color, opacity: 0.85 }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${barW}%` }}
+                    transition={{ duration: 0.7, delay: idx * 0.08 + 0.2, ease: "easeOut" }}
                   />
                 </div>
                 <span className="text-sm font-semibold tabular-nums min-w-[110px] text-right">
@@ -91,20 +100,28 @@ export function RevenueByMarketplace({ groups }: Props) {
 
               {/* Store rows (indented) */}
               {g.stores.length > 1 &&
-                g.stores.map((store) => {
+                g.stores.map((store, sIdx) => {
                   const storeBarW = g.totalRevenue > 0
                     ? Math.max((store.revenue / maxRevenue) * 100, 1)
                     : 0;
-                  const avgTicket = store.orders > 0 ? store.revenue / store.orders : 0;
                   return (
-                    <div key={store.name} className="flex items-center gap-2 pl-8">
+                    <motion.div
+                      key={store.name}
+                      className="flex items-center gap-2 pl-8"
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: idx * 0.08 + 0.15 + sIdx * 0.05 }}
+                    >
                       <span className="text-xs text-muted-foreground min-w-[100px] truncate">
                         {store.name}
                       </span>
                       <div className="flex-1 h-3.5 rounded bg-muted/30 overflow-hidden">
-                        <div
-                          className="h-full rounded transition-all duration-500"
-                          style={{ width: `${storeBarW}%`, background: color, opacity: 0.5 }}
+                        <motion.div
+                          className="h-full rounded"
+                          style={{ background: color, opacity: 0.5 }}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${storeBarW}%` }}
+                          transition={{ duration: 0.6, delay: idx * 0.08 + 0.3 + sIdx * 0.05, ease: "easeOut" }}
                         />
                       </div>
                       <span className="text-xs font-medium tabular-nums min-w-[110px] text-right">
@@ -113,18 +130,23 @@ export function RevenueByMarketplace({ groups }: Props) {
                       <span className="text-[11px] text-muted-foreground tabular-nums min-w-[40px] text-right">
                         {store.orders}p
                       </span>
-                    </div>
+                    </motion.div>
                   );
                 })}
 
               {/* Single-store: show orders + ticket inline */}
               {g.stores.length === 1 && (
-                <div className="flex items-center gap-3 pl-8 text-[11px] text-muted-foreground">
+                <motion.div
+                  className="flex items-center gap-3 pl-8 text-[11px] text-muted-foreground"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: idx * 0.08 + 0.3 }}
+                >
                   <span>{g.totalOrders} pedidos</span>
                   <span>TM {currencyFmt(g.totalOrders > 0 ? g.totalRevenue / g.totalOrders : 0)}</span>
-                </div>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
           );
         })}
       </CardContent>
