@@ -21,6 +21,7 @@ import { TopSellingProducts, type ProductSalesRow } from "@/components/mercadoli
 import { HourlySalesTable } from "@/components/mercadolivre/HourlySalesTable";
 import { MLStoreSelector } from "@/components/mercadolivre/MLStoreSelector";
 import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
+import { MarketplaceAccordion, type MarketplaceGroup } from "@/components/mercadolivre/MarketplaceAccordion";
 import { SellerMarketplaceBar } from "@/components/layout/SellerMarketplaceBar";
 import {
   DollarSign,
