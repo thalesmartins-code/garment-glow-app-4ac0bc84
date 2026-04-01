@@ -73,6 +73,12 @@ export default function VendasPorHora() {
           </motion.div>
         </TabsContent>
 
+        <TabsContent value="bubble">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+            <HourlyBubbleChart />
+          </motion.div>
+        </TabsContent>
+
         <TabsContent value="combined">
           <motion.div
             initial={{ opacity: 0 }}
