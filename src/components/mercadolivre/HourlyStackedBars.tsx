@@ -60,10 +60,10 @@ export function HourlyStackedBars({ date }: Props) {
               }
             />
             <Tooltip
-              formatter={(value: number, name: string) => [
-                currencyFmt(value),
-                MARKETPLACE_BRANDS.find((b) => b.id === name || b.name === name)?.name ?? name,
-              ]}
+              formatter={(value: number, name: string) => {
+                const mp = CHART_MARKETPLACES.find((m) => m.key === name);
+                return [currencyFmt(value), mp?.name ?? name];
+              }}
               contentStyle={{
                 backgroundColor: "hsl(var(--card))",
                 border: "1px solid hsl(var(--border))",
