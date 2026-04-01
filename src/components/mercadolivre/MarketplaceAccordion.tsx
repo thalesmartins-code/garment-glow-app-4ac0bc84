@@ -81,7 +81,12 @@ export function MarketplaceAccordion({ groups }: Props) {
                 {g.stores.map((store) => (
                   <Card key={store.name} className="border-border/50">
                     <CardContent className="p-3 space-y-1">
-                      <p className="text-xs font-medium text-foreground truncate">{store.name}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-medium text-foreground truncate flex-1">{store.name}</p>
+                        {store.sparkline && store.sparkline.length > 1 && (
+                          <Sparkline data={store.sparkline} className="shrink-0" />
+                        )}
+                      </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <span className="font-semibold text-foreground tabular-nums">
                           {currencyFmt(store.revenue)}
