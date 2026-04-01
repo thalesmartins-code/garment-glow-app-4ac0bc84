@@ -889,7 +889,7 @@ export default function MercadoLivre() {
     }));
   }, [isAll, hourly]);
 
-  const [showMpBreakdown, setShowMpBreakdown] = useState(false);
+  
 
   const MARKETPLACE_STROKE_COLORS: Record<string, string> = {
     "mercado-livre": "hsl(45, 93%, 47%)",
