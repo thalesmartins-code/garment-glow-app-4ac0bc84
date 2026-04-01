@@ -20,6 +20,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import { TopSellingProducts, type ProductSalesRow } from "@/components/mercadolivre/TopSellingProducts";
 import { HourlySalesTable } from "@/components/mercadolivre/HourlySalesTable";
+import { RevenueByMarketplace, type MarketplaceRevenueGroup } from "@/components/mercadolivre/RevenueByMarketplace";
 import { MLStoreSelector } from "@/components/mercadolivre/MLStoreSelector";
 import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
 
