@@ -32,7 +32,7 @@ export default function VendasPorHora() {
       </motion.div>
 
       <Tabs defaultValue="heatmap" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 max-w-xl">
+        <TabsList className="grid w-full grid-cols-5 max-w-2xl">
           <TabsTrigger value="heatmap" className="gap-1.5 text-xs sm:text-sm">
             <Grid3X3 className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Heatmap</span>
