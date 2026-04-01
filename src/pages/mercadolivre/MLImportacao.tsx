@@ -91,6 +91,8 @@ export default function MLImportacao() {
         </div>
       </div>
 
+      <SellerMarketplaceBar showStores={false} />
+
       <MarketplaceSelector
         marketplaces={marketplaces}
         selected={selectedMarketplace}
