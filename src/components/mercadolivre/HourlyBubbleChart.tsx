@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ScatterChart,
@@ -10,6 +11,13 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getMarketplaceHourlyData } from "@/data/marketplaceMockData";
 import { format, subDays } from "date-fns";
 
