@@ -29,7 +29,7 @@ const currencyFmt = (v: number) =>
 
 const GRADIENT_HEX: Record<string, string> = {
   "from-yellow-500 to-amber-500": "hsl(45, 93%, 47%)",
-  "from-orange-500 to-amber-600": "hsl(25, 95%, 53%)",
+  "from-[#2162a1] to-[#1a4f85]": "#2162a1",
   "from-orange-600 to-red-500": "hsl(15, 85%, 50%)",
   "from-blue-600 to-indigo-500": "hsl(225, 70%, 55%)",
   "from-purple-600 to-violet-500": "hsl(270, 60%, 55%)",
