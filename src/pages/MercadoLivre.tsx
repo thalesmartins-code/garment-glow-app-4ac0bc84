@@ -1471,10 +1471,13 @@ export default function MercadoLivre() {
 
       {/* === Hourly Tables + Accordion === */}
       {isAll ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-          <HourlySalesTable hourly={effectiveHourly} />
-          <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
-        </div>
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+            <HourlySalesTable hourly={effectiveHourly} />
+            <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
+          </div>
+          <MarketplaceAccordion groups={marketplaceGroups} />
+        </>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
           {effectiveSyncing && effectiveHourly.length === 0 ? (
