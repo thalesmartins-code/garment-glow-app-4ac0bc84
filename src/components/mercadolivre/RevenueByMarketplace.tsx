@@ -191,9 +191,6 @@ export function RevenueByMarketplace({ groups }: Props) {
                             <span className="text-xs font-medium tabular-nums w-[110px] text-right shrink-0">
                               {currencyFmt(store.revenue)}
                             </span>
-                            <span className="text-[11px] text-muted-foreground tabular-nums w-[40px] text-right shrink-0">
-                              {store.orders}p
-                            </span>
                           </motion.div>
                         );
                       })}
