@@ -1,4 +1,4 @@
-import { ArrowLeft, ClipboardList, Megaphone, Package, Plug, ShoppingBag, TrendingUp, Upload, Users } from "lucide-react";
+import { ArrowLeft, ClipboardList, Clock, Megaphone, Package, Plug, ShoppingBag, TrendingUp, Upload, Users } from "lucide-react";
 import { EnvironmentSidebar } from "./EnvironmentSidebar";
 
 const apiItems = [
