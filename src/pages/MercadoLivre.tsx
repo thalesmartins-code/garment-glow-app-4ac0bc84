@@ -9,7 +9,8 @@ import { useMarketplace } from "@/contexts/MarketplaceContext";
 import { useSeller } from "@/contexts/SellerContext";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { getMarketplaceDailyData, getMarketplaceHourlyData, getMarketplaceProducts, getMarketplaceName, getAllMarketplaceMockDaily, getAllMarketplaceMockHourly, getAllMarketplaceMockProducts } from "@/data/marketplaceMockData";
-import { aggregateStoreDailyData, aggregateStoreHourlyData, aggregateStoreProducts, type StoreRef } from "@/data/storeMockData";
+import { aggregateStoreDailyData, aggregateStoreHourlyData, aggregateStoreProducts, getStoreDailyData, type StoreRef } from "@/data/storeMockData";
+import { SELLER_TO_MP_ID } from "@/config/marketplaceConfig";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -926,30 +927,48 @@ export default function MercadoLivre() {
 
   // Accordion breakdown groups
   const marketplaceGroups = useMemo<MarketplaceGroup[]>(() => {
-    if (!isAll) return [];
-    const mpIds = ["mercado-livre", "amazon", "shopee", "magalu"] as const;
-    return mpIds.map((id) => {
-      const brand = getMarketplaceBrand(id)!;
-      const mpDaily = id === "mercado-livre" ? daily : getMarketplaceDailyData(id, 30);
-      const revenue = mpDaily.reduce((s, d) => s + d.total, 0);
-      const orders = mpDaily.reduce((s, d) => s + d.qty, 0);
-      return {
-        id,
-        name: brand.name,
-        icon: brand.icon,
-        gradient: brand.gradient,
-        revenue,
-        stores: [
-          {
-            name: brand.name,
+    if (!isAll || !selectedSeller) return [];
+    // Group stores by marketplace
+    const storesByMp = new Map<string, typeof selectedSeller.stores>();
+    for (const store of selectedSeller.stores.filter((s) => s.is_active)) {
+      const mpId = SELLER_TO_MP_ID[store.marketplace] ?? store.marketplace;
+      if (!storesByMp.has(mpId)) storesByMp.set(mpId, []);
+      storesByMp.get(mpId)!.push(store);
+    }
+
+    return Array.from(storesByMp.entries())
+      .map(([mpId, stores]) => {
+        const brand = getMarketplaceBrand(mpId);
+        if (!brand) return null;
+
+        const storeKPIs = stores.map((store) => {
+          // For ML stores use real daily data, for others use mock
+          const storeDaily =
+            store.marketplace === "ml"
+              ? daily.filter(() => true) // real data already aggregated — split not possible without ml_user_id, use mock as fallback
+              : getStoreDailyData(store.id, store.marketplace, 30);
+          const revenue = storeDaily.reduce((s, d) => s + d.total, 0);
+          const orders = storeDaily.reduce((s, d) => s + d.qty, 0);
+          return {
+            name: store.store_name,
             revenue,
             orders,
             avgTicket: orders > 0 ? revenue / orders : 0,
-          },
-        ],
-      };
-    }).filter((g) => g.revenue > 0);
-  }, [isAll, daily]);
+          };
+        });
+
+        const totalRevenue = storeKPIs.reduce((s, k) => s + k.revenue, 0);
+        return {
+          id: mpId,
+          name: brand.name,
+          icon: brand.icon,
+          gradient: brand.gradient,
+          revenue: totalRevenue,
+          stores: storeKPIs,
+        };
+      })
+      .filter((g): g is MarketplaceGroup => g !== null && g.revenue > 0);
+  }, [isAll, selectedSeller, daily]);
 
 
   // Show "not connected" when ML stores are selected but there's no valid API token
