@@ -21,6 +21,7 @@ interface Props {
   accessToken: string | null;
   onSyncComplete: () => void;
   mlUserId?: string;
+  sellerId?: string | null;
 }
 
 const MONTHS = [
@@ -50,7 +51,7 @@ function lastDayOfMonth(year: number, month: number): Date {
   return new Date(year, month + 1, 0);
 }
 
-export function HistoricalSyncModal({ accessToken, mlUserId, onSyncComplete }: Props) {
+export function HistoricalSyncModal({ accessToken, mlUserId, onSyncComplete, sellerId }: Props) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -147,6 +148,7 @@ export function HistoricalSyncModal({ accessToken, mlUserId, onSyncComplete }: P
             user_id: user.id,
             date_from: chunk.date_from,
             date_to: chunk.date_to,
+            seller_id: sellerId || null,
           },
         });
 

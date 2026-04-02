@@ -134,7 +134,7 @@ serve(async (req) => {
   }
 
   try {
-    const { access_token, days = 1, user_id, date_from, date_to } = await req.json();
+    const { access_token, days = 1, user_id, date_from, date_to, seller_id } = await req.json();
 
     if (!access_token) {
       return new Response(JSON.stringify({ error: "Missing access_token" }), {
@@ -401,6 +401,7 @@ serve(async (req) => {
           unique_visits: data.unique_visits,
           unique_buyers: data.unique_buyers,
           synced_at: syncedAt,
+          ...(seller_id ? { seller_id } : {}),
         }));
 
         const hourlyRows = Object.values(hourlySales).map((data) => ({
@@ -413,6 +414,7 @@ serve(async (req) => {
           qty_orders: data.qty,
           units_sold: data.units_sold,
           synced_at: syncedAt,
+          ...(seller_id ? { seller_id } : {}),
         }));
 
         // Paraleliza upserts de daily + hourly + user simultaneamente
@@ -447,6 +449,7 @@ serve(async (req) => {
           qty_sold: p.qty_sold,
           revenue: p.revenue,
           synced_at: syncedAt,
+          ...(seller_id ? { seller_id } : {}),
         }));
 
         // Products: fire-and-forget (paralelo internamente)
@@ -485,6 +488,7 @@ serve(async (req) => {
                 permalink: user.permalink,
                 active_listings: activeListings,
                 synced_at: syncedAt,
+                ...(seller_id ? { seller_id } : {}),
               },
               { onConflict: "user_id,ml_user_id" },
             )
@@ -505,6 +509,7 @@ serve(async (req) => {
             orders_fetched: orders.length,
             source: "auto",
             synced_at: syncedAt,
+            ...(seller_id ? { seller_id } : {}),
           },
           { onConflict: "user_id,ml_user_id,date_from,date_to,source" },
         ).then(({ error }) => { if (error) console.error("Sync log error:", error); });

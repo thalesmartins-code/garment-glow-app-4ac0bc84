@@ -8,6 +8,7 @@ export interface MLStore {
   custom_name: string | null;
   access_token: string;
   displayName: string;
+  seller_id: string | null;
 }
 
 export interface MLSalesDaily {
@@ -108,7 +109,7 @@ export function MLStoreProvider({ children }: { children: ReactNode }) {
     try {
       const { data: tokens } = await supabase
         .from("ml_tokens")
-        .select("ml_user_id, access_token")
+        .select("ml_user_id, access_token, seller_id")
         .eq("user_id", user.id)
         .not("access_token", "is", null);
 
@@ -141,6 +142,7 @@ export function MLStoreProvider({ children }: { children: ReactNode }) {
             custom_name: cache.custom_name,
             access_token: t.access_token!,
             displayName: cache.custom_name || cache.nickname || `Loja ${t.ml_user_id}`,
+            seller_id: (t as any).seller_id || null,
           };
         });
 

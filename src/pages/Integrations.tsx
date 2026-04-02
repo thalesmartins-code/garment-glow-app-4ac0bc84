@@ -240,7 +240,8 @@ export default function Integrations() {
           expires_at: expiresAt,
           ml_user_id: String(tokenData.user_id),
           token_type: "bearer",
-        },
+          seller_id: selectedSeller?.id || null,
+        } as any,
         { onConflict: "user_id,ml_user_id" },
       );
     } catch (e) {
@@ -560,7 +561,7 @@ export default function Integrations() {
 
       const today = new Date().toISOString().substring(0, 10);
       const { data, error } = await supabase.functions.invoke("mercado-libre-integration", {
-        body: { access_token, date_from: today, date_to: today },
+        body: { access_token, date_from: today, date_to: today, seller_id: selectedSeller?.id || null },
       });
 
       if (error || !data?.success) {

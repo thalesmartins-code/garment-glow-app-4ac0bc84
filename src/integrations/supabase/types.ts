@@ -22,6 +22,7 @@ export type Database = {
           id: string
           ml_user_id: string
           qty_orders: number
+          seller_id: string | null
           shipped_orders: number
           synced_at: string
           total_revenue: number
@@ -37,6 +38,7 @@ export type Database = {
           id?: string
           ml_user_id?: string
           qty_orders?: number
+          seller_id?: string | null
           shipped_orders?: number
           synced_at?: string
           total_revenue?: number
@@ -52,6 +54,7 @@ export type Database = {
           id?: string
           ml_user_id?: string
           qty_orders?: number
+          seller_id?: string | null
           shipped_orders?: number
           synced_at?: string
           total_revenue?: number
@@ -60,7 +63,15 @@ export type Database = {
           units_sold?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ml_daily_cache_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ml_hourly_cache: {
         Row: {
@@ -70,6 +81,7 @@ export type Database = {
           id: string
           ml_user_id: string
           qty_orders: number
+          seller_id: string | null
           synced_at: string
           total_revenue: number
           units_sold: number
@@ -82,6 +94,7 @@ export type Database = {
           id?: string
           ml_user_id?: string
           qty_orders?: number
+          seller_id?: string | null
           synced_at?: string
           total_revenue?: number
           units_sold?: number
@@ -94,12 +107,21 @@ export type Database = {
           id?: string
           ml_user_id?: string
           qty_orders?: number
+          seller_id?: string | null
           synced_at?: string
           total_revenue?: number
           units_sold?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ml_hourly_cache_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ml_product_daily_cache: {
         Row: {
@@ -109,6 +131,7 @@ export type Database = {
           ml_user_id: string
           qty_sold: number
           revenue: number
+          seller_id: string | null
           synced_at: string
           thumbnail: string | null
           title: string
@@ -121,6 +144,7 @@ export type Database = {
           ml_user_id?: string
           qty_sold?: number
           revenue?: number
+          seller_id?: string | null
           synced_at?: string
           thumbnail?: string | null
           title?: string
@@ -133,12 +157,21 @@ export type Database = {
           ml_user_id?: string
           qty_sold?: number
           revenue?: number
+          seller_id?: string | null
           synced_at?: string
           thumbnail?: string | null
           title?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ml_product_daily_cache_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ml_sync_log: {
         Row: {
@@ -148,6 +181,7 @@ export type Database = {
           id: string
           ml_user_id: string
           orders_fetched: number
+          seller_id: string | null
           source: string
           synced_at: string
           user_id: string
@@ -159,6 +193,7 @@ export type Database = {
           id?: string
           ml_user_id?: string
           orders_fetched?: number
+          seller_id?: string | null
           source?: string
           synced_at?: string
           user_id: string
@@ -170,11 +205,20 @@ export type Database = {
           id?: string
           ml_user_id?: string
           orders_fetched?: number
+          seller_id?: string | null
           source?: string
           synced_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ml_sync_log_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ml_tokens: {
         Row: {
@@ -185,6 +229,7 @@ export type Database = {
           ml_user_id: string | null
           refresh_token: string | null
           scope: string | null
+          seller_id: string | null
           token_type: string | null
           updated_at: string | null
           user_id: string | null
@@ -197,6 +242,7 @@ export type Database = {
           ml_user_id?: string | null
           refresh_token?: string | null
           scope?: string | null
+          seller_id?: string | null
           token_type?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -209,11 +255,20 @@ export type Database = {
           ml_user_id?: string | null
           refresh_token?: string | null
           scope?: string | null
+          seller_id?: string | null
           token_type?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ml_tokens_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ml_user_cache: {
         Row: {
@@ -223,6 +278,7 @@ export type Database = {
           ml_user_id: number
           nickname: string | null
           permalink: string | null
+          seller_id: string | null
           synced_at: string
           user_id: string
         }
@@ -233,6 +289,7 @@ export type Database = {
           ml_user_id: number
           nickname?: string | null
           permalink?: string | null
+          seller_id?: string | null
           synced_at?: string
           user_id: string
         }
@@ -243,10 +300,19 @@ export type Database = {
           ml_user_id?: number
           nickname?: string | null
           permalink?: string | null
+          seller_id?: string | null
           synced_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ml_user_cache_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
