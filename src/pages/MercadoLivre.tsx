@@ -1152,16 +1152,6 @@ export default function MercadoLivre() {
           refreshing={effectiveSyncing && !syncProgress}
         />
         <KPICard
-          title="Receita Aprovada"
-          value={effectiveMetrics ? currencyFmt(effectiveMetrics.approved_revenue) : "—"}
-          icon={<DollarSign className="w-4 h-4" />}
-          variant="minimal"
-          iconClassName="bg-success/10 text-success"
-          size="compact"
-          loading={effectiveLoading}
-          refreshing={effectiveSyncing && !syncProgress}
-        />
-        <KPICard
           title="Qtd. Vendas"
           value={effectiveMetrics ? String(effectiveMetrics.units_sold) : "—"}
           icon={<ShoppingCart className="w-4 h-4" />}
