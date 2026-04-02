@@ -49,8 +49,6 @@ const apiSections: SidebarNavSection[] = [
   {
     label: "Sistema",
     items: [
-      { icon: Upload,    label: "Importação",     path: "/api/importacao"     },
-      { icon: RefreshCw, label: "Sincronizações", path: "/api/sincronizacoes" },
       { icon: Users,     label: "Sellers",        path: "/api/sellers"        },
       { icon: Plug,      label: "Integrações",    path: "/api/integracoes"    },
     ],
