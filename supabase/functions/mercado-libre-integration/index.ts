@@ -449,6 +449,7 @@ serve(async (req) => {
           qty_sold: p.qty_sold,
           revenue: p.revenue,
           synced_at: syncedAt,
+          ...(seller_id ? { seller_id } : {}),
         }));
 
         // Products: fire-and-forget (paralelo internamente)
