@@ -16,6 +16,7 @@ import {
   ShoppingBag,
   ClipboardList,
   Megaphone,
+  Receipt,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { canAccess } from "@/config/roleAccess";
@@ -43,8 +44,9 @@ const mlSubItems = [
   { icon: TrendingUp, label: "Vendas", path: "/api" },
   { icon: Package, label: "Estoque", path: "/api/estoque" },
   { icon: ShoppingBag, label: "Produtos", path: "/api/produtos" },
-  { icon: ClipboardList, label: "Pedidos", path: "/api/pedidos" },
-  { icon: Megaphone, label: "Publicidade", path: "/api/anuncios" },
+  { icon: ClipboardList, label: "Pedidos",     path: "/api/pedidos" },
+  { icon: Megaphone,    label: "Publicidade", path: "/api/anuncios" },
+  { icon: Receipt,      label: "Financeiro",  path: "/api/financeiro" },
 ];
 
 export function Sidebar() {
