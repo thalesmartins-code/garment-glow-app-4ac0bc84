@@ -231,6 +231,10 @@ export default function MLRelatorios() {
             <Circle className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Bubble/Hora</span>
           </TabsTrigger>
+          <TabsTrigger value="vendahora" className="gap-1.5 text-xs sm:text-sm">
+            <Clock3 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Venda/Hora</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* === COMPARATIVO === */}
