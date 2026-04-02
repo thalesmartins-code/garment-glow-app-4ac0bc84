@@ -1343,10 +1343,10 @@ export default function MercadoLivre() {
             <span className="text-sm font-medium text-foreground">Receita por Hora — Todos os Marketplaces</span>
           </div>
           <CardContent className="px-4 pb-4">
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={220}>
               <ComposedChart data={overlaidHourlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" interval={2} />
                 <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
                 <RechartsTooltip
                   formatter={(value: number, name: string) => [currencyFmt(Number(value)), name]}
@@ -1379,7 +1379,7 @@ export default function MercadoLivre() {
                 <p className="mt-1 text-xs text-muted-foreground">Sincronize para carregar.</p>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={220}>
                 <ComposedChart data={chartData}>
                   <defs>
                     <linearGradient id="mlTotal" x1="0" y1="0" x2="0" y2="1">
@@ -1396,6 +1396,7 @@ export default function MercadoLivre() {
                     dataKey="label"
                     tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                     stroke="hsl(var(--muted-foreground))"
+                    interval={2}
                   />
                   <YAxis
                     yAxisId="revenue"
