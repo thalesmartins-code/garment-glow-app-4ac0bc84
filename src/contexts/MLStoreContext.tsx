@@ -195,3 +195,7 @@ export function useMLStore() {
   if (!ctx) throw new Error("useMLStore must be used within MLStoreProvider");
   return ctx;
 }
+
+export function useMLStoreSafe() {
+  return useContext(MLStoreContext);
+}
