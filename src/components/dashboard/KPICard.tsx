@@ -38,6 +38,7 @@ const variantStyles: Record<CardVariant, { icon: string; trend: string; card: st
   neutral: { icon: "bg-muted text-muted-foreground", trend: "", card: "" },
   purple: { icon: "bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]", trend: "", card: "bg-[hsl(270,70%,50%)]/5 border border-[hsl(270,70%,50%)]/5" },
   orange: { icon: "bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]", trend: "", card: "bg-[hsl(25,95%,53%)]/5 border border-[hsl(25,95%,53%)]/5" },
+  minimal: { icon: "bg-muted text-muted-foreground", trend: "", card: "" },
 };
 
 export function KPICard({
