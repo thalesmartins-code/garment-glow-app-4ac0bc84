@@ -15,6 +15,7 @@ export const routeTitles: Record<string, { title: string; subtitle: string }> = 
   "/api/produtos": { title: "Anúncios", subtitle: "Catálogo de produtos e anúncios ativos" },
   "/api/pedidos": { title: "Pedidos", subtitle: "Acompanhamento de pedidos e envios" },
   "/api/anuncios": { title: "Publicidade", subtitle: "Gestão e performance de publicidade" },
+  "/api/financeiro": { title: "Financeiro", subtitle: "Análise de taxas, comissões e custo de frete" },
   "/api/perfil": { title: "Perfil", subtitle: "Gerencie suas informações pessoais" },
   "/api/sellers": { title: "Sellers", subtitle: "Gerencie sellers e marketplaces ativos" },
   "/api/integracoes": {
