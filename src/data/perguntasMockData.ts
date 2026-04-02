@@ -138,7 +138,7 @@ export function getMockPerguntaEntries(storeId: string, count = 25): PerguntaEnt
       item_id: `MLB${1000000 + itemIdx * 1337 + Math.floor(rng() * 9999)}`,
       question: QUESTIONS[Math.floor(rng() * QUESTIONS.length)],
       answer: isAnswered ? ANSWERS[Math.floor(rng() * ANSWERS.length)] : null,
-      status: isAnswered ? "answered" : "unanswered",
+      status: (isAnswered ? "answered" : "unanswered") as PerguntaEntry["status"],
       hours_to_answer: isAnswered ? Math.round(0.5 + rng() * 23.5) : null,
     };
   }).sort((a, b) => b.date.localeCompare(a.date));

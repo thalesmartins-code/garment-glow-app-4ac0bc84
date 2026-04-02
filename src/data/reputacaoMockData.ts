@@ -162,7 +162,7 @@ export function getMockFeedbackEntries(storeId: string, count = 20): FeedbackEnt
       rating,
       comment: comments[Math.floor(rng() * comments.length)],
       item_title: ITEM_TITLES[Math.floor(rng() * ITEM_TITLES.length)],
-      fulfilled_by: rng() > 0.3 ? "seller" : "mercadolivre",
+      fulfilled_by: (rng() > 0.3 ? "seller" : "mercadolivre") as FeedbackEntry["fulfilled_by"],
     };
   }).sort((a, b) => b.date.localeCompare(a.date));
 }
