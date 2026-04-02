@@ -1074,7 +1074,7 @@ export default function MercadoLivre() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 gap-1.5 rounded-lg bg-muted/60 px-3 text-xs font-medium text-foreground hover:bg-muted/60 cursor-pointer"
+                className="h-8 gap-1.5 rounded-lg bg-muted/60 px-3 text-xs font-medium text-foreground hover:bg-muted/60 hover:text-foreground cursor-pointer"
               >
                 <span className="text-muted-foreground">Período:</span>
                 <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground" />
