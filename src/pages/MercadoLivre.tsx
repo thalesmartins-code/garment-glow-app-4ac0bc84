@@ -1359,15 +1359,6 @@ export default function MercadoLivre() {
                         fill="url(#mlTotal)"
                         strokeWidth={2}
                       />
-                      <Line
-                        yAxisId="revenue"
-                        type="monotone"
-                        dataKey="Venda Aprovada"
-                        stroke="hsl(var(--success))"
-                        strokeWidth={1.5}
-                        dot={false}
-                      />
-                    </>
                   ) : (
                     <>
                       <Area
@@ -1378,15 +1369,6 @@ export default function MercadoLivre() {
                         fill="url(#mlTotal)"
                         strokeWidth={2}
                       />
-                      <Area
-                        yAxisId="revenue"
-                        type="monotone"
-                        dataKey="Venda Aprovada"
-                        stroke="hsl(var(--success))"
-                        fill="url(#mlApproved)"
-                        strokeWidth={1.5}
-                      />
-                    </>
                   )}
                 </ComposedChart>
               </ResponsiveContainer>
