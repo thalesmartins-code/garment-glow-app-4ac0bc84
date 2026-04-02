@@ -36,7 +36,7 @@ import MLPerguntas from "./pages/mercadolivre/MLPerguntas";
 import MLSincronizacoes from "./pages/mercadolivre/MLSincronizacoes";
 import MLImportacao from "./pages/mercadolivre/MLImportacao";
 
-import MLRelatorios from "./pages/mercadolivre/MLRelatorios";
+
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
