@@ -1485,10 +1485,10 @@ export default function MercadoLivre() {
           <CardContent className="px-4 pb-4">
             {effectiveMetrics ? (() => {
               const funnelData = [
-                { name: "Visitas", value: effectiveMetrics.unique_visits, fill: "#6366f1" },
-                { name: "Compradores", value: effectiveMetrics.unique_buyers, fill: "#8b5cf6" },
-                { name: "Pedidos", value: effectiveMetrics.total_orders, fill: "#a855f7" },
-                { name: "Unidades", value: effectiveMetrics.units_sold, fill: "#f59e0b" },
+                { name: "Visitas", value: effectiveMetrics.unique_visits, fill: "#2563eb" },
+                { name: "Compradores", value: effectiveMetrics.unique_buyers, fill: "#7c3aed" },
+                { name: "Pedidos", value: effectiveMetrics.total_orders, fill: "#db2777" },
+                { name: "Unidades", value: effectiveMetrics.units_sold, fill: "#ea580c" },
               ];
               const numFmt = (v: number) => v.toLocaleString("pt-BR");
               const pctFmt = (v: number) => `${v.toFixed(2)}%`;
@@ -1505,7 +1505,7 @@ export default function MercadoLivre() {
                   <ResponsiveContainer width="100%" height={180}>
                     <FunnelChart>
                       <Funnel dataKey="value" data={funnelData} isAnimationActive>
-                        <LabelList position="center" fill="hsl(var(--card-foreground))" fontSize={11} fontWeight={600}
+                        <LabelList position="center" fill="#fff" fontSize={11} fontWeight={700}
                           formatter={(v: number) => numFmt(v)} />
                       </Funnel>
                       <RechartsTooltip
@@ -1529,10 +1529,6 @@ export default function MercadoLivre() {
                       <span className="font-semibold tabular-nums">{pctFmt(orderToUnit)}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs pt-2 border-t border-border/50">
-                      <span className="text-muted-foreground">Taxa de Conversão</span>
-                      <span className="font-bold text-foreground">{pctFmt(effectiveMetrics.conversion_rate)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Ticket Médio</span>
                       <span className="font-bold text-foreground">{currencyFmt(effectiveMetrics.avg_ticket)}</span>
                     </div>
