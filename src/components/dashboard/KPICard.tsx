@@ -106,7 +106,7 @@ export function KPICard({
           </span>
           <p className={cn(
             "leading-tight",
-            variant === "minimal" ? "text-xl font-semibold" : size === "compact" ? "text-lg font-bold" : "text-[1.65rem] font-bold"
+            variant === "minimal" ? "text-xl font-bold" : size === "compact" ? "text-lg font-bold" : "text-[1.65rem] font-bold"
           )}>{displayValue}</p>
           {subtitleNode ? subtitleNode : subtitle ? (
             <span className="text-xs text-muted-foreground">{subtitle}</span>
