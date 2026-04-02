@@ -401,6 +401,7 @@ serve(async (req) => {
           unique_visits: data.unique_visits,
           unique_buyers: data.unique_buyers,
           synced_at: syncedAt,
+          ...(seller_id ? { seller_id } : {}),
         }));
 
         const hourlyRows = Object.values(hourlySales).map((data) => ({
