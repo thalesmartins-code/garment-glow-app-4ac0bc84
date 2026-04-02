@@ -1219,23 +1219,21 @@ export default function MercadoLivre() {
       {/* === Hourly Charts === */}
       {isAll && overlaidHourlyData && perMarketplaceHourly ? (
         <Card>
-          <CardHeader className="pb-2 px-4 pt-4">
-            <CardTitle className="text-base">
-              <span className="inline-flex items-center gap-1.5">
-                <Clock3 className="w-4 h-4" />
-                Venda / Hora — Todos os Marketplaces
-              </span>
-            </CardTitle>
-          </CardHeader>
+          <div className="px-4 pt-4 pb-1">
+            <span className="text-sm font-medium text-foreground inline-flex items-center gap-1.5">
+              <Clock3 className="w-3.5 h-3.5 text-muted-foreground" />
+              Venda / Hora — Todos os Marketplaces
+            </span>
+          </div>
           <CardContent className="px-4 pb-4">
-            <ResponsiveContainer width="100%" height={320}>
+            <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={overlaidHourlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" />
                 <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
                 <RechartsTooltip
                   formatter={(value: number, name: string) => [currencyFmt(Number(value)), name]}
-                  contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }}
+                  contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
                 />
                 <Legend />
                 {perMarketplaceHourly.map((mp) => (
