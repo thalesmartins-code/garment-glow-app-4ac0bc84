@@ -562,91 +562,23 @@ export default function MLRelatorios() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Distribuição Geográfica</CardTitle>
-                <CardDescription>Pedidos e receita por estado — todos os marketplaces</CardDescription>
+                <CardTitle>Mapa de Calor — Brasil</CardTitle>
+                <CardDescription>Concentração de pedidos por estado — todos os marketplaces</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={geoData.slice(0, 12)} layout="vertical" barSize={20} barGap={4}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis type="number" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                      <YAxis type="category" dataKey="uf" width={40} tick={{ fontSize: 12 }} />
-                      <Tooltip
-                        formatter={(v: number, name: string) => name === "Receita" ? fmt(v) : fmtNum(v)}
-                        labelFormatter={(label) => {
-                          const st = geoData.find((g) => g.uf === label);
-                          return st ? `${st.name} (${st.uf})` : label;
-                        }}
-                      />
-                      <Legend />
-                      <Bar dataKey="revenue" name="Receita" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <BrazilHeatMap data={geoData} />
               </CardContent>
             </Card>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Concentração por Estado</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={geoData.slice(0, 8)}
-                          dataKey="orders"
-                          nameKey="uf"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={100}
-                          label={({ uf, pct }) => `${uf}: ${pct.toFixed(1)}%`}
-                        >
-                          {geoData.slice(0, 8).map((_, i) => (
-                            <Cell key={i} fill={`hsl(${210 + i * 20}, 70%, ${50 + i * 5}%)`} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(v: number) => fmtNum(v)} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Estado</TableHead>
-                        <TableHead className="text-right">Pedidos</TableHead>
-                        <TableHead className="text-right">Receita</TableHead>
-                        <TableHead className="text-right">Ticket Médio</TableHead>
-                        <TableHead className="text-right">% Total</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {geoData.map((st, i) => (
-                        <TableRow key={st.uf}>
-                          <TableCell className="font-medium">{st.name} ({st.uf})</TableCell>
-                          <TableCell className="text-right">{fmtNum(st.orders)}</TableCell>
-                          <TableCell className="text-right">{fmt(st.revenue)}</TableCell>
-                          <TableCell className="text-right">{fmt(st.avgTicket)}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                                <div className="h-full bg-primary rounded-full" style={{ width: `${Math.min(st.pct * 3, 100)}%` }} />
-                              </div>
-                              <span className="text-xs w-12 text-right">{st.pct.toFixed(1)}%</span>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {geoData.slice(0, 5).map((st) => (
+                <Card key={st.uf}>
+                  <CardContent className="pt-4 pb-3 px-4">
+                    <p className="text-xs text-muted-foreground">{st.name}</p>
+                    <p className="text-lg font-bold">{fmtNum(st.orders)} pedidos</p>
+                    <p className="text-xs text-muted-foreground">{fmt(st.revenue)} · {st.pct.toFixed(1)}%</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </motion.div>
         </TabsContent>
