@@ -99,7 +99,7 @@ const ITEM_TITLES = [
 // ─── Generators ───────────────────────────────────────────────────────────────
 
 export function getMockDevolucoeSummary(storeId: string): DevolucoeSummary {
-  const rng = seededRandom(storeSeed(storeId, 0xDEV1));
+  const rng = seededRandom(storeSeed(storeId, 0xDE01));
   const total = Math.floor(12 + rng() * 38);
   const open = Math.floor(2 + rng() * 8);
   const resolved = total - open;
@@ -115,7 +115,7 @@ export function getMockDevolucoeSummary(storeId: string): DevolucoeSummary {
 }
 
 export function getMockDevolucoesDailyStats(storeId: string, daysBack: number = 30): DevolucoesDailyStat[] {
-  const rng = seededRandom(storeSeed(storeId, 0xDEVD));
+  const rng = seededRandom(storeSeed(storeId, 0xDE0D));
   const today = new Date();
   return Array.from({ length: daysBack }, (_, i) => ({
     date: format(subDays(today, daysBack - 1 - i), "yyyy-MM-dd"),
@@ -125,7 +125,7 @@ export function getMockDevolucoesDailyStats(storeId: string, daysBack: number = 
 }
 
 export function getMockClaimEntries(storeId: string, count = 20): ClaimEntry[] {
-  const rng = seededRandom(storeSeed(storeId, 0xCLAM));
+  const rng = seededRandom(storeSeed(storeId, 0xC1A0));
   const today = new Date();
   return Array.from({ length: count }, (_, i) => {
     const reason = REASONS[Math.floor(rng() * REASONS.length)];

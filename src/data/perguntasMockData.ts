@@ -97,7 +97,7 @@ const ITEM_TITLES = [
 // ─── Generators ───────────────────────────────────────────────────────────────
 
 export function getMockPerguntasSummary(storeId: string): PerguntasSummary {
-  const rng = seededRandom(storeSeed(storeId, 0xPRG1));
+  const rng = seededRandom(storeSeed(storeId, 0xA001));
   const total = Math.floor(40 + rng() * 120);
   const pending = Math.floor(3 + rng() * 15);
   const answered = total - pending;
@@ -112,7 +112,7 @@ export function getMockPerguntasSummary(storeId: string): PerguntasSummary {
 }
 
 export function getMockPerguntasDailyStats(storeId: string, daysBack: number = 30): PerguntasDailyStat[] {
-  const rng = seededRandom(storeSeed(storeId, 0xPRGD));
+  const rng = seededRandom(storeSeed(storeId, 0xA00D));
   const today = new Date();
   return Array.from({ length: daysBack }, (_, i) => {
     const total = Math.floor(1 + rng() * 8);
@@ -126,7 +126,7 @@ export function getMockPerguntasDailyStats(storeId: string, daysBack: number = 3
 }
 
 export function getMockPerguntaEntries(storeId: string, count = 25): PerguntaEntry[] {
-  const rng = seededRandom(storeSeed(storeId, 0xPRGE));
+  const rng = seededRandom(storeSeed(storeId, 0xA00E));
   const today = new Date();
   return Array.from({ length: count }, (_, i) => {
     const isAnswered = rng() > 0.25;

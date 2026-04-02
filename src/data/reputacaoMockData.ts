@@ -109,7 +109,7 @@ const LEVEL_LABELS = {
 // ─── Generators ───────────────────────────────────────────────────────────────
 
 export function getMockReputationSummary(storeId: string): ReputationSummary {
-  const rng = seededRandom(storeSeed(storeId, 0xREP1));
+  const rng = seededRandom(storeSeed(storeId, 0xBE01));
   const levelIdx = Math.floor(rng() * 3); // bias toward green/light_green/yellow
   const level = LEVELS[levelIdx];
   const positive = 92 + rng() * 7;
@@ -144,7 +144,7 @@ export function getMockFeedbackDaily(storeId: string, daysBack: number = 30): Fe
 }
 
 export function getMockFeedbackEntries(storeId: string, count = 20): FeedbackEntry[] {
-  const rng = seededRandom(storeSeed(storeId, 0xENTR));
+  const rng = seededRandom(storeSeed(storeId, 0xE000));
   const today = new Date();
   return Array.from({ length: count }, (_, i) => {
     const r = rng();
