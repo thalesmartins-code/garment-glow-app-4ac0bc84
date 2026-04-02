@@ -1140,7 +1140,7 @@ export default function MercadoLivre() {
         </Card>
       )}
 
-      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-3 lg:grid-cols-5 gap-3">
         <KPICard
           title="Receita Total"
           value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
