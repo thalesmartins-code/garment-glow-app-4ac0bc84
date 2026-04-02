@@ -1520,14 +1520,6 @@ export default function MercadoLivre() {
                       <span className="text-muted-foreground">Visitas → Compradores</span>
                       <span className="font-semibold tabular-nums">{pctFmt(visitToBuyer)}</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Compradores → Pedidos</span>
-                      <span className="font-semibold tabular-nums">{pctFmt(buyerToOrder)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Pedidos → Unidades</span>
-                      <span className="font-semibold tabular-nums">{pctFmt(orderToUnit)}</span>
-                    </div>
                     <div className="flex items-center justify-between text-xs pt-2 border-t border-border/50">
                       <span className="text-muted-foreground">Ticket Médio</span>
                       <span className="font-bold text-foreground">{currencyFmt(effectiveMetrics.avg_ticket)}</span>
