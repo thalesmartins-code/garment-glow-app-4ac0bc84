@@ -667,6 +667,7 @@ export default function MercadoLivre() {
             if (syncError) throw syncError;
             if (!syncData?.success) throw new Error(syncData?.error || "Sync failed");
             if (syncData.user) lastUserInfo = syncData.user;
+            if (syncData.seller_reputation) setSellerReputation(syncData.seller_reputation);
 
             chunksDone++;
             setSyncProgress({ current: chunksDone, total: totalChunks });
