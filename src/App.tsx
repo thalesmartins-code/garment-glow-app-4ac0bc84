@@ -29,10 +29,12 @@ import MLEstoque from "./pages/mercadolivre/MLEstoque";
 import MLProdutos from "./pages/mercadolivre/MLProdutos";
 import MLPedidos from "./pages/mercadolivre/MLPedidos";
 import MLAnuncios from "./pages/mercadolivre/MLAnuncios";
+import MLFinanceiro from "./pages/mercadolivre/MLFinanceiro";
+import MLReputacao from "./pages/mercadolivre/MLReputacao";
+import MLDevolucoes from "./pages/mercadolivre/MLDevolucoes";
+import MLPerguntas from "./pages/mercadolivre/MLPerguntas";
 import MLSincronizacoes from "./pages/mercadolivre/MLSincronizacoes";
 import MLImportacao from "./pages/mercadolivre/MLImportacao";
-import VendasPorHora from "./pages/mercadolivre/VendasPorHora";
-import MLRelatorios from "./pages/mercadolivre/MLRelatorios";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -109,20 +111,28 @@ const App = () => (
                           element={<RoleRoute><MLAnuncios /></RoleRoute>}
                         />
                         <Route
+                          path="/api/financeiro"
+                          element={<RoleRoute><MLFinanceiro /></RoleRoute>}
+                        />
+                        <Route
+                          path="/api/reputacao"
+                          element={<RoleRoute><MLReputacao /></RoleRoute>}
+                        />
+                        <Route
+                          path="/api/devolucoes"
+                          element={<RoleRoute><MLDevolucoes /></RoleRoute>}
+                        />
+                        <Route
+                          path="/api/perguntas"
+                          element={<RoleRoute><MLPerguntas /></RoleRoute>}
+                        />
+                        <Route
                           path="/api/sincronizacoes"
                           element={<RoleRoute><MLSincronizacoes /></RoleRoute>}
                         />
                         <Route
-                          path="/api/vendas-hora"
-                          element={<RoleRoute><VendasPorHora /></RoleRoute>}
-                        />
-                        <Route
                           path="/api/importacao"
                           element={<RoleRoute><MLImportacao /></RoleRoute>}
-                        />
-                        <Route
-                          path="/api/relatorios"
-                          element={<RoleRoute><MLRelatorios /></RoleRoute>}
                         />
                         <Route
                           path="/api/sellers"

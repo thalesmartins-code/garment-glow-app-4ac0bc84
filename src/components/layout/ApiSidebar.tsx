@@ -1,18 +1,60 @@
-import { ArrowLeft, ClipboardList, Clock, FileText, Megaphone, Package, Plug, ShoppingBag, TrendingUp, Upload, Users } from "lucide-react";
-import { EnvironmentSidebar } from "./EnvironmentSidebar";
+import {
+  ArrowLeft,
+  ClipboardList,
+  Megaphone,
+  MessageCircleQuestion,
+  Package,
+  PackageX,
+  Plug,
+  Receipt,
+  RefreshCw,
+  ShoppingBag,
+  Star,
+  TrendingUp,
+  Upload,
+  Users,
+} from "lucide-react";
+import { EnvironmentSidebar, type SidebarNavSection } from "./EnvironmentSidebar";
 
-const apiItems = [
-  { icon: TrendingUp, label: "Vendas", path: "/api" },
-  { icon: Clock, label: "Venda/Hora", path: "/api/vendas-hora" },
-  { icon: Package, label: "Estoque", path: "/api/estoque" },
-  { icon: ShoppingBag, label: "Anúncios", path: "/api/produtos" },
-  { icon: ClipboardList, label: "Pedidos", path: "/api/pedidos" },
-  { icon: Megaphone, label: "Publicidade", path: "/api/anuncios" },
-  { icon: Upload, label: "Importação", path: "/api/importacao" },
-  { icon: FileText, label: "Relatórios", path: "/api/relatorios" },
-  
-  { icon: Users, label: "Sellers", path: "/api/sellers" },
-  { icon: Plug, label: "Integrações", path: "/api/integracoes" },
+const apiSections: SidebarNavSection[] = [
+  {
+    // Unlabelled — top-level overview
+    items: [
+      { icon: TrendingUp, label: "Vendas", path: "/api" },
+    ],
+  },
+  {
+    label: "Catálogo",
+    items: [
+      { icon: Package,       label: "Estoque",  path: "/api/estoque"  },
+      { icon: ShoppingBag,   label: "Anúncios", path: "/api/produtos" },
+      { icon: ClipboardList, label: "Pedidos",  path: "/api/pedidos"  },
+    ],
+  },
+  {
+    label: "Crescimento",
+    items: [
+      { icon: Megaphone, label: "Publicidade", path: "/api/anuncios"   },
+      { icon: Receipt,   label: "Financeiro",  path: "/api/financeiro" },
+    ],
+  },
+  {
+    label: "Relacionamento",
+    items: [
+      { icon: Star,                   label: "Reputação",   path: "/api/reputacao",  comingSoon: true },
+      { icon: PackageX,               label: "Devoluções",  path: "/api/devolucoes", comingSoon: true },
+      { icon: MessageCircleQuestion,  label: "Perguntas",   path: "/api/perguntas",  comingSoon: true },
+    ],
+  },
+  {
+    label: "Sistema",
+    items: [
+      { icon: Upload,    label: "Importação",     path: "/api/importacao"     },
+      { icon: RefreshCw, label: "Sincronizações", path: "/api/sincronizacoes" },
+      { icon: Users,     label: "Sellers",        path: "/api/sellers"        },
+      { icon: Plug,      label: "Integrações",    path: "/api/integracoes"    },
+    ],
+  },
 ];
 
 const backToMainItem = {
@@ -24,7 +66,7 @@ const backToMainItem = {
 export function ApiSidebar() {
   return (
     <EnvironmentSidebar
-      items={apiItems}
+      sections={apiSections}
       footerItem={backToMainItem}
     />
   );
