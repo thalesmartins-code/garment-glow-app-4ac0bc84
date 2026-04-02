@@ -109,7 +109,7 @@ export function MLStoreProvider({ children }: { children: ReactNode }) {
     try {
       const { data: tokens } = await supabase
         .from("ml_tokens")
-        .select("ml_user_id, access_token")
+        .select("ml_user_id, access_token, seller_id")
         .eq("user_id", user.id)
         .not("access_token", "is", null);
 
