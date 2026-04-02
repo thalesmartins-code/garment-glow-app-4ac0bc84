@@ -1,7 +1,6 @@
 import {
   ArrowLeft,
   ClipboardList,
-  FileBarChart,
   Megaphone,
   MessageCircleQuestion,
   Package,
@@ -19,14 +18,7 @@ const apiSections: SidebarNavSection[] = [
   {
     // Unlabelled — top-level overview
     items: [
-      {
-        icon: TrendingUp,
-        label: "Vendas",
-        path: "/api",
-        children: [
-          { icon: FileBarChart, label: "Relatórios",  path: "/api/relatorios"  },
-        ],
-      },
+      { icon: TrendingUp, label: "Vendas", path: "/api" },
     ],
   },
   {

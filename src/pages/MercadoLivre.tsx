@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+﻿import { useEffect, useState, useCallback, useRef, useMemo, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,6 +59,8 @@ import { format, parseISO, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MLRelatorios from "./mercadolivre/MLRelatorios";
 
 interface MLUser {
   id: number;
@@ -1012,6 +1014,14 @@ export default function MercadoLivre() {
       {/* Seller + Marketplace selector */}
       <SellerMarketplaceBar />
 
+      <Tabs defaultValue="vendas" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="vendas">Vendas</TabsTrigger>
+          <TabsTrigger value="relatorios">Relatórios</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="vendas" className="space-y-5 mt-0">
+
       <AnimatePresence>
         {syncProgress && (() => {
           const pct = Math.round((syncProgress.current / syncProgress.total) * 100);
@@ -1405,6 +1415,12 @@ export default function MercadoLivre() {
           <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="relatorios" className="mt-0">
+          <MLRelatorios />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
