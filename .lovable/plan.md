@@ -1,79 +1,32 @@
 
 
-## Refatoração Visual — Página de Vendas (MercadoLivre.tsx)
+## Plano: Card de Metas ao lado do gráfico Venda / Hora
 
-A página principal de Vendas (`/api`) está funcional mas visualmente densa, com espaçamento inconsistente e elementos sem hierarquia clara. A proposta é torná-la mais limpa, moderna e minimalista sem alterar funcionalidade.
+### O que será feito
 
-### Mudanças Planejadas
+Criar um componente `GoalsCard` com dados simulados de metas mensais e posicioná-lo ao lado do gráfico de Venda / Hora, formando um layout em grid (gráfico ocupa ~70%, card de metas ~30%).
 
-**1. Header da página — layout simplificado**
-- Remover o KPICard "Receita Total" flutuante do header (desktop) — fica redundante com o grid de KPIs abaixo
-- Mover título "Vendas" + última sinc e controles (filtro de período, seletor de loja) para uma barra horizontal única e limpa
-- Espaçamento mais generoso entre título e controles
+### Componente `GoalsCard`
 
-**2. KPI Cards — visual mais leve**
-- Reduzir o grid de 6 KPIs compactos para um layout mais respirado: `grid-cols-3 lg:grid-cols-6` com `gap-3`
-- Remover bordas coloridas de variantes (success, purple, orange) — usar apenas ícone colorido + texto como diferenciador
-- Ajustar `KPICard` componente: adicionar variante `"minimal"` que remove `bg-*` tinted backgrounds, mantendo apenas `bg-card shadow-sm`
-- Tipografia: valor principal `text-xl font-semibold` (em vez de bold), label `text-xs uppercase tracking-wider text-muted-foreground`
+Novo arquivo `src/components/mercadolivre/GoalsCard.tsx` com dados mock:
+- **Meta mensal de receita**: R$ 150.000 (progresso baseado no acumulado)
+- **Meta de pedidos**: 500 pedidos/mês
+- **Meta de ticket médio**: R$ 300
+- **Meta de conversão**: 5%
 
-**3. Gráficos — cards mais limpos**
-- Remover `CardHeader` pesado nos gráficos, usar título inline menor (`text-sm font-medium`) com menos padding
-- Reduzir altura dos gráficos de `320px` para `280px`
-- Tooltip com `rounded-xl shadow-lg` mais suave
-- Grid lines mais sutis (opacidade 0.3)
+Cada meta exibirá: título, valor atual vs valor alvo, barra de progresso e percentual atingido. Usa o mesmo estilo visual dos cards existentes (Card/CardContent do shadcn).
 
-**4. Tabelas (Venda/Hora + TopProducts)**
-- Padding reduzido nas cards que envolvem tabelas
-- Headers de tabela com `text-xs uppercase tracking-wider` para consistência
-- Hover rows mais suave: `bg-muted/40`
+### Layout em `MercadoLivre.tsx`
 
-**5. Barra de Revenue by Marketplace**
-- Simplificar visual: remover gradientes pesados das barras, usar cor sólida com opacidade
-- Tipografia mais uniforme
+O bloco do gráfico (linhas ~1372-1485) será envolvido em um `div` com grid `grid-cols-1 lg:grid-cols-[1fr_320px]`, colocando o gráfico à esquerda e o `GoalsCard` à direita. Isso se aplica tanto à visão "Todos os Marketplaces" quanto à visão individual.
 
-**6. Sync progress bar + empty states**
-- Progress bar mais sutil: `h-0.5` em vez de usar Card border
-- Empty states com ícone menor e texto mais enxuto
+### Dados mock do GoalsCard
 
-### Arquivos Editados
+O componente receberá `currentRevenue`, `currentOrders`, `currentTicket`, `currentConversion` como props (vindos dos `effectiveMetrics` já calculados) para exibir o progresso real contra as metas simuladas.
 
-| Arquivo | Alteração |
-|---------|-----------|
-| `src/components/dashboard/KPICard.tsx` | Adicionar variante `minimal`, ajustar tipografia e espaçamento padrão |
-| `src/pages/MercadoLivre.tsx` | Reestruturar layout do header, remover KPI flutuante, ajustar grids, usar variante minimal nos KPIs, refinar cards de gráfico |
-| `src/components/mercadolivre/MLPageHeader.tsx` | Refinar espaçamento e tipografia |
-| `src/index.css` | Adicionar tokens CSS para sombras mais suaves (`--shadow-card`, `--shadow-sm`) |
-| `src/components/ui/card.tsx` | Ajustar sombra padrão de `shadow-md` para `shadow-sm` para visual mais leve |
+### Detalhes técnicos
 
-### Resultado Esperado
-
-```text
-┌──────────────────────────────────────────────────┐
-│  Vendas              [Loja] [Hoje ▾] [Sinc ↻]   │  ← header limpo, uma linha
-│  Última sinc: 02/04 11:20                        │
-├──────────────────────────────────────────────────┤
-│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌────┐│
-│  │R$12k│ │ 245 │ │R$49 │ │1.2k │ │ 89  │ │2.1%││  ← KPIs minimal, fundo branco
-│  │Rec. │ │Vendas│ │Ticket│ │Visit│ │Comp.│ │Conv││
-│  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘ └────┘│
-│                                                  │
-│  ┌──────────────────────────────────────────────┐│
-│  │ Venda / Hora — Hoje                          ││  ← gráfico clean, menos padding
-│  │ [chart 280px]                                ││
-│  └──────────────────────────────────────────────┘│
-│                                                  │
-│  ┌──────────────────┐ ┌─────────────────────────┐│
-│  │ Venda / Hora     │ │ Top Produtos            ││
-│  │ [tabela]         │ │ [tabela]                ││
-│  └──────────────────┘ └─────────────────────────┘│
-└──────────────────────────────────────────────────┘
-```
-
-### Detalhes Técnicos
-
-- A variante `minimal` no KPICard usa `bg-card shadow-sm border-0` sem tinted backgrounds, com ícone colorido como único diferenciador
-- Cards globais mudam de `shadow-md` para `shadow-sm` para visual mais flat
-- Nenhuma funcionalidade é alterada — apenas CSS/layout
-- Manter responsividade existente (mobile KPI card, grid breakpoints)
+- **Arquivo novo**: `src/components/mercadolivre/GoalsCard.tsx`
+- **Arquivo editado**: `src/pages/MercadoLivre.tsx` — import do GoalsCard, wrapping do gráfico em grid com o card ao lado
+- Barras de progresso usarão cores condicionais (verde ≥80%, amarelo ≥50%, vermelho <50%)
 
