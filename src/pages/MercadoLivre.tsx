@@ -1267,7 +1267,7 @@ export default function MercadoLivre() {
           loading={effectiveLoading}
           refreshing={effectiveSyncing && !syncProgress}
           delta={effectiveMetrics && previousMetrics ? calcDelta(effectiveMetrics.total_revenue, previousMetrics.total_revenue) : undefined}
-          deltaLabel={deltaLabel}
+
         />
         <KPICard
           title="Qtd. Vendas"
@@ -1280,7 +1280,7 @@ export default function MercadoLivre() {
           refreshing={effectiveSyncing && !syncProgress}
           tooltip="Nas vendas do carrinho, cada produto diferente conta como uma nova venda."
           delta={effectiveMetrics && previousMetrics ? calcDelta(effectiveMetrics.units_sold, previousMetrics.units_sold) : undefined}
-          deltaLabel={deltaLabel}
+
         />
         <KPICard
           title="Ticket Médio"
@@ -1301,7 +1301,7 @@ export default function MercadoLivre() {
           loading={effectiveLoading}
           refreshing={effectiveSyncing && !syncProgress}
           delta={effectiveMetrics && previousMetrics ? calcDelta(effectiveMetrics.avg_ticket, previousMetrics.avg_ticket) : undefined}
-          deltaLabel={deltaLabel}
+
         />
         <KPICard
           title="Visitas"
@@ -1313,7 +1313,7 @@ export default function MercadoLivre() {
           loading={effectiveLoading}
           refreshing={effectiveSyncing && !syncProgress}
           delta={effectiveMetrics && previousMetrics ? calcDelta(effectiveMetrics.unique_visits, previousMetrics.unique_visits) : undefined}
-          deltaLabel={deltaLabel}
+
         />
         <KPICard
           title="Conversão"
@@ -1325,7 +1325,7 @@ export default function MercadoLivre() {
           loading={effectiveLoading}
           refreshing={effectiveSyncing && !syncProgress}
           delta={effectiveMetrics && previousMetrics ? calcDelta(effectiveMetrics.conversion_rate, previousMetrics.conversion_rate) : undefined}
-          deltaLabel={deltaLabel}
+
         />
       </div>
 
