@@ -1387,7 +1387,7 @@ export default function MercadoLivre() {
       {/* === Hourly Tables + Accordion === */}
       {isAll ? (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
             <HourlySalesTable hourly={effectiveHourly} />
             <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
           </div>
