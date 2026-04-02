@@ -200,7 +200,7 @@ export default function MercadoLivre() {
   const [period, setPeriod] = useState(0);
   const [customRange, setCustomRange] = useState<DateRange>(null);
   const [chartMode, setChartMode] = useState<ChartMode>("hourly");
-  const [activeTab, setActiveTab] = useState("vendas");
+  
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [pendingRange, setPendingRange] = useState<DateRange>(null);
   const [pendingPeriod, setPendingPeriod] = useState<number | null>(null);
