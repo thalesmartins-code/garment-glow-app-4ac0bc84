@@ -1,6 +1,8 @@
 import {
   ArrowLeft,
   ClipboardList,
+  Clock,
+  FileBarChart,
   Megaphone,
   MessageCircleQuestion,
   Package,
@@ -19,6 +21,7 @@ const apiSections: SidebarNavSection[] = [
     // Unlabelled — top-level overview
     items: [
       { icon: TrendingUp, label: "Vendas", path: "/api" },
+      { icon: Clock,      label: "Venda / Hora", path: "/api/vendas-hora" },
     ],
   },
   {
@@ -32,8 +35,9 @@ const apiSections: SidebarNavSection[] = [
   {
     label: "Crescimento",
     items: [
-      { icon: Megaphone, label: "Publicidade", path: "/api/anuncios"   },
-      { icon: Receipt,   label: "Financeiro",  path: "/api/financeiro" },
+      { icon: Megaphone,    label: "Publicidade", path: "/api/anuncios"   },
+      { icon: Receipt,      label: "Financeiro",  path: "/api/financeiro" },
+      { icon: FileBarChart, label: "Relatórios",  path: "/api/relatorios" },
     ],
   },
   {
