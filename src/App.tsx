@@ -30,6 +30,9 @@ import MLProdutos from "./pages/mercadolivre/MLProdutos";
 import MLPedidos from "./pages/mercadolivre/MLPedidos";
 import MLAnuncios from "./pages/mercadolivre/MLAnuncios";
 import MLFinanceiro from "./pages/mercadolivre/MLFinanceiro";
+import MLReputacao from "./pages/mercadolivre/MLReputacao";
+import MLDevolucoes from "./pages/mercadolivre/MLDevolucoes";
+import MLPerguntas from "./pages/mercadolivre/MLPerguntas";
 import MLSincronizacoes from "./pages/mercadolivre/MLSincronizacoes";
 import MLImportacao from "./pages/mercadolivre/MLImportacao";
 import Login from "./pages/Login";
@@ -110,6 +113,18 @@ const App = () => (
                         <Route
                           path="/api/financeiro"
                           element={<RoleRoute><MLFinanceiro /></RoleRoute>}
+                        />
+                        <Route
+                          path="/api/reputacao"
+                          element={<RoleRoute><MLReputacao /></RoleRoute>}
+                        />
+                        <Route
+                          path="/api/devolucoes"
+                          element={<RoleRoute><MLDevolucoes /></RoleRoute>}
+                        />
+                        <Route
+                          path="/api/perguntas"
+                          element={<RoleRoute><MLPerguntas /></RoleRoute>}
                         />
                         <Route
                           path="/api/sincronizacoes"
