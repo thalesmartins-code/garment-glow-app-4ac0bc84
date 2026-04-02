@@ -34,7 +34,7 @@ export function TopSellingProducts({ products, loading, showOrigin }: Props) {
     return (
       <Card className="h-full flex flex-col">
         <div className="px-4 pt-4 pb-2">
-          <span className="text-sm font-medium text-foreground">Produtos mais vendidos</span>
+          <span className="text-sm font-medium text-foreground">Ranking de anúncios</span>
         </div>
         <CardContent>
           <div className="space-y-3">
@@ -57,7 +57,7 @@ export function TopSellingProducts({ products, loading, showOrigin }: Props) {
   return (
     <Card className="h-full flex flex-col">
       <div className="px-4 pt-4 pb-2">
-        <span className="text-sm font-medium text-foreground">Produtos mais vendidos</span>
+        <span className="text-sm font-medium text-foreground">Ranking de anúncios</span>
       </div>
       <CardContent className="flex-1 p-0 flex flex-col">
         {products.length === 0 ? (
