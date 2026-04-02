@@ -1114,7 +1114,7 @@ export default function MercadoLivre() {
   const chartData = showHourlyChart ? hourlyChartData : dailyChartData;
   const hasData = useRealData ? allDaily.length > 0 || effectiveDaily.length > 0 : effectiveDaily.length > 0;
   const hasHourlyData = effectiveHourly.length > 0;
-  const chartTitle = showHourlyChart ? `Venda / Hora — ${periodLabel}` : `Vendas Diárias — ${periodLabel}`;
+  const chartTitle = showHourlyChart ? `Receita por Hora — ${periodLabel}` : `Receita Diária — ${periodLabel}`;
 
   return (
     <div className="space-y-5">
@@ -1342,7 +1342,7 @@ export default function MercadoLivre() {
           <div className="px-4 pt-4 pb-1">
             <span className="text-sm font-medium text-foreground inline-flex items-center gap-1.5">
               <Clock3 className="w-3.5 h-3.5 text-muted-foreground" />
-              Venda / Hora — Todos os Marketplaces
+              Receita por Hora — Todos os Marketplaces
             </span>
           </div>
           <CardContent className="px-4 pb-4">
@@ -1355,7 +1355,7 @@ export default function MercadoLivre() {
                   formatter={(value: number, name: string) => [currencyFmt(Number(value)), name]}
                   contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: 10 }} />
                 {perMarketplaceHourly.map((mp) => (
                   <Line
                     key={mp.id}
@@ -1428,7 +1428,7 @@ export default function MercadoLivre() {
                       boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                     }}
                   />
-                  <Legend />
+                  <Legend wrapperStyle={{ fontSize: 10 }} />
                   {showHourlyChart ? (
                     <>
                       <Bar
