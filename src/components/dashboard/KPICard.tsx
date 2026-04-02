@@ -126,26 +126,23 @@ export function KPICard({
             </div>
           )}
         {(delta !== undefined) && (
-          <div className="flex items-center gap-1 mt-2">
+          <div className="flex items-center gap-1 mt-1.5">
             {delta !== undefined && (
               <>
                 {delta > 0 ? (
-                  <TrendingUp className="w-4 h-4 text-success" />
+                  <TrendingUp className="w-3 h-3 text-success" />
                 ) : delta < 0 ? (
-                  <TrendingDown className="w-4 h-4 text-destructive" />
+                  <TrendingDown className="w-3 h-3 text-destructive" />
                 ) : (
-                  <Minus className="w-4 h-4 text-muted-foreground" />
+                  <Minus className="w-3 h-3 text-muted-foreground" />
                 )}
                 <span className={cn(
-                  "text-sm font-medium",
+                  "text-xs font-medium",
                   delta > 0 ? "text-success" : delta < 0 ? "text-destructive" : "text-muted-foreground"
                 )}>
                   {delta > 0 ? "+" : ""}{delta.toFixed(1)}%
                 </span>
               </>
-            )}
-            {deltaLabel && (
-              <span className="text-xs text-muted-foreground">{deltaLabel}</span>
             )}
           </div>
         )}
