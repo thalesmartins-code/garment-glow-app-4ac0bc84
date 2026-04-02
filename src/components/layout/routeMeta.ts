@@ -10,7 +10,7 @@ export const routeTitles: Record<string, { title: string; subtitle: string }> = 
     title: "Integrações",
     subtitle: "Conecte suas contas de marketplaces para sincronizar dados automaticamente",
   },
-  "/api": { title: "Vendas", subtitle: "Visão geral de vendas e métricas" },
+  "/api": { title: "Vendas", subtitle: "" },
   "/api/estoque": { title: "Estoque", subtitle: "Gestão de estoque dos seus anúncios" },
   "/api/produtos": { title: "Anúncios", subtitle: "Catálogo de produtos e anúncios ativos" },
   "/api/pedidos": { title: "Pedidos", subtitle: "Acompanhamento de pedidos e envios" },

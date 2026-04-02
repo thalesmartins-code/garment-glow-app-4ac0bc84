@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSeller } from "@/contexts/SellerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { MarketplaceSwitcher } from "./MarketplaceSwitcher";
+import { SellerMarketplaceBar } from "./SellerMarketplaceBar";
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import { useMLStoreSafe } from "@/contexts/MLStoreContext";
 
@@ -21,9 +22,10 @@ interface HeaderProps {
   subtitle?: string;
   showSellerSwitcher?: boolean;
   showMarketplaceSwitcher?: boolean;
+  showSellerMarketplaceBar?: boolean;
 }
 
-export function Header({ title, subtitle, showSellerSwitcher = true, showMarketplaceSwitcher = false }: HeaderProps) {
+export function Header({ title, subtitle, showSellerSwitcher = true, showMarketplaceSwitcher = false, showSellerMarketplaceBar = false }: HeaderProps) {
   const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
   const { profile, role, signOut } = useAuth();
   const navigate = useNavigate();
@@ -49,7 +51,8 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
       </div>
 
       <div className="flex items-center gap-3">
-        {showMarketplaceSwitcher && <MarketplaceSwitcher />}
+        {showSellerMarketplaceBar && <SellerMarketplaceBar />}
+        {showMarketplaceSwitcher && !showSellerMarketplaceBar && <MarketplaceSwitcher />}
         {showSellerSwitcher && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
