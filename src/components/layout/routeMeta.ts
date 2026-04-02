@@ -27,6 +27,8 @@ export const routeTitles: Record<string, { title: string; subtitle: string }> = 
   },
   "/api/importacao": { title: "Importação", subtitle: "Importe dados de vendas dos marketplaces" },
   "/api/sincronizacoes": { title: "Sincronizações", subtitle: "Histórico e logs de sincronização" },
+  "/api/vendas-hora": { title: "Venda / Hora", subtitle: "Análise de vendas por hora do dia" },
+  "/api/relatorios": { title: "Relatórios", subtitle: "Ferramentas de análise estratégica e comparativos" },
 };
 
 export function getRouteMeta(pathname: string) {
