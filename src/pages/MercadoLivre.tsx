@@ -59,6 +59,8 @@ import { format, parseISO, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MLRelatorios from "./mercadolivre/MLRelatorios";
 
 interface MLUser {
   id: number;
