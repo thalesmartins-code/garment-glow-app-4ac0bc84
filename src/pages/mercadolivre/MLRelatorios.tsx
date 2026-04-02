@@ -1,11 +1,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BarChart3, FileText, TrendingDown, DollarSign, ArrowUpDown } from "lucide-react";
+import { BarChart3, FileText, TrendingDown, DollarSign, ArrowUpDown, Trophy, MapPin, CalendarRange } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, ComposedChart, Area,
+  LineChart, Line, PieChart, Pie, Cell, ComposedChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
 import { getMarketplaceDailyData, getMarketplaceProducts } from "@/data/marketplaceMockData";
 import { useMemo } from "react";
@@ -19,6 +19,17 @@ const MARKETPLACES = [
 
 const PIE_COLORS = ["#e6b422", "#FF9900", "#EE4D2D", "#0086FF"];
 
+const BRAZILIAN_STATES = [
+  { uf: "SP", name: "São Paulo" }, { uf: "RJ", name: "Rio de Janeiro" },
+  { uf: "MG", name: "Minas Gerais" }, { uf: "RS", name: "Rio Grande do Sul" },
+  { uf: "PR", name: "Paraná" }, { uf: "BA", name: "Bahia" },
+  { uf: "SC", name: "Santa Catarina" }, { uf: "GO", name: "Goiás" },
+  { uf: "PE", name: "Pernambuco" }, { uf: "CE", name: "Ceará" },
+  { uf: "DF", name: "Distrito Federal" }, { uf: "PA", name: "Pará" },
+  { uf: "ES", name: "Espírito Santo" }, { uf: "MT", name: "Mato Grosso" },
+  { uf: "MA", name: "Maranhão" },
+];
+
 function useReportData() {
   return useMemo(() => {
     // Comparativo
@@ -31,20 +42,14 @@ function useReportData() {
       const avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
       const approvalRate = totalRevenue > 0 ? (totalApproved / totalRevenue) * 100 : 0;
       return {
-        name: mp.name,
-        key: mp.key,
-        color: mp.color,
-        revenue: totalRevenue,
-        orders: totalOrders,
-        avgTicket,
-        approvalRate,
-        cancelled: totalCancelled,
+        name: mp.name, key: mp.key, color: mp.color,
+        revenue: totalRevenue, orders: totalOrders, avgTicket, approvalRate, cancelled: totalCancelled,
       };
     });
 
-    // Curva ABC - all products across marketplaces
+    // Curva ABC
     const allProducts = MARKETPLACES.flatMap((mp) =>
-      getMarketplaceProducts(mp.key).map((p) => ({ ...p, marketplace: mp.name, mpColor: mp.color }))
+      getMarketplaceProducts(mp.key).map((p) => ({ ...p, marketplace: mp.name, mpColor: mp.color, mpKey: mp.key }))
     );
     allProducts.sort((a, b) => b.revenue - a.revenue);
     const totalProductRevenue = allProducts.reduce((s, p) => s + p.revenue, 0);
@@ -56,59 +61,105 @@ function useReportData() {
       return { ...p, cumulativePct: pct, classification };
     });
 
-    // Pareto chart data (top 20)
-    const paretoData = abcProducts.slice(0, 20).map((p, i) => ({
+    const paretoData = abcProducts.slice(0, 20).map((p) => ({
       name: p.title.length > 25 ? p.title.slice(0, 22) + "…" : p.title,
       revenue: Math.round(p.revenue),
       cumPct: Math.round(p.cumulativePct * 10) / 10,
     }));
 
-    // Taxa de cancelamento
+    // Cancelamento
     const cancelData = comparativo.map((mp) => ({
-      name: mp.name,
-      color: mp.color,
-      orders: mp.orders,
-      cancelled: mp.cancelled,
+      name: mp.name, color: mp.color, orders: mp.orders, cancelled: mp.cancelled,
       rate: mp.orders > 0 ? (mp.cancelled / mp.orders) * 100 : 0,
     }));
 
-    // Margem simulada
-    const commissions: Record<string, number> = {
-      "mercado-livre": 0.16,
-      amazon: 0.15,
-      shopee: 0.20,
-      magalu: 0.18,
-    };
+    // Margem
+    const commissions: Record<string, number> = { "mercado-livre": 0.16, amazon: 0.15, shopee: 0.20, magalu: 0.18 };
     const marginData = comparativo.map((mp) => {
       const commission = commissions[mp.key] || 0.15;
       const grossRevenue = mp.revenue;
       const commissionValue = grossRevenue * commission;
-      const freight = mp.orders * 12; // avg freight
+      const freight = mp.orders * 12;
       const netRevenue = grossRevenue - commissionValue - freight;
       const marginPct = grossRevenue > 0 ? (netRevenue / grossRevenue) * 100 : 0;
       return {
-        name: mp.name,
-        color: mp.color,
-        grossRevenue: Math.round(grossRevenue),
-        commission: Math.round(commissionValue),
-        commissionPct: Math.round(commission * 100),
-        freight: Math.round(freight),
-        netRevenue: Math.round(netRevenue),
-        marginPct: Math.round(marginPct * 10) / 10,
+        name: mp.name, color: mp.color,
+        grossRevenue: Math.round(grossRevenue), commission: Math.round(commissionValue),
+        commissionPct: Math.round(commission * 100), freight: Math.round(freight),
+        netRevenue: Math.round(netRevenue), marginPct: Math.round(marginPct * 10) / 10,
       };
     });
 
-    return { comparativo, abcProducts, paretoData, cancelData, marginData };
+    // === TOP PRODUCTS RANKING (cross-marketplace) ===
+    // Group by title (simulating SKU grouping)
+    const productMap = new Map<string, { title: string; totalRevenue: number; totalQty: number; marketplaces: Set<string>; thumbnail: string | null }>();
+    allProducts.forEach((p) => {
+      const key = p.title;
+      const existing = productMap.get(key);
+      if (existing) {
+        existing.totalRevenue += p.revenue;
+        existing.totalQty += p.qty_sold;
+        existing.marketplaces.add(p.marketplace);
+      } else {
+        productMap.set(key, {
+          title: p.title, totalRevenue: p.revenue, totalQty: p.qty_sold,
+          marketplaces: new Set([p.marketplace]), thumbnail: p.thumbnail,
+        });
+      }
+    });
+    const topProducts = Array.from(productMap.values())
+      .sort((a, b) => b.totalRevenue - a.totalRevenue)
+      .slice(0, 20)
+      .map((p, i) => ({ ...p, rank: i + 1, marketplaces: Array.from(p.marketplaces) }));
+
+    const topProductsChartData = topProducts.slice(0, 10).map((p) => ({
+      name: p.title.length > 20 ? p.title.slice(0, 17) + "…" : p.title,
+      revenue: Math.round(p.totalRevenue),
+      qty: p.totalQty,
+    }));
+
+    // === GEOGRAPHIC DATA (simulated by state) ===
+    const seed = (s: string) => {
+      let h = 0;
+      for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+      return Math.abs(h);
+    };
+    const totalOrdersAll = comparativo.reduce((s, mp) => s + mp.orders, 0);
+    const stateWeights: Record<string, number> = {
+      SP: 0.32, RJ: 0.12, MG: 0.10, RS: 0.07, PR: 0.07, BA: 0.05, SC: 0.05,
+      GO: 0.04, PE: 0.04, CE: 0.03, DF: 0.03, PA: 0.02, ES: 0.02, MT: 0.02, MA: 0.02,
+    };
+    const geoData = BRAZILIAN_STATES.map((st) => {
+      const weight = stateWeights[st.uf] || 0.01;
+      const orders = Math.round(totalOrdersAll * weight * (0.8 + (seed(st.uf) % 40) / 100));
+      const revenue = orders * (80 + (seed(st.uf + "r") % 120));
+      const avgTicket = orders > 0 ? revenue / orders : 0;
+      return { ...st, orders, revenue, avgTicket, pct: 0 };
+    }).sort((a, b) => b.orders - a.orders);
+    const totalGeoOrders = geoData.reduce((s, g) => s + g.orders, 0);
+    geoData.forEach((g) => { g.pct = totalGeoOrders > 0 ? (g.orders / totalGeoOrders) * 100 : 0; });
+
+    // === SEASONALITY YoY (simulated monthly) ===
+    const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const seasonalityData = MONTHS.map((month, i) => {
+      const baseCurrentYear = 80000 + (seed(month) % 60000);
+      const basePrevYear = baseCurrentYear * (0.7 + (seed(month + "prev") % 30) / 100);
+      const seasonalMultiplier = [0.8, 0.75, 0.85, 0.9, 0.95, 1.0, 0.9, 0.95, 1.0, 1.05, 1.3, 1.5][i];
+      const currentYear = Math.round(baseCurrentYear * seasonalMultiplier);
+      const prevYear = Math.round(basePrevYear * seasonalMultiplier * 0.9);
+      const growth = prevYear > 0 ? ((currentYear - prevYear) / prevYear) * 100 : 0;
+      return { month, currentYear, prevYear, growth: Math.round(growth * 10) / 10 };
+    });
+
+    return { comparativo, abcProducts, paretoData, cancelData, marginData, topProducts, topProductsChartData, geoData, seasonalityData };
   }, []);
 }
 
-const fmt = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
+const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmtNum = (v: number) => v.toLocaleString("pt-BR");
 
 export default function MLRelatorios() {
-  const { comparativo, abcProducts, paretoData, cancelData, marginData } = useReportData();
+  const { comparativo, abcProducts, paretoData, cancelData, marginData, topProducts, topProductsChartData, geoData, seasonalityData } = useReportData();
 
   return (
     <div className="space-y-6 p-4 md:p-6">
@@ -125,10 +176,14 @@ export default function MLRelatorios() {
       </motion.div>
 
       <Tabs defaultValue="comparativo" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 max-w-3xl">
+        <TabsList className="flex flex-wrap h-auto gap-1 max-w-5xl">
           <TabsTrigger value="comparativo" className="gap-1.5 text-xs sm:text-sm">
             <BarChart3 className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Comparativo</span>
+          </TabsTrigger>
+          <TabsTrigger value="ranking" className="gap-1.5 text-xs sm:text-sm">
+            <Trophy className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Ranking</span>
           </TabsTrigger>
           <TabsTrigger value="abc" className="gap-1.5 text-xs sm:text-sm">
             <ArrowUpDown className="h-3.5 w-3.5" />
@@ -141,6 +196,14 @@ export default function MLRelatorios() {
           <TabsTrigger value="margem" className="gap-1.5 text-xs sm:text-sm">
             <DollarSign className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Margem</span>
+          </TabsTrigger>
+          <TabsTrigger value="geo" className="gap-1.5 text-xs sm:text-sm">
+            <MapPin className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Geográfico</span>
+          </TabsTrigger>
+          <TabsTrigger value="sazonalidade" className="gap-1.5 text-xs sm:text-sm">
+            <CalendarRange className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Sazonalidade</span>
           </TabsTrigger>
         </TabsList>
 
@@ -160,16 +223,10 @@ export default function MLRelatorios() {
                       <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                       <YAxis yAxisId="left" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
                       <YAxis yAxisId="right" orientation="right" tickFormatter={(v) => `${v}`} />
-                      <Tooltip
-                        formatter={(value: number, name: string) =>
-                          name === "Receita" ? fmt(value) : fmtNum(value)
-                        }
-                      />
+                      <Tooltip formatter={(value: number, name: string) => name === "Receita" ? fmt(value) : fmtNum(value)} />
                       <Legend />
                       <Bar yAxisId="left" dataKey="revenue" name="Receita" radius={[4, 4, 0, 0]}>
-                        {comparativo.map((e, i) => (
-                          <Cell key={i} fill={e.color} />
-                        ))}
+                        {comparativo.map((e, i) => (<Cell key={i} fill={e.color} />))}
                       </Bar>
                       <Bar yAxisId="right" dataKey="orders" name="Pedidos" radius={[4, 4, 0, 0]} fill="hsl(var(--muted-foreground))" opacity={0.5} />
                     </BarChart>
@@ -211,6 +268,80 @@ export default function MLRelatorios() {
           </motion.div>
         </TabsContent>
 
+        {/* === RANKING DE PRODUTOS === */}
+        <TabsContent value="ranking">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Ranking de Produtos</CardTitle>
+                <CardDescription>Top produtos por receita consolidada — todos os marketplaces</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={topProductsChartData} layout="vertical" barSize={20}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis type="number" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                      <YAxis type="category" dataKey="name" width={160} tick={{ fontSize: 11 }} />
+                      <Tooltip formatter={(v: number, name: string) => name === "Receita" ? fmt(v) : fmtNum(v)} />
+                      <Legend />
+                      <Bar dataKey="revenue" name="Receita" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead>Produto</TableHead>
+                      <TableHead>Marketplaces</TableHead>
+                      <TableHead className="text-right">Qtd Vendida</TableHead>
+                      <TableHead className="text-right">Receita Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {topProducts.map((p) => (
+                      <TableRow key={p.rank}>
+                        <TableCell>
+                          <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
+                            p.rank <= 3 ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+                          }`}>
+                            {p.rank}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-medium max-w-[250px] truncate">
+                          <div className="flex items-center gap-2">
+                            {p.thumbnail && <img src={p.thumbnail} alt="" className="w-8 h-8 rounded object-cover" />}
+                            <span className="truncate">{p.title}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 flex-wrap">
+                            {p.marketplaces.map((mp) => {
+                              const mpData = MARKETPLACES.find((m) => m.name === mp);
+                              return (
+                                <span key={mp} className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: `${mpData?.color}20`, color: mpData?.color }}>
+                                  {mp}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">{fmtNum(p.totalQty)}</TableCell>
+                        <TableCell className="text-right font-medium">{fmt(p.totalRevenue)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
         {/* === CURVA ABC === */}
         <TabsContent value="abc">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
@@ -227,11 +358,7 @@ export default function MLRelatorios() {
                       <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={80} />
                       <YAxis yAxisId="left" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
                       <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                      <Tooltip
-                        formatter={(value: number, name: string) =>
-                          name === "Receita" ? fmt(value) : `${value}%`
-                        }
-                      />
+                      <Tooltip formatter={(value: number, name: string) => name === "Receita" ? fmt(value) : `${value}%`} />
                       <Legend />
                       <Bar yAxisId="left" dataKey="revenue" name="Receita" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                       <Line yAxisId="right" dataKey="cumPct" name="% Acumulado" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3 }} />
@@ -312,9 +439,7 @@ export default function MLRelatorios() {
                         <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 12 }} />
                         <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} />
                         <Bar dataKey="rate" name="Taxa Cancel." radius={[0, 4, 4, 0]}>
-                          {cancelData.map((e, i) => (
-                            <Cell key={i} fill={e.color} />
-                          ))}
+                          {cancelData.map((e, i) => (<Cell key={i} fill={e.color} />))}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -322,18 +447,8 @@ export default function MLRelatorios() {
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie
-                          data={cancelData}
-                          dataKey="cancelled"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={100}
-                          label={({ name, value }) => `${name}: ${value}`}
-                        >
-                          {cancelData.map((e, i) => (
-                            <Cell key={i} fill={e.color} />
-                          ))}
+                        <Pie data={cancelData} dataKey="cancelled" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, value }) => `${name}: ${value}`}>
+                          {cancelData.map((e, i) => (<Cell key={i} fill={e.color} />))}
                         </Pie>
                         <Tooltip formatter={(v: number) => fmtNum(v)} />
                         <Legend />
@@ -392,7 +507,7 @@ export default function MLRelatorios() {
                       <YAxis tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
                       <Tooltip formatter={(v: number) => fmt(v)} />
                       <Legend />
-                      <Bar dataKey="grossRevenue" name="Receita Bruta" stackId="a" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="grossRevenue" name="Receita Bruta" stackId="a" fill="hsl(var(--primary))" />
                       <Bar dataKey="commission" name="Comissão" stackId="b" fill="hsl(var(--destructive))" opacity={0.7} />
                       <Bar dataKey="freight" name="Frete" stackId="b" fill="hsl(var(--muted-foreground))" opacity={0.5} />
                       <Bar dataKey="netRevenue" name="Receita Líquida" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
@@ -430,6 +545,184 @@ export default function MLRelatorios() {
                         <TableCell className="text-right font-bold">
                           <span className={mp.marginPct >= 60 ? "text-green-600" : mp.marginPct >= 50 ? "text-yellow-600" : "text-red-600"}>
                             {mp.marginPct}%
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* === GEOGRÁFICO === */}
+        <TabsContent value="geo">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribuição Geográfica</CardTitle>
+                <CardDescription>Pedidos e receita por estado — todos os marketplaces</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={geoData.slice(0, 12)} layout="vertical" barSize={20} barGap={4}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis type="number" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                      <YAxis type="category" dataKey="uf" width={40} tick={{ fontSize: 12 }} />
+                      <Tooltip
+                        formatter={(v: number, name: string) => name === "Receita" ? fmt(v) : fmtNum(v)}
+                        labelFormatter={(label) => {
+                          const st = geoData.find((g) => g.uf === label);
+                          return st ? `${st.name} (${st.uf})` : label;
+                        }}
+                      />
+                      <Legend />
+                      <Bar dataKey="revenue" name="Receita" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Concentração por Estado</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={geoData.slice(0, 8)}
+                          dataKey="orders"
+                          nameKey="uf"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={100}
+                          label={({ uf, pct }) => `${uf}: ${pct.toFixed(1)}%`}
+                        >
+                          {geoData.slice(0, 8).map((_, i) => (
+                            <Cell key={i} fill={`hsl(${210 + i * 20}, 70%, ${50 + i * 5}%)`} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(v: number) => fmtNum(v)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Estado</TableHead>
+                        <TableHead className="text-right">Pedidos</TableHead>
+                        <TableHead className="text-right">Receita</TableHead>
+                        <TableHead className="text-right">Ticket Médio</TableHead>
+                        <TableHead className="text-right">% Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {geoData.map((st, i) => (
+                        <TableRow key={st.uf}>
+                          <TableCell className="font-medium">{st.name} ({st.uf})</TableCell>
+                          <TableCell className="text-right">{fmtNum(st.orders)}</TableCell>
+                          <TableCell className="text-right">{fmt(st.revenue)}</TableCell>
+                          <TableCell className="text-right">{fmt(st.avgTicket)}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                                <div className="h-full bg-primary rounded-full" style={{ width: `${Math.min(st.pct * 3, 100)}%` }} />
+                              </div>
+                              <span className="text-xs w-12 text-right">{st.pct.toFixed(1)}%</span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
+        </TabsContent>
+
+        {/* === SAZONALIDADE === */}
+        <TabsContent value="sazonalidade">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sazonalidade (YoY)</CardTitle>
+                <CardDescription>Comparação mês a mês — Ano atual vs. ano anterior</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[380px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={seasonalityData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                      <YAxis yAxisId="left" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                      <YAxis yAxisId="right" orientation="right" tickFormatter={(v) => `${v}%`} />
+                      <Tooltip
+                        formatter={(value: number, name: string) => {
+                          if (name === "Crescimento") return `${value}%`;
+                          return fmt(value);
+                        }}
+                      />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="currentYear" name="Ano Atual" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} opacity={0.9} />
+                      <Bar yAxisId="left" dataKey="prevYear" name="Ano Anterior" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} opacity={0.4} />
+                      <Line yAxisId="right" dataKey="growth" name="Crescimento" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3 }} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(() => {
+                const totalCurrent = seasonalityData.reduce((s, m) => s + m.currentYear, 0);
+                const totalPrev = seasonalityData.reduce((s, m) => s + m.prevYear, 0);
+                const avgGrowth = totalPrev > 0 ? ((totalCurrent - totalPrev) / totalPrev) * 100 : 0;
+                const bestMonth = [...seasonalityData].sort((a, b) => b.currentYear - a.currentYear)[0];
+                const bestGrowthMonth = [...seasonalityData].sort((a, b) => b.growth - a.growth)[0];
+                return [
+                  { label: "Receita Ano Atual", value: fmt(totalCurrent), sub: `vs. ${fmt(totalPrev)} anterior` },
+                  { label: "Melhor Mês", value: bestMonth.month, sub: fmt(bestMonth.currentYear) },
+                  { label: "Maior Crescimento", value: `${bestGrowthMonth.growth}%`, sub: `em ${bestGrowthMonth.month}` },
+                ].map((card, i) => (
+                  <Card key={i}>
+                    <CardContent className="pt-6">
+                      <p className="text-sm text-muted-foreground">{card.label}</p>
+                      <p className="text-2xl font-bold mt-1">{card.value}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{card.sub}</p>
+                    </CardContent>
+                  </Card>
+                ));
+              })()}
+            </div>
+            <Card>
+              <CardContent className="pt-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Mês</TableHead>
+                      <TableHead className="text-right">Ano Atual</TableHead>
+                      <TableHead className="text-right">Ano Anterior</TableHead>
+                      <TableHead className="text-right">Crescimento</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {seasonalityData.map((m, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium">{m.month}</TableCell>
+                        <TableCell className="text-right">{fmt(m.currentYear)}</TableCell>
+                        <TableCell className="text-right text-muted-foreground">{fmt(m.prevYear)}</TableCell>
+                        <TableCell className="text-right">
+                          <span className={m.growth >= 0 ? "text-green-600" : "text-red-600"}>
+                            {m.growth >= 0 ? "+" : ""}{m.growth}%
                           </span>
                         </TableCell>
                       </TableRow>
