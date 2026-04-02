@@ -1487,19 +1487,22 @@ export default function MercadoLivre() {
               const funnelData = [
                 { name: "Visitas", value: effectiveMetrics.unique_visits, fill: "#6366f1" },
                 { name: "Compradores", value: effectiveMetrics.unique_buyers, fill: "#8b5cf6" },
-                { name: "Pedidos", value: effectiveMetrics.total_orders, fill: "#f59e0b" },
+                { name: "Pedidos", value: effectiveMetrics.total_orders, fill: "#a855f7" },
+                { name: "Unidades", value: effectiveMetrics.units_sold, fill: "#f59e0b" },
               ];
               const numFmt = (v: number) => v.toLocaleString("pt-BR");
               const pctFmt = (v: number) => `${v.toFixed(2)}%`;
+
               const visitToBuyer = effectiveMetrics.unique_visits > 0
-                ? (effectiveMetrics.unique_buyers / effectiveMetrics.unique_visits) * 100
-                : 0;
+                ? (effectiveMetrics.unique_buyers / effectiveMetrics.unique_visits) * 100 : 0;
               const buyerToOrder = effectiveMetrics.unique_buyers > 0
-                ? (effectiveMetrics.total_orders / effectiveMetrics.unique_buyers) * 100
-                : 0;
+                ? (effectiveMetrics.total_orders / effectiveMetrics.unique_buyers) * 100 : 0;
+              const orderToUnit = effectiveMetrics.total_orders > 0
+                ? (effectiveMetrics.units_sold / effectiveMetrics.total_orders) * 100 : 0;
+
               return (
                 <div className="space-y-3">
-                  <ResponsiveContainer width="100%" height={160}>
+                  <ResponsiveContainer width="100%" height={180}>
                     <FunnelChart>
                       <Funnel dataKey="value" data={funnelData} isAnimationActive>
                         <LabelList position="center" fill="hsl(var(--card-foreground))" fontSize={11} fontWeight={600}
@@ -1521,9 +1524,21 @@ export default function MercadoLivre() {
                       <span className="text-muted-foreground">Compradores → Pedidos</span>
                       <span className="font-semibold tabular-nums">{pctFmt(buyerToOrder)}</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs pt-1 border-t border-border/50">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Pedidos → Unidades</span>
+                      <span className="font-semibold tabular-nums">{pctFmt(orderToUnit)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-border/50">
                       <span className="text-muted-foreground">Taxa de Conversão</span>
                       <span className="font-bold text-foreground">{pctFmt(effectiveMetrics.conversion_rate)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Ticket Médio</span>
+                      <span className="font-bold text-foreground">{currencyFmt(effectiveMetrics.avg_ticket)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Receita Total</span>
+                      <span className="font-bold text-foreground">{currencyFmt(effectiveMetrics.total_revenue)}</span>
                     </div>
                   </div>
                 </div>
