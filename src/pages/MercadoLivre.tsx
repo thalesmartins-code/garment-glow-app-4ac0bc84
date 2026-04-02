@@ -56,6 +56,9 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Legend,
+  FunnelChart,
+  Funnel,
+  LabelList,
 } from "recharts";
 import { format, parseISO, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -1481,43 +1484,46 @@ export default function MercadoLivre() {
           </div>
           <CardContent className="px-4 pb-4">
             {effectiveMetrics ? (() => {
-              const steps = [
-                { label: "Visitas", value: effectiveMetrics.unique_visits, color: "hsl(var(--primary))" },
-                { label: "Compradores", value: effectiveMetrics.unique_buyers, color: "hsl(var(--accent))" },
-                { label: "Pedidos", value: effectiveMetrics.total_orders, color: "hsl(25, 95%, 53%)" },
+              const funnelData = [
+                { name: "Visitas", value: effectiveMetrics.unique_visits, fill: "#6366f1" },
+                { name: "Compradores", value: effectiveMetrics.unique_buyers, fill: "#8b5cf6" },
+                { name: "Pedidos", value: effectiveMetrics.total_orders, fill: "#f59e0b" },
               ];
-              const maxVal = Math.max(...steps.map(s => s.value), 1);
+              const numFmt = (v: number) => v.toLocaleString("pt-BR");
+              const pctFmt = (v: number) => `${v.toFixed(2)}%`;
+              const visitToBuyer = effectiveMetrics.unique_visits > 0
+                ? (effectiveMetrics.unique_buyers / effectiveMetrics.unique_visits) * 100
+                : 0;
+              const buyerToOrder = effectiveMetrics.unique_buyers > 0
+                ? (effectiveMetrics.total_orders / effectiveMetrics.unique_buyers) * 100
+                : 0;
               return (
-                <div className="space-y-3 mt-1">
-                  {steps.map((step, i) => {
-                    const pct = (step.value / maxVal) * 100;
-                    const convRate = i > 0 && steps[i - 1].value > 0
-                      ? ((step.value / steps[i - 1].value) * 100).toFixed(1)
-                      : null;
-                    return (
-                      <div key={step.label}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-muted-foreground">{step.label}</span>
-                          <div className="flex items-center gap-2">
-                            {convRate && (
-                              <span className="text-[10px] text-muted-foreground">({convRate}%)</span>
-                            )}
-                            <span className="text-xs font-semibold tabular-nums">{step.value.toLocaleString("pt-BR")}</span>
-                          </div>
-                        </div>
-                        <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${pct}%`, backgroundColor: step.color }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div className="pt-2 border-t border-border mt-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Taxa de Conversão</span>
-                      <span className="text-sm font-bold text-foreground">{effectiveMetrics.conversion_rate.toFixed(2)}%</span>
+                <div className="space-y-3">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <FunnelChart>
+                      <Funnel dataKey="value" data={funnelData} isAnimationActive>
+                        <LabelList position="center" fill="#fff" fontSize={11} fontWeight={600}
+                          formatter={(v: number) => numFmt(v)} />
+                      </Funnel>
+                      <RechartsTooltip
+                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                        formatter={(value: number, _: string, props: any) => [numFmt(value), props?.payload?.name]}
+                      />
+                    </FunnelChart>
+                  </ResponsiveContainer>
+
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Visitas → Compradores</span>
+                      <span className="font-semibold tabular-nums">{pctFmt(visitToBuyer)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Compradores → Pedidos</span>
+                      <span className="font-semibold tabular-nums">{pctFmt(buyerToOrder)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-border/50">
+                      <span className="text-muted-foreground">Taxa de Conversão</span>
+                      <span className="font-bold text-foreground">{pctFmt(effectiveMetrics.conversion_rate)}</span>
                     </div>
                   </div>
                 </div>
