@@ -147,13 +147,13 @@ function buildHourlyChartData(hourlyRows: HourlyBreakdown[]) {
   const buckets = Array.from({ length: 24 }, (_, hour) => ({
     label: `${String(hour).padStart(2, "0")}h`,
     hour,
-    "Venda Total": 0,
+    "Receita Total": 0,
     Pedidos: 0,
   }));
   hourlyRows.forEach((row) => {
     const bucket = buckets[row.hour];
     if (!bucket) return;
-    bucket["Venda Total"] += row.total;
+    bucket["Receita Total"] += row.total;
     bucket.Pedidos += row.qty;
   });
   return buckets;
@@ -1104,7 +1104,7 @@ export default function MercadoLivre() {
 
   const dailyChartData = [...effectiveDaily].reverse().map((d) => ({
     label: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
-    "Venda Total": d.total,
+    "Receita Total": d.total,
     "Venda Aprovada": d.approved,
     Pedidos: d.qty,
   }));
@@ -1437,7 +1437,7 @@ export default function MercadoLivre() {
                       <Area
                         yAxisId="revenue"
                         type="monotone"
-                        dataKey="Venda Total"
+                        dataKey="Receita Total"
                         stroke="hsl(var(--accent))"
                         fill="url(#mlTotal)"
                         strokeWidth={2}
@@ -1447,7 +1447,7 @@ export default function MercadoLivre() {
                     <Area
                       yAxisId="revenue"
                       type="monotone"
-                      dataKey="Venda Total"
+                      dataKey="Receita Total"
                       stroke="hsl(var(--accent))"
                       fill="url(#mlTotal)"
                       strokeWidth={2}
