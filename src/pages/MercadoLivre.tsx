@@ -1007,7 +1007,7 @@ export default function MercadoLivre() {
   const chartTitle = showHourlyChart ? `Venda / Hora — ${periodLabel}` : `Vendas Diárias — ${periodLabel}`;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Seller + Marketplace selector */}
       <SellerMarketplaceBar />
 
@@ -1032,25 +1032,9 @@ export default function MercadoLivre() {
           );
         })()}
       </AnimatePresence>
-      <div className="flex items-start gap-4">
-        <div className="flex-1 min-w-0">
-          <MLPageHeader title="Vendas" lastUpdated={useRealData && lastSyncedAt ? new Date(lastSyncedAt) : null} />
-        </div>
-        <div className="hidden md:flex flex-shrink-0 flex-col items-center">
-          <div className="w-72">
-            <KPICard
-              title="Receita Total"
-              value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
-              variant="default"
-              size="compact"
-              loading={effectiveLoading}
-              refreshing={effectiveSyncing && !syncProgress}
-              subtitle={periodLabel}
-              className="text-center [&_div]:justify-center [&_span]:justify-center [&_p]:text-center [&>div]:py-1.5 bg-gradient-to-br from-[hsl(217,70%,45%)]/10 via-[hsl(217,70%,45%)]/5 to-transparent shadow-[0_0_12px_hsl(217,70%,45%,0.12)] border-[hsl(217,70%,45%)]/15 [&_p]:text-2xl [&_p]:font-bold"
-            />
-          </div>
-        </div>
-        <div className="flex-1 min-w-0 flex items-center justify-end gap-2 flex-wrap">
+      <div className="flex items-center justify-between gap-4">
+        <MLPageHeader title="Vendas" lastUpdated={useRealData && lastSyncedAt ? new Date(lastSyncedAt) : null} />
+        <div className="flex items-center gap-2 flex-wrap">
           {isML && <MLStoreSelector />}
           <Popover
             open={popoverOpen}
@@ -1145,39 +1129,32 @@ export default function MercadoLivre() {
 
       {isML && !effectiveLoading && connected && !hasData && (
         <Card className="border-dashed">
-          <CardContent className="flex items-center gap-3 py-6">
-            <Info className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-foreground">Nenhum dado no cache</p>
-              <p className="text-xs text-muted-foreground">
-                Clique em <strong>Sincronizar</strong> para carregar os dados pela primeira vez, ou use{" "}
-                <strong>Histórico</strong> para importar meses anteriores.
-              </p>
-            </div>
+          <CardContent className="flex items-center gap-3 py-4">
+            <Info className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Nenhum dado no cache. Clique em <strong>Sincronizar</strong> ou use <strong>Histórico</strong>.
+            </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Receita Total visível apenas em mobile (em desktop fica no header) */}
-      <div className="md:hidden">
+      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
         <KPICard
           title="Receita Total"
           value={effectiveMetrics ? currencyFmt(effectiveMetrics.total_revenue) : "—"}
-          icon={<DollarSign className="w-5 h-5" />}
-          variant="default"
-          className="bg-gradient-to-br from-[hsl(217,70%,45%)]/10 via-[hsl(217,70%,45%)]/5 to-transparent shadow-[0_0_12px_hsl(217,70%,45%,0.12)] border-[hsl(217,70%,45%)]/15 [&_p]:text-2xl [&_p]:font-bold"
+          icon={<DollarSign className="w-4 h-4" />}
+          variant="minimal"
+          iconClassName="bg-accent/10 text-accent"
+          size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing && !syncProgress}
-          subtitle={periodLabel}
         />
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-2">
         <KPICard
           title="Receita Aprovada"
           value={effectiveMetrics ? currencyFmt(effectiveMetrics.approved_revenue) : "—"}
           icon={<DollarSign className="w-4 h-4" />}
-          variant="success"
+          variant="minimal"
+          iconClassName="bg-success/10 text-success"
           size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing && !syncProgress}
@@ -1186,7 +1163,8 @@ export default function MercadoLivre() {
           title="Qtd. Vendas"
           value={effectiveMetrics ? String(effectiveMetrics.units_sold) : "—"}
           icon={<ShoppingCart className="w-4 h-4" />}
-          variant="purple"
+          variant="minimal"
+          iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]"
           size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing && !syncProgress}
@@ -1205,25 +1183,18 @@ export default function MercadoLivre() {
               : "—"
           }
           icon={<Tag className="w-4 h-4" />}
-          variant="orange"
+          variant="minimal"
+          iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]"
           size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing && !syncProgress}
         />
         <KPICard
-          title="Visitas Únicas"
+          title="Visitas"
           value={effectiveMetrics ? effectiveMetrics.unique_visits.toLocaleString("pt-BR") : "—"}
           icon={<Eye className="w-4 h-4" />}
-          variant="default"
-          size="compact"
-          loading={effectiveLoading}
-          refreshing={effectiveSyncing && !syncProgress}
-        />
-        <KPICard
-          title="Compradores"
-          value={effectiveMetrics ? effectiveMetrics.unique_buyers.toLocaleString("pt-BR") : "—"}
-          icon={<Users className="w-4 h-4" />}
-          variant="default"
+          variant="minimal"
+          iconClassName="bg-accent/10 text-accent"
           size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing && !syncProgress}
@@ -1232,7 +1203,8 @@ export default function MercadoLivre() {
           title="Conversão"
           value={effectiveMetrics ? `${effectiveMetrics.conversion_rate.toFixed(2)}%` : "—"}
           icon={<Percent className="w-4 h-4" />}
-          variant="success"
+          variant="minimal"
+          iconClassName="bg-success/10 text-success"
           size="compact"
           loading={effectiveLoading}
           refreshing={effectiveSyncing && !syncProgress}
@@ -1247,23 +1219,21 @@ export default function MercadoLivre() {
       {/* === Hourly Charts === */}
       {isAll && overlaidHourlyData && perMarketplaceHourly ? (
         <Card>
-          <CardHeader className="pb-2 px-4 pt-4">
-            <CardTitle className="text-base">
-              <span className="inline-flex items-center gap-1.5">
-                <Clock3 className="w-4 h-4" />
-                Venda / Hora — Todos os Marketplaces
-              </span>
-            </CardTitle>
-          </CardHeader>
+          <div className="px-4 pt-4 pb-1">
+            <span className="text-sm font-medium text-foreground inline-flex items-center gap-1.5">
+              <Clock3 className="w-3.5 h-3.5 text-muted-foreground" />
+              Venda / Hora — Todos os Marketplaces
+            </span>
+          </div>
           <CardContent className="px-4 pb-4">
-            <ResponsiveContainer width="100%" height={320}>
+            <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={overlaidHourlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" />
                 <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
                 <RechartsTooltip
                   formatter={(value: number, name: string) => [currencyFmt(Number(value)), name]}
-                  contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }}
+                  contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
                 />
                 <Legend />
                 {perMarketplaceHourly.map((mp) => (
@@ -1283,39 +1253,39 @@ export default function MercadoLivre() {
         </Card>
       ) : (dailyChartData.length > 0 || showHourlyChart) ? (
         <Card>
-          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle className="text-base">{chartTitle}</CardTitle>
+          <div className="flex items-center justify-between px-4 pt-4 pb-1">
+            <span className="text-sm font-medium text-foreground">{chartTitle}</span>
             <div className="flex items-center gap-2">
               {isHourlyAvailable && (
                 <Button
                   size="sm"
                   variant={chartMode === "hourly" ? "default" : "outline"}
+                  className="h-7 text-xs"
                   onClick={() => setChartMode("hourly")}
                 >
-                  <Clock3 className="mr-1 h-4 w-4" /> Venda / Hora
+                  <Clock3 className="mr-1 h-3.5 w-3.5" /> Hora
                 </Button>
               )}
               {!isHourlyAvailable && (
                 <Button
                   size="sm"
                   variant={chartMode === "daily" ? "default" : "outline"}
+                  className="h-7 text-xs"
                   onClick={() => setChartMode("daily")}
                 >
                   Diário
                 </Button>
               )}
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <CardContent className="px-4 pb-4">
             {showHourlyChart && !hasHourlyData && !syncing ? (
-              <div className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center">
-                <p className="text-sm font-medium text-foreground">Sem dados horários para este período</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Sincronize novamente para carregar a visão de venda / hora de Hoje ou dos últimos 7 dias.
-                </p>
+              <div className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-6 text-center">
+                <p className="text-sm font-medium text-foreground">Sem dados horários</p>
+                <p className="mt-1 text-xs text-muted-foreground">Sincronize para carregar.</p>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer width="100%" height={280}>
                 <ComposedChart data={chartData}>
                   <defs>
                     <linearGradient id="mlTotal" x1="0" y1="0" x2="0" y2="1">
@@ -1327,15 +1297,15 @@ export default function MercadoLivre() {
                       <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                   <XAxis
                     dataKey="label"
-                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                     stroke="hsl(var(--muted-foreground))"
                   />
                   <YAxis
                     yAxisId="revenue"
-                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                     stroke="hsl(var(--muted-foreground))"
                     tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                   />
@@ -1344,7 +1314,7 @@ export default function MercadoLivre() {
                       yAxisId="orders"
                       orientation="right"
                       allowDecimals={false}
-                      tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                      tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                       stroke="hsl(var(--muted-foreground))"
                     />
                   )}
@@ -1357,6 +1327,7 @@ export default function MercadoLivre() {
                       border: "1px solid hsl(var(--border))",
                       backgroundColor: "hsl(var(--card))",
                       color: "hsl(var(--card-foreground))",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                     }}
                   />
                   <Legend />
@@ -1367,7 +1338,7 @@ export default function MercadoLivre() {
                         dataKey="Pedidos"
                         fill="hsl(var(--primary))"
                         radius={[6, 6, 0, 0]}
-                        maxBarSize={28}
+                        maxBarSize={24}
                       />
                       <Area
                         yAxisId="revenue"
@@ -1375,14 +1346,14 @@ export default function MercadoLivre() {
                         dataKey="Venda Total"
                         stroke="hsl(var(--accent))"
                         fill="url(#mlTotal)"
-                        strokeWidth={2.5}
+                        strokeWidth={2}
                       />
                       <Line
                         yAxisId="revenue"
                         type="monotone"
                         dataKey="Venda Aprovada"
                         stroke="hsl(var(--success))"
-                        strokeWidth={2}
+                        strokeWidth={1.5}
                         dot={false}
                       />
                     </>
@@ -1394,7 +1365,7 @@ export default function MercadoLivre() {
                         dataKey="Venda Total"
                         stroke="hsl(var(--accent))"
                         fill="url(#mlTotal)"
-                        strokeWidth={2.5}
+                        strokeWidth={2}
                       />
                       <Area
                         yAxisId="revenue"
@@ -1402,7 +1373,7 @@ export default function MercadoLivre() {
                         dataKey="Venda Aprovada"
                         stroke="hsl(var(--success))"
                         fill="url(#mlApproved)"
-                        strokeWidth={2}
+                        strokeWidth={1.5}
                       />
                     </>
                   )}
@@ -1416,23 +1387,23 @@ export default function MercadoLivre() {
       {/* === Hourly Tables + Accordion === */}
       {isAll ? (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
             <HourlySalesTable hourly={effectiveHourly} />
             <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
           </div>
           
         </>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
           {effectiveSyncing && effectiveHourly.length === 0 ? (
             <Card className="flex flex-col h-full">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Venda / Hora</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 flex items-center justify-center py-12">
+              <div className="px-4 pt-4 pb-2">
+                <span className="text-sm font-medium text-foreground">Venda / Hora</span>
+              </div>
+              <CardContent className="flex-1 flex items-center justify-center py-8">
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                  <p className="text-xs">Carregando dados horários...</p>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <p className="text-xs">Carregando...</p>
                 </div>
               </CardContent>
             </Card>
