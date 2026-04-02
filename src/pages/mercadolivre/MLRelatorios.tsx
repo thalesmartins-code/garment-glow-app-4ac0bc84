@@ -1,11 +1,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BarChart3, FileText, TrendingDown, DollarSign, ArrowUpDown, Trophy, MapPin, CalendarRange, Grid3X3, LayoutDashboard } from "lucide-react";
+import { BarChart3, FileText, TrendingDown, DollarSign, ArrowUpDown, Trophy, MapPin, CalendarRange, Circle } from "lucide-react";
 import { BrazilHeatMap } from "@/components/mercadolivre/BrazilHeatMap";
-import { HourlyHeatmap } from "@/components/mercadolivre/HourlyHeatmap";
-import { HourlySalesTable } from "@/components/mercadolivre/HourlySalesTable";
-import { getAllMarketplaceMockHourly } from "@/data/marketplaceMockData";
+import { HourlyStackedBars } from "@/components/mercadolivre/HourlyStackedBars";
+import { HourlyRadar } from "@/components/mercadolivre/HourlyRadar";
+import { HourlyBubbleChart } from "@/components/mercadolivre/HourlyBubbleChart";
 import { motion } from "framer-motion";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -217,13 +217,17 @@ export default function MLRelatorios() {
             <CalendarRange className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Sazonalidade</span>
           </TabsTrigger>
-          <TabsTrigger value="heatmap" className="gap-1.5 text-xs sm:text-sm">
-            <Grid3X3 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Heatmap</span>
+          <TabsTrigger value="bars" className="gap-1.5 text-xs sm:text-sm">
+            <BarChart3 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Barras/Hora</span>
           </TabsTrigger>
-          <TabsTrigger value="combinado" className="gap-1.5 text-xs sm:text-sm">
-            <LayoutDashboard className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Combinado</span>
+          <TabsTrigger value="radar" className="gap-1.5 text-xs sm:text-sm">
+            <FileText className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Radar/Hora</span>
+          </TabsTrigger>
+          <TabsTrigger value="bubble" className="gap-1.5 text-xs sm:text-sm">
+            <Circle className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Bubble/Hora</span>
           </TabsTrigger>
         </TabsList>
 
@@ -686,18 +690,24 @@ export default function MLRelatorios() {
           </motion.div>
         </TabsContent>
 
-        {/* === HEATMAP === */}
-        <TabsContent value="heatmap">
+        {/* === BARRAS/HORA === */}
+        <TabsContent value="bars">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-            <HourlyHeatmap />
+            <HourlyStackedBars />
           </motion.div>
         </TabsContent>
 
-        {/* === COMBINADO === */}
-        <TabsContent value="combinado">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="space-y-4">
-            <HourlyHeatmap />
-            <HourlySalesTable hourly={getAllMarketplaceMockHourly()} title="Detalhamento por Hora" />
+        {/* === RADAR/HORA === */}
+        <TabsContent value="radar">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+            <HourlyRadar />
+          </motion.div>
+        </TabsContent>
+
+        {/* === BUBBLE/HORA === */}
+        <TabsContent value="bubble">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+            <HourlyBubbleChart />
           </motion.div>
         </TabsContent>
       </Tabs>
