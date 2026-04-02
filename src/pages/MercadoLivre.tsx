@@ -1098,7 +1098,7 @@ export default function MercadoLivre() {
   return (
     <div className="space-y-5">
       {/* Seller + Marketplace selector */}
-      <Tabs defaultValue="vendas" className="space-y-4" onValueChange={setActiveTab}>
+      <Tabs defaultValue="vendas" className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <SellerMarketplaceBar />
           <TabsList className="h-8">
