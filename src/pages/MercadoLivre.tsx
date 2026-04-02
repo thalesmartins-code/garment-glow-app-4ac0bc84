@@ -1495,8 +1495,6 @@ export default function MercadoLivre() {
                   <ResponsiveContainer width="100%" height={180}>
                     <FunnelChart>
                       <Funnel dataKey="value" data={funnelData} isAnimationActive>
-                        <LabelList position="right" fill="hsl(var(--foreground))" fontSize={11} fontWeight={700}
-                          formatter={(v: number) => numFmt(v)} offset={16} />
                       </Funnel>
                       <RechartsTooltip
                         contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
