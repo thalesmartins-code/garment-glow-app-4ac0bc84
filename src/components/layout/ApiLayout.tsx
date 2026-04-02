@@ -5,7 +5,7 @@ import { MarketplaceProvider } from "@/contexts/MarketplaceContext";
 export function ApiLayout() {
   return (
     <MarketplaceProvider>
-      <LayoutShell sidebar={<ApiSidebar />} showSellerSwitcher={false} showMarketplaceSwitcher />
+      <LayoutShell sidebar={<ApiSidebar />} showSellerSwitcher={false} showMarketplaceSwitcher showSellerMarketplaceBar />
     </MarketplaceProvider>
   );
 }
