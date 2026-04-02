@@ -99,7 +99,7 @@ export function BrazilHeatMap({ data }: BrazilHeatMapProps) {
   return (
     <div className="relative">
       <svg
-        viewBox="30 40 620 700"
+        viewBox="30 20 730 770"
         className="w-full max-w-[600px] mx-auto h-auto"
         onMouseLeave={() => setHoveredState(null)}
       >
