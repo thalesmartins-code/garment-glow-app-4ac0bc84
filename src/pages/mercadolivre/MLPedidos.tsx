@@ -18,7 +18,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
-import { SellerMarketplaceBar } from "@/components/layout/SellerMarketplaceBar";
 import { useMLStore } from "@/contexts/MLStoreContext";
 import {
   getMockOrders,
@@ -63,7 +62,6 @@ type StatusFilter = "all" | OrderStatus;
 function NotConnected() {
   return (
     <div className="space-y-6">
-      <SellerMarketplaceBar className="mb-2" />
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Plug className="w-16 h-16 text-muted-foreground/40" />
         <h2 className="text-xl font-semibold">Mercado Livre não conectado</h2>
@@ -150,7 +148,6 @@ export default function MLPedidos() {
 
   return (
     <div className="space-y-6">
-      <SellerMarketplaceBar />
 
       <div className="flex items-center justify-between flex-wrap gap-2">
         <MLPageHeader title="Pedidos" lastUpdated={null} />

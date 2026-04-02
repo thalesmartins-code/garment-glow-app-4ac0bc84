@@ -18,7 +18,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
-import { SellerMarketplaceBar } from "@/components/layout/SellerMarketplaceBar";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { useMLAds, type AdsCampaign, type AdsProductStat } from "@/hooks/useMLAds";
 
@@ -53,7 +52,6 @@ function statusBadge(status: AdsCampaign["status"]) {
 function NotConnected() {
   return (
     <div className="space-y-6">
-      <SellerMarketplaceBar className="mb-2" />
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Plug className="w-16 h-16 text-muted-foreground/40" />
         <h2 className="text-xl font-semibold">Mercado Livre não conectado</h2>
@@ -138,8 +136,6 @@ export default function MLAnuncios() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <SellerMarketplaceBar />
 
       <MLPageHeader title="Publicidade" lastUpdated={null}>
         <div className="flex items-center gap-2">

@@ -22,7 +22,6 @@ import {
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
-import { SellerMarketplaceBar } from "@/components/layout/SellerMarketplaceBar";
 import type { ProductVariation } from "@/contexts/MLInventoryContext";
 
 const currencyFmt = (v: number) =>
@@ -200,8 +199,6 @@ export default function MLEstoque() {
 
   return (
     <div className="space-y-6">
-      {/* Seller + Marketplace selector */}
-      <SellerMarketplaceBar />
 
       <MLPageHeader title="Estoque" lastUpdated={useRealData ? lastUpdated : new Date()}>
         {isML && (

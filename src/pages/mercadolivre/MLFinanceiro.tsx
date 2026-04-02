@@ -16,7 +16,6 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
-import { SellerMarketplaceBar } from "@/components/layout/SellerMarketplaceBar";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { useMLStore } from "@/contexts/MLStoreContext";
 import { useSeller } from "@/contexts/SellerContext";
@@ -69,7 +68,6 @@ const StackedTooltip = ({ active, payload, label }: any) => {
 function NotConnected() {
   return (
     <div className="space-y-6">
-      <SellerMarketplaceBar />
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Plug className="w-16 h-16 text-muted-foreground/40" />
         <h2 className="text-xl font-semibold">Mercado Livre não conectado</h2>
@@ -155,7 +153,6 @@ export default function MLFinanceiro() {
 
   return (
     <div className="space-y-6">
-      <SellerMarketplaceBar />
 
       <MLPageHeader title="Financeiro" lastUpdated={isRealRevenue ? new Date() : null}>
         {!isRealRevenue && (
