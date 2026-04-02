@@ -1483,18 +1483,12 @@ export default function MercadoLivre() {
               const funnelData = [
                 { name: "Visitas", value: effectiveMetrics.unique_visits, fill: "#2563eb" },
                 { name: "Compradores", value: effectiveMetrics.unique_buyers, fill: "#7c3aed" },
-                { name: "Pedidos", value: effectiveMetrics.total_orders, fill: "#db2777" },
-                { name: "Unidades", value: effectiveMetrics.units_sold, fill: "#ea580c" },
               ];
               const numFmt = (v: number) => v.toLocaleString("pt-BR");
               const pctFmt = (v: number) => `${v.toFixed(2)}%`;
 
               const visitToBuyer = effectiveMetrics.unique_visits > 0
                 ? (effectiveMetrics.unique_buyers / effectiveMetrics.unique_visits) * 100 : 0;
-              const buyerToOrder = effectiveMetrics.unique_buyers > 0
-                ? (effectiveMetrics.total_orders / effectiveMetrics.unique_buyers) * 100 : 0;
-              const orderToUnit = effectiveMetrics.total_orders > 0
-                ? (effectiveMetrics.units_sold / effectiveMetrics.total_orders) * 100 : 0;
 
               return (
                 <div className="space-y-3">
