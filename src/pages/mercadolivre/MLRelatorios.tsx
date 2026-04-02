@@ -6,6 +6,8 @@ import { BrazilHeatMap } from "@/components/mercadolivre/BrazilHeatMap";
 import { HourlyStackedBars } from "@/components/mercadolivre/HourlyStackedBars";
 import { HourlyRadar } from "@/components/mercadolivre/HourlyRadar";
 import { HourlyBubbleChart } from "@/components/mercadolivre/HourlyBubbleChart";
+import { HourlySalesTable } from "@/components/mercadolivre/HourlySalesTable";
+import { getMarketplaceHourlyData, getAllMarketplaceMockHourly } from "@/data/marketplaceMockData";
 import { motion } from "framer-motion";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
