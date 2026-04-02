@@ -7,11 +7,9 @@ import {
   PackageX,
   Plug,
   Receipt,
-  RefreshCw,
   ShoppingBag,
   Star,
   TrendingUp,
-  Upload,
   Users,
 } from "lucide-react";
 import { EnvironmentSidebar, type SidebarNavSection } from "./EnvironmentSidebar";
@@ -49,8 +47,6 @@ const apiSections: SidebarNavSection[] = [
   {
     label: "Sistema",
     items: [
-      { icon: Upload,    label: "Importação",     path: "/api/importacao"     },
-      { icon: RefreshCw, label: "Sincronizações", path: "/api/sincronizacoes" },
       { icon: Users,     label: "Sellers",        path: "/api/sellers"        },
       { icon: Plug,      label: "Integrações",    path: "/api/integracoes"    },
     ],

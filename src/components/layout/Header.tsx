@@ -1,4 +1,4 @@
-import { Bell, Check, ChevronDown, DatabaseZap, LogOut, SlidersHorizontal, Store, User } from "lucide-react";
+import { Bell, Check, ChevronDown, DatabaseZap, LogOut, SlidersHorizontal, Store, Upload, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -141,10 +141,16 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
               Configurações
             </DropdownMenuItem>
             {isApi && (
-              <DropdownMenuItem onClick={() => navigate("/api/sincronizacoes")} className="rounded-lg px-2 py-2 text-sm hover:bg-muted focus:bg-muted">
-                <DatabaseZap className="mr-2 h-4 w-4 text-muted-foreground" />
-                Sincronizações
-              </DropdownMenuItem>
+              <>
+                <DropdownMenuItem onClick={() => navigate("/api/importacao")} className="rounded-lg px-2 py-2 text-sm hover:bg-muted focus:bg-muted">
+                  <Upload className="mr-2 h-4 w-4 text-muted-foreground" />
+                  Importação
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/api/sincronizacoes")} className="rounded-lg px-2 py-2 text-sm hover:bg-muted focus:bg-muted">
+                  <DatabaseZap className="mr-2 h-4 w-4 text-muted-foreground" />
+                  Sincronizações
+                </DropdownMenuItem>
+              </>
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="rounded-lg px-2 py-2 text-sm text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive" onClick={signOut}>
