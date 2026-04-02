@@ -43,9 +43,9 @@ const apiSections: SidebarNavSection[] = [
   {
     label: "Relacionamento",
     items: [
-      { icon: Star,                  label: "Reputação",  path: "/api/reputacao",  comingSoon: true },
-      { icon: PackageX,              label: "Devoluções", path: "/api/devolucoes", comingSoon: true },
-      { icon: MessageCircleQuestion, label: "Perguntas",  path: "/api/perguntas",  comingSoon: true },
+      { icon: Star,                  label: "Reputação",  path: "/api/reputacao"  },
+      { icon: PackageX,              label: "Devoluções", path: "/api/devolucoes" },
+      { icon: MessageCircleQuestion, label: "Perguntas",  path: "/api/perguntas"  },
     ],
   },
   {
