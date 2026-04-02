@@ -146,14 +146,12 @@ function buildHourlyChartData(hourlyRows: HourlyBreakdown[]) {
     label: `${String(hour).padStart(2, "0")}h`,
     hour,
     "Venda Total": 0,
-    "Venda Aprovada": 0,
     Pedidos: 0,
   }));
   hourlyRows.forEach((row) => {
     const bucket = buckets[row.hour];
     if (!bucket) return;
     bucket["Venda Total"] += row.total;
-    bucket["Venda Aprovada"] += row.approved;
     bucket.Pedidos += row.qty;
   });
   return buckets;
