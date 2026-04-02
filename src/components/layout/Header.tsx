@@ -155,6 +155,13 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
                 </DropdownMenuItem>
               </>
             )}
+            {isApi && mlStore?.salesCache.accessToken && (
+              <HistoricalSyncModal
+                accessToken={mlStore.salesCache.accessToken}
+                onSyncComplete={() => mlStore.refresh()}
+                sellerId={mlStore.selectedStore !== "all" ? mlStore.stores.find(s => s.ml_user_id === mlStore.selectedStore)?.seller_id : null}
+              />
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="rounded-lg px-2 py-2 text-sm text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive" onClick={signOut}>
               <LogOut className="mr-2 h-4 w-4" />
