@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Target } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 interface GoalItem {
@@ -60,8 +60,7 @@ export function GoalsCard({ currentRevenue, currentOrders, currentTicket, curren
 
   return (
     <Card className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-        <Target className="h-4 w-4 text-primary" />
+      <div className="px-4 pt-4 pb-2">
         <span className="text-sm font-medium text-foreground">Metas do Mês</span>
       </div>
       <CardContent className="px-4 pb-4 flex-1 flex flex-col justify-between gap-4">

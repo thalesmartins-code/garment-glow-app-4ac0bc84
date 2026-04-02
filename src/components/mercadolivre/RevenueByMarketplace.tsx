@@ -57,7 +57,6 @@ export function RevenueByMarketplace({ groups }: Props) {
         onClick={() => setExpanded((p) => !p)}
       >
         <CardTitle className="text-base flex items-center gap-1.5">
-          <BarChart3 className="w-4 h-4" />
           <span className="flex-1">Faturamento por Marketplace</span>
           <span className="text-sm font-semibold tabular-nums">
             {currencyFmt(grandTotal)}

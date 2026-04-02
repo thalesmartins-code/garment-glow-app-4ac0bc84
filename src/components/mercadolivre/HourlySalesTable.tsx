@@ -85,10 +85,7 @@ export function HourlySalesTable({ hourly, title, titleIcon, compact }: Props) {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className={compact ? "text-xs" : "text-base"}>
-              <span className="inline-flex items-center gap-1.5">
-                {titleIcon}
-                {title || "Venda / Hora"}
-              </span>
+              {title || "Venda / Hora"}
             </CardTitle>
             {peakHour.revenue > 0 && (
               <p className="text-xs text-muted-foreground mt-1">

@@ -34,8 +34,7 @@ export function TopSellingProducts({ products, loading, showOrigin }: Props) {
     return (
       <Card className="h-full flex flex-col">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-[hsl(45,93%,47%)]" />
+          <CardTitle className="text-base">
             Produtos mais vendidos
           </CardTitle>
         </CardHeader>
@@ -60,8 +59,7 @@ export function TopSellingProducts({ products, loading, showOrigin }: Props) {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-[hsl(45,93%,47%)]" />
+        <CardTitle className="text-base">
           Produtos mais vendidos
         </CardTitle>
       </CardHeader>
