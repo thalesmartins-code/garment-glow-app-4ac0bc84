@@ -21,6 +21,7 @@ interface Props {
   accessToken: string | null;
   onSyncComplete: () => void;
   mlUserId?: string;
+  sellerId?: string | null;
 }
 
 const MONTHS = [
