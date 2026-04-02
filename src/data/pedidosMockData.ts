@@ -113,7 +113,7 @@ const LISTING_TYPES: ListingType[] = ["classic", "classic", "premium", "premium"
 // ─── Generator ───────────────────────────────────────────────────────────────
 
 export function getMockOrders(storeId: string, count = 60): Order[] {
-  const rng = seededRandom(storeSeed(storeId, 0x0RD3));
+  const rng = seededRandom(storeSeed(storeId, 0x0BD3));
   const today = new Date();
 
   return Array.from({ length: count }, (_, i) => {
