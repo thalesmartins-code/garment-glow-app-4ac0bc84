@@ -54,8 +54,6 @@ const STATE_LABELS: Record<string, [number, number]> = {
   RO: [240, 349], RR: [270, 83], RS: [414, 704], SC: [456, 649],
   SE: [688, 338], SP: [512, 565], TO: [504, 333],
 };
-  SC: [380, 645], RS: [355, 690], RO: [150, 385],
-};
 
 function getHeatColor(intensity: number): string {
   // 0 = light (low), 1 = dark saturated (high)
