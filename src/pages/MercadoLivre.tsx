@@ -251,6 +251,7 @@ export default function MercadoLivre() {
   const [allHourly, setAllHourly] = useState<HourlyBreakdown[]>(() => salesCache.hourly);
   const [allProductSales, setAllProductSales] = useState<(ProductSalesRow & { date: string })[]>(() => salesCache.products as any);
   const [productStockMap, setProductStockMap] = useState<Record<string, number>>(() => salesCache.productStockMap);
+  const [sellerReputation, setSellerReputation] = useState<any>(null);
   const [period, setPeriod] = useState(0);
   const [customRange, setCustomRange] = useState<DateRange>(null);
   const [chartMode, setChartMode] = useState<ChartMode>("hourly");
@@ -666,6 +667,7 @@ export default function MercadoLivre() {
             if (syncError) throw syncError;
             if (!syncData?.success) throw new Error(syncData?.error || "Sync failed");
             if (syncData.user) lastUserInfo = syncData.user;
+            if (syncData.seller_reputation) setSellerReputation(syncData.seller_reputation);
 
             chunksDone++;
             setSyncProgress({ current: chunksDone, total: totalChunks });
@@ -1536,6 +1538,21 @@ export default function MercadoLivre() {
           </div>
           <CardContent className="px-4 pb-4">
             {(() => {
+              const rep = sellerReputation;
+              const levelColorMap: Record<string, string> = {
+                "1_red": "hsl(0, 72%, 51%)",
+                "2_orange": "hsl(25, 95%, 53%)",
+                "3_yellow": "hsl(48, 96%, 53%)",
+                "4_light_green": "hsl(142, 70%, 55%)",
+                "5_green": "hsl(142, 70%, 45%)",
+              };
+              const levelLabelMap: Record<string, string> = {
+                "1_red": "Vermelho",
+                "2_orange": "Laranja",
+                "3_yellow": "Amarelo",
+                "4_light_green": "Verde claro",
+                "5_green": "Verde",
+              };
               const levels = [
                 { label: "Vermelho", color: "hsl(0, 72%, 51%)", min: 0 },
                 { label: "Laranja", color: "hsl(25, 95%, 53%)", min: 20 },
@@ -1543,14 +1560,60 @@ export default function MercadoLivre() {
                 { label: "Verde claro", color: "hsl(142, 70%, 55%)", min: 60 },
                 { label: "Verde", color: "hsl(142, 70%, 45%)", min: 80 },
               ];
-              // Derive score from metrics (simplified: based on conversion + order volume)
-              const score = effectiveMetrics
-                ? Math.min(100, Math.round(
-                    (effectiveMetrics.conversion_rate * 8) +
-                    Math.min(40, effectiveMetrics.total_orders * 0.5)
-                  ))
-                : 0;
-              const activeLevel = [...levels].reverse().find(l => score >= l.min) ?? levels[0];
+
+              // Map ML level_id to score
+              const levelScoreMap: Record<string, number> = {
+                "1_red": 10, "2_orange": 30, "3_yellow": 50, "4_light_green": 70, "5_green": 90,
+              };
+
+              const mlLevel = rep?.level_id;
+              const claimsRate = rep?.metrics?.claims?.rate ?? null;
+              const delayedRate = rep?.metrics?.delayed_handling_time?.rate ?? null;
+              const cancellationsRate = rep?.metrics?.cancellations?.rate ?? null;
+              const positiveRating = rep?.transactions?.ratings?.positive ?? null;
+
+              // Use real ML level or fall back to calculated score
+              const score = mlLevel && levelScoreMap[mlLevel]
+                ? levelScoreMap[mlLevel]
+                : effectiveMetrics
+                  ? Math.min(100, Math.round(
+                      (effectiveMetrics.conversion_rate * 8) +
+                      Math.min(40, effectiveMetrics.total_orders * 0.5)
+                    ))
+                  : 0;
+
+              const activeLevelLabel = mlLevel ? (levelLabelMap[mlLevel] ?? "—") : ([...levels].reverse().find(l => score >= l.min)?.label ?? "—");
+              const activeLevelColor = mlLevel ? (levelColorMap[mlLevel] ?? levels[0].color) : ([...levels].reverse().find(l => score >= l.min)?.color ?? levels[0].color);
+
+              const cancelRate = cancellationsRate !== null
+                ? cancellationsRate
+                : effectiveMetrics
+                  ? (effectiveDaily.reduce((s, d) => s + d.cancelled, 0) / Math.max(effectiveMetrics.total_orders, 1))
+                  : 0;
+
+              const metricsRows = [
+                {
+                  label: "Reclamações",
+                  value: claimsRate !== null ? `${(claimsRate * 100).toFixed(1)}%` : "—",
+                  good: claimsRate !== null ? claimsRate < 0.02 : true,
+                },
+                {
+                  label: "Atraso no envio",
+                  value: delayedRate !== null ? `${(delayedRate * 100).toFixed(1)}%` : "—",
+                  good: delayedRate !== null ? delayedRate < 0.05 : true,
+                },
+                {
+                  label: "Cancelamentos",
+                  value: `${(cancelRate * 100).toFixed(1)}%`,
+                  good: cancelRate < 0.03,
+                },
+                {
+                  label: "Avaliação positiva",
+                  value: positiveRating !== null ? `${(positiveRating * 100).toFixed(0)}%` : "—",
+                  good: positiveRating !== null ? positiveRating >= 0.8 : true,
+                },
+              ];
+
               return (
                 <div className="space-y-4 mt-1">
                   {/* Thermometer bar */}
@@ -1570,23 +1633,30 @@ export default function MercadoLivre() {
                     />
                   </div>
                   <div className="text-center">
-                    <span className="text-2xl font-bold tabular-nums" style={{ color: activeLevel.color }}>{score}</span>
+                    <span className="text-2xl font-bold tabular-nums" style={{ color: activeLevelColor }}>{score}</span>
                     <span className="text-xs text-muted-foreground ml-1">/100</span>
-                    <p className="text-xs text-muted-foreground mt-0.5">{activeLevel.label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{activeLevelLabel}</p>
+                    {rep?.power_seller_status && (
+                      <Badge variant="secondary" className="mt-1 text-[10px]">
+                        {rep.power_seller_status === "platinum" ? "MercadoLíder Platinum" :
+                         rep.power_seller_status === "gold" ? "MercadoLíder Gold" : "MercadoLíder"}
+                      </Badge>
+                    )}
                   </div>
                   {/* Metrics breakdown */}
                   <div className="space-y-2 pt-2 border-t border-border">
-                    {[
-                      { label: "Reclamações", value: "< 1%", good: true },
-                      { label: "Atraso no envio", value: "< 5%", good: true },
-                      { label: "Cancelamentos", value: effectiveMetrics ? `${((effectiveDaily.reduce((s, d) => s + d.cancelled, 0) / Math.max(effectiveMetrics.total_orders, 1)) * 100).toFixed(1)}%` : "—", good: effectiveMetrics ? (effectiveDaily.reduce((s, d) => s + d.cancelled, 0) / Math.max(effectiveMetrics.total_orders, 1)) < 0.03 : true },
-                      { label: "Mediações", value: "0%", good: true },
-                    ].map((item) => (
+                    {metricsRows.map((item) => (
                       <div key={item.label} className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">{item.label}</span>
                         <span className={item.good ? "text-emerald-500 font-medium" : "text-red-500 font-medium"}>{item.value}</span>
                       </div>
                     ))}
+                    {rep?.transactions?.completed !== undefined && (
+                      <div className="flex items-center justify-between text-xs pt-1 border-t border-border/50">
+                        <span className="text-muted-foreground">Vendas concluídas</span>
+                        <span className="font-medium text-foreground">{rep.transactions.completed.toLocaleString("pt-BR")}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

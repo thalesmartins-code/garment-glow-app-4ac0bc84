@@ -542,6 +542,7 @@ serve(async (req) => {
         country: user.country_id,
         permalink: user.permalink,
       },
+      seller_reputation: user.seller_reputation || null,
       metrics: {
         total_revenue: totalRevenue,
         approved_revenue: approvedRevenue,
