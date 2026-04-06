@@ -1675,44 +1675,79 @@ export default function MercadoLivre() {
                   ))}
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Gasto</span>
-                    <span className="font-bold text-foreground tabular-nums">
-                      {adsSummary.total_spend.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                    </span>
+                <div className="space-y-3">
+                  {/* Destaque: Gasto e ROAS */}
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Gasto</p>
+                      <p className="text-xl font-bold text-foreground tabular-nums">
+                        {adsSummary.total_spend.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">ROAS</p>
+                      <p className={`text-xl font-bold tabular-nums ${
+                        adsSummary.avg_roas >= 3 ? "text-green-500" :
+                        adsSummary.avg_roas >= 1.5 ? "text-yellow-500" :
+                        "text-red-500"
+                      }`}>
+                        {adsSummary.avg_roas.toFixed(2)}x
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Receita atribuída</span>
-                    <span className="font-bold text-foreground tabular-nums">
-                      {adsSummary.total_attributed_revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                    </span>
+
+                  {/* Sparkline ROAS */}
+                  <div className="h-10">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={adsDaily}>
+                        <defs>
+                          <linearGradient id="colorRoasSparkline" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <Area
+                          type="monotone"
+                          dataKey="roas"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={1.5}
+                          fillOpacity={1}
+                          fill="url(#colorRoasSparkline)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Impressões</span>
-                    <span className="font-semibold tabular-nums">{adsSummary.total_impressions.toLocaleString("pt-BR")}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Cliques</span>
-                    <span className="font-semibold tabular-nums">{adsSummary.total_clicks.toLocaleString("pt-BR")}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Pedidos atribuídos</span>
-                    <span className="font-semibold tabular-nums">{adsSummary.total_attributed_orders.toLocaleString("pt-BR")}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs pt-2 border-t border-border/50">
-                    <span className="text-muted-foreground">CTR</span>
-                    <span className="font-semibold tabular-nums">{adsSummary.avg_ctr.toFixed(2)}%</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">CPC médio</span>
-                    <span className="font-semibold tabular-nums">
-                      {adsSummary.avg_cpc.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">ROAS</span>
-                    <span className="font-bold text-foreground tabular-nums">{adsSummary.avg_roas.toFixed(2)}x</span>
+
+                  {/* Métricas secundárias */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-1 border-t border-border/50">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Receita</span>
+                      <span className="font-semibold tabular-nums">
+                        {adsSummary.total_attributed_revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Impressões</span>
+                      <span className="font-semibold tabular-nums">{adsSummary.total_impressions.toLocaleString("pt-BR")}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Cliques</span>
+                      <span className="font-semibold tabular-nums">{adsSummary.total_clicks.toLocaleString("pt-BR")}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Pedidos</span>
+                      <span className="font-semibold tabular-nums">{adsSummary.total_attributed_orders.toLocaleString("pt-BR")}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">CTR</span>
+                      <span className="font-semibold tabular-nums">{adsSummary.avg_ctr.toFixed(2)}%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">CPC</span>
+                      <span className="font-semibold tabular-nums">
+                        {adsSummary.avg_cpc.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
