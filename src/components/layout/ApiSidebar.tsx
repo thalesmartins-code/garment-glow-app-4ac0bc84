@@ -1,6 +1,8 @@
 import {
   ArrowLeft,
   ClipboardList,
+  Layers,
+  LayoutDashboard,
   Megaphone,
   MessageCircleQuestion,
   Package,
@@ -16,24 +18,29 @@ import { EnvironmentSidebar, type SidebarNavSection } from "./EnvironmentSidebar
 
 const apiSections: SidebarNavSection[] = [
   {
-    // Unlabelled — top-level overview
     items: [
-      { icon: TrendingUp, label: "Vendas", path: "/api" },
-    ],
-  },
-  {
-    label: "Catálogo",
-    items: [
-      { icon: Package,       label: "Estoque",  path: "/api/estoque"  },
-      { icon: ShoppingBag,   label: "Anúncios", path: "/api/produtos" },
-      { icon: ClipboardList, label: "Pedidos",  path: "/api/pedidos"  },
-    ],
-  },
-  {
-    label: "Crescimento",
-    items: [
-      { icon: Megaphone, label: "Publicidade", path: "/api/anuncios"   },
-      { icon: Receipt,   label: "Financeiro",  path: "/api/financeiro" },
+      {
+        icon: LayoutDashboard,
+        label: "Dashboard",
+        path: "/api",
+        noSelfLink: true,
+        children: [
+          { icon: TrendingUp,  label: "Vendas",      path: "/api"            },
+          { icon: ShoppingBag, label: "Anúncios",    path: "/api/produtos"   },
+          { icon: Megaphone,   label: "Publicidade", path: "/api/anuncios"   },
+          { icon: Receipt,     label: "Financeiro",  path: "/api/financeiro" },
+        ],
+      },
+      {
+        icon: Layers,
+        label: "Operações",
+        path: "/api/estoque",
+        noSelfLink: true,
+        children: [
+          { icon: Package,       label: "Estoque", path: "/api/estoque" },
+          { icon: ClipboardList, label: "Pedidos", path: "/api/pedidos" },
+        ],
+      },
     ],
   },
   {
