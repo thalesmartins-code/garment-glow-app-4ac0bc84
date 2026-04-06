@@ -1781,8 +1781,7 @@ export default function MercadoLivre() {
                     </div>
                   </div>
 
-                    <div className="pt-2 border-t border-border/50 space-y-1.5">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Top Campanhas</p>
+
                       {adsCampaigns
                         .slice()
                         .sort((a, b) => b.roas - a.roas)
