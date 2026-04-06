@@ -78,18 +78,23 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
   }, [daysBack, dateFrom, dateTo]);
 
   // Fetch real data from edge function
-  const fetchRealData = useCallback(async () => {
+  const fetchRealData = useCallback(async (force = false) => {
     if (!connected || !user || storeId === "default-store") return;
 
-    // For "all" stores, use the first store
     const targetStoreId = storeId === "default-store" ? stores[0]?.ml_user_id : storeId;
     if (!targetStoreId) return;
 
     setLoading(true);
     try {
-      // Construct URL manually to pass query params
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const supabaseUrl = `https://${projectId}.supabase.co/functions/v1/ml-ads?ml_user_id=${encodeURIComponent(targetStoreId)}&date_from=${effectiveDateFrom}&date_to=${effectiveDateTo}`;
+      const params = new URLSearchParams({
+        ml_user_id: targetStoreId,
+        date_from: effectiveDateFrom,
+        date_to: effectiveDateTo,
+      });
+      if (force) params.set("force", "true");
+
+      const supabaseUrl = `https://${projectId}.supabase.co/functions/v1/ml-ads?${params}`;
       
       const session = await supabase.auth.getSession();
       const accessToken = session.data.session?.access_token;
@@ -120,6 +125,7 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
           summary: result.summary || computeAdsSummary(result.daily),
         });
         setIsRealData(true);
+        console.log(`ml-ads: loaded from ${result.source || "unknown"}`);
       } else {
         console.log("ml-ads: No daily data returned, using mock");
       }
@@ -164,7 +170,7 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
   const sync = useCallback(async () => {
     if (!connected) return;
     setSyncing(true);
-    await fetchRealData();
+    await fetchRealData(true); // force = true to bypass cache
     setSyncing(false);
   }, [connected, fetchRealData]);
 

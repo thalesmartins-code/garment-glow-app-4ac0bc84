@@ -14,6 +14,198 @@ export type Database = {
   }
   public: {
     Tables: {
+      ml_ads_campaigns_cache: {
+        Row: {
+          attributed_orders: number
+          attributed_revenue: number
+          campaign_id: string
+          clicks: number
+          cpc: number
+          ctr: number
+          daily_budget: number
+          id: string
+          impressions: number
+          ml_user_id: string
+          name: string
+          roas: number
+          seller_id: string | null
+          spend: number
+          status: string
+          synced_at: string
+          user_id: string
+        }
+        Insert: {
+          attributed_orders?: number
+          attributed_revenue?: number
+          campaign_id: string
+          clicks?: number
+          cpc?: number
+          ctr?: number
+          daily_budget?: number
+          id?: string
+          impressions?: number
+          ml_user_id?: string
+          name?: string
+          roas?: number
+          seller_id?: string | null
+          spend?: number
+          status?: string
+          synced_at?: string
+          user_id: string
+        }
+        Update: {
+          attributed_orders?: number
+          attributed_revenue?: number
+          campaign_id?: string
+          clicks?: number
+          cpc?: number
+          ctr?: number
+          daily_budget?: number
+          id?: string
+          impressions?: number
+          ml_user_id?: string
+          name?: string
+          roas?: number
+          seller_id?: string | null
+          spend?: number
+          status?: string
+          synced_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_ads_campaigns_cache_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ml_ads_daily_cache: {
+        Row: {
+          attributed_orders: number
+          attributed_revenue: number
+          clicks: number
+          cpc: number
+          ctr: number
+          date: string
+          id: string
+          impressions: number
+          ml_user_id: string
+          roas: number
+          seller_id: string | null
+          spend: number
+          synced_at: string
+          user_id: string
+        }
+        Insert: {
+          attributed_orders?: number
+          attributed_revenue?: number
+          clicks?: number
+          cpc?: number
+          ctr?: number
+          date: string
+          id?: string
+          impressions?: number
+          ml_user_id?: string
+          roas?: number
+          seller_id?: string | null
+          spend?: number
+          synced_at?: string
+          user_id: string
+        }
+        Update: {
+          attributed_orders?: number
+          attributed_revenue?: number
+          clicks?: number
+          cpc?: number
+          ctr?: number
+          date?: string
+          id?: string
+          impressions?: number
+          ml_user_id?: string
+          roas?: number
+          seller_id?: string | null
+          spend?: number
+          synced_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_ads_daily_cache_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ml_ads_products_cache: {
+        Row: {
+          attributed_orders: number
+          attributed_revenue: number
+          clicks: number
+          cpc: number
+          ctr: number
+          id: string
+          impressions: number
+          item_id: string
+          ml_user_id: string
+          roas: number
+          seller_id: string | null
+          spend: number
+          synced_at: string
+          thumbnail: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          attributed_orders?: number
+          attributed_revenue?: number
+          clicks?: number
+          cpc?: number
+          ctr?: number
+          id?: string
+          impressions?: number
+          item_id: string
+          ml_user_id?: string
+          roas?: number
+          seller_id?: string | null
+          spend?: number
+          synced_at?: string
+          thumbnail?: string | null
+          title?: string
+          user_id: string
+        }
+        Update: {
+          attributed_orders?: number
+          attributed_revenue?: number
+          clicks?: number
+          cpc?: number
+          ctr?: number
+          id?: string
+          impressions?: number
+          item_id?: string
+          ml_user_id?: string
+          roas?: number
+          seller_id?: string | null
+          spend?: number
+          synced_at?: string
+          thumbnail?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_ads_products_cache_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ml_daily_cache: {
         Row: {
           approved_revenue: number
