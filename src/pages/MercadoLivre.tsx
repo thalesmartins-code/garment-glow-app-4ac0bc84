@@ -1626,8 +1626,8 @@ export default function MercadoLivre() {
                 ? (effectiveMetrics.unique_buyers / effectiveMetrics.unique_visits) * 100 : 0;
 
               return (
-                <div className="space-y-2">
-                  <ResponsiveContainer width="100%" height={120}>
+                <div className="space-y-3">
+                  <ResponsiveContainer width="100%" height={180}>
                     <FunnelChart>
                       <Funnel dataKey="value" data={funnelData} isAnimationActive>
                       </Funnel>
@@ -1638,12 +1638,12 @@ export default function MercadoLivre() {
                     </FunnelChart>
                   </ResponsiveContainer>
 
-                  <div className="space-y-1.5 pt-1">
+                  <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Visitas → Compradores</span>
                       <span className="font-semibold tabular-nums">{pctFmt(visitToBuyer)}</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs pt-1.5 border-t border-border/50">
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-border/50">
                       <span className="text-muted-foreground">Ticket Médio</span>
                       <span className="font-bold text-foreground">{currencyFmt(effectiveMetrics.avg_ticket)}</span>
                     </div>
