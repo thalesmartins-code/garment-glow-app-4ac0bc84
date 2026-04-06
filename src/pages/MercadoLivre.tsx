@@ -1771,8 +1771,6 @@ export default function MercadoLivre() {
         </motion.div>
 
       </div>
-      {/* === Ranking de Anúncios === */}
-      <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
 
         </TabsContent>
 
