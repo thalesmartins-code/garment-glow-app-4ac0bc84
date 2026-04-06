@@ -1685,13 +1685,13 @@ export default function MercadoLivre() {
                   <div className="flex justify-between items-end">
                     <div>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Gasto</p>
-                       <p className="text-2xl font-bold text-foreground tabular-nums">
+                       <p className="text-2xl font-bold text-foreground">
                         {adsSummary.total_spend.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider">ROAS</p>
-                      <p className={`text-2xl font-bold tabular-nums ${
+                      <p className={`text-2xl font-bold ${
                         adsSummary.avg_roas >= 3 ? "text-green-500" :
                         adsSummary.avg_roas >= 1.5 ? "text-yellow-500" :
                         "text-red-500"
