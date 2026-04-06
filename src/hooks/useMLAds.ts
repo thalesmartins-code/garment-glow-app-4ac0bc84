@@ -170,7 +170,7 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
   const sync = useCallback(async () => {
     if (!connected) return;
     setSyncing(true);
-    await fetchRealData();
+    await fetchRealData(true); // force = true to bypass cache
     setSyncing(false);
   }, [connected, fetchRealData]);
 
