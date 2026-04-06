@@ -232,7 +232,7 @@ export default function MercadoLivre() {
   const { stores, selectedStore, salesCache, setSalesCache } = useMLStore();
   const { selectedMarketplace, activeMarketplace } = useMarketplace();
   const { selectedSeller, selectedStoreIds } = useSeller();
-  const { summary: adsSummary, daily: adsDaily, loading: adsLoading } = useMLAds();
+  const { summary: adsSummary, loading: adsLoading } = useMLAds();
 
   // Resolve which stores are effectively selected
   const effectiveStores = useMemo<StoreRef[]>(() => {
