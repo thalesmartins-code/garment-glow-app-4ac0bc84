@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.ml-inventory]
 verify_jwt = false
+
+[functions.ml-ads]
+verify_jwt = false

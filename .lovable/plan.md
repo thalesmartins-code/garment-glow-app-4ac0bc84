@@ -1,39 +1,26 @@
+## Plano: Integrar card de Publicidade com API real do ML Ads
 
+### 1. Criar Edge Function `ml-ads` (`supabase/functions/ml-ads/index.ts`)
+- Recebe `ml_user_id` e `date_from`/`date_to` via query params
+- Busca token de acesso na tabela `ml_tokens`
+- Chama endpoints da API do ML Ads:
+  - `GET /advertising/advertisers/{user_id}` — verifica se o vendedor tem conta de anúncios
+  - `GET /advertising/campaigns/{user_id}` — lista campanhas com status, budget, métricas
+  - `GET /advertising/product_ads/search?user_id={id}` — anúncios de produtos ativos
+  - `GET /advertising/product_ads/metrics/report?user_id={id}&date_from=...&date_to=...` — métricas diárias (impressões, cliques, gasto, receita atribuída)
+- Retorna JSON com `{ campaigns, daily, products, summary }`
+- Inclui CORS, validação de JWT e tratamento de erros
 
-## Plano: Preencher espaço do card de Publicidade
+### 2. Atualizar config (`supabase/config.toml`)
+- Adicionar entrada `[functions.ml-ads]` com `verify_jwt = false`
 
-O card de Publicidade tem menos conteúdo que os cards de Reputação e Funil, deixando espaço em branco. A solução é adicionar mais informações úteis para preencher o card.
+### 3. Atualizar hook `useMLAds` (`src/hooks/useMLAds.ts`)
+- Tentar buscar dados reais via `supabase.functions.invoke("ml-ads", ...)`
+- Se falhar ou se não houver loja conectada, usar mock data como fallback
+- Definir `isRealData = true` quando usando dados reais
+- Badge "Dados simulados" já existe e reagirá automaticamente ao flag
 
-### Alterações em `src/pages/MercadoLivre.tsx`
-
-1. **Adicionar métricas extras após o grid atual:**
-   - **Conversão ADS** (Cliques → Pedidos): percentual calculado como `(pedidos / cliques) * 100`
-   - **Custo por Pedido**: calculado como `gasto / pedidos`
-
-2. **Adicionar mini ranking dos top 3 campanhas** (do array `campaigns` retornado pelo hook `useMLAds`):
-   - Listar nome da campanha, status (badge colorido), e ROAS
-   - Separar visualmente com `border-t`
-
-3. **Ajustar hook**: Destructurar `campaigns` (renomeado `adsCampaigns`) do `useMLAds` que já retorna esse dado.
-
-### Resultado visual
-
-```text
-┌─ Publicidade ──────────────────┐
-│  Gasto          ROAS           │
-│  R$ 5.200      3.42x          │
-│  ─── sparkline ROAS ────────  │
-│  Receita    R$17.8k │ Impr 45k│
-│  Cliques     1.2k   │ Ped  89 │
-│  CTR        2.67%   │ CPC R$4 │
-│  Conv. ADS  7.4%  │ CPP R$58 │
-│  ── Top Campanhas ──────────  │
-│  1. Campanha X    ● 4.2x      │
-│  2. Campanha Y    ● 2.8x      │
-│  3. Campanha Z    ● 1.9x      │
-└────────────────────────────────┘
-```
-
-### Arquivos editados
-- `src/pages/MercadoLivre.tsx`
-
+### Arquivos criados/editados
+- **Novo:** `supabase/functions/ml-ads/index.ts`
+- **Editado:** `supabase/config.toml`
+- **Editado:** `src/hooks/useMLAds.ts`
