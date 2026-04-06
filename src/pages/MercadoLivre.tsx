@@ -45,6 +45,7 @@ import {
   Loader2,
   Handshake,
   ChevronDown,
+  Megaphone,
 } from "lucide-react";
 import {
   ComposedChart,
