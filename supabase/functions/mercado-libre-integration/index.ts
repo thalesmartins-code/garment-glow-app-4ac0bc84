@@ -88,10 +88,20 @@ async function fetchVisits(
     const from = new Date(`${dateFrom}T00:00:00.000Z`);
     const to = new Date(`${dateTo}T00:00:00.000Z`);
     const diffMs = to.getTime() - from.getTime();
-    const last = Math.max(1, Math.ceil(diffMs / DAY_MS) + 1);
+    // Always fetch at least 2 days — today's visits may not be available yet
+    const last = Math.max(2, Math.ceil(diffMs / DAY_MS) + 1);
+
+    // ML API expects ending date in YYYY-MM-DD format
+    const endingDate = dateTo || to.toISOString().substring(0, 10);
+    if (!endingDate) {
+      console.warn("fetchVisits: empty ending date, skipping");
+      return visitsMap;
+    }
+
+    console.log(`fetchVisits: last=${last} ending=${endingDate}`);
 
     const data = await mlFetch(
-      `/users/${sellerId}/items_visits/time_window?last=${last}&unit=day&ending=${dateTo}`,
+      `/users/${sellerId}/items_visits/time_window?last=${last}&unit=day&ending=${endingDate}`,
       accessToken,
     );
 
