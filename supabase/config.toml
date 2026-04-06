@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.ml-ads]
 verify_jwt = false
+
+[functions.ml-reputation]
+verify_jwt = false
