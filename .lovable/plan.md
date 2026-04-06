@@ -1,32 +1,31 @@
 
 
-## Plano: Card de Metas ao lado do gráfico Venda / Hora
+## Plano: Melhorar layout do card de Publicidade + Corrigir build errors
 
-### O que será feito
+### 1. Corrigir erros de build (linhas 1726+)
 
-Criar um componente `GoalsCard` com dados simulados de metas mensais e posicioná-lo ao lado do gráfico de Venda / Hora, formando um layout em grid (gráfico ocupa ~70%, card de metas ~30%).
+O arquivo `MercadoLivre.tsx` tem JSX duplicado/quebrado a partir da linha 1726. O bloco `</TabsContent>` até o final do arquivo (1726-1734) precisa ser corrigido — removendo código residual e garantindo o fechamento correto das tags.
 
-### Componente `GoalsCard`
+### 2. Redesign do card de Publicidade
 
-Novo arquivo `src/components/mercadolivre/GoalsCard.tsx` com dados mock:
-- **Meta mensal de receita**: R$ 150.000 (progresso baseado no acumulado)
-- **Meta de pedidos**: 500 pedidos/mês
-- **Meta de ticket médio**: R$ 300
-- **Meta de conversão**: 5%
+Transformar o card atual (lista vertical simples) em um layout mais rico:
 
-Cada meta exibirá: título, valor atual vs valor alvo, barra de progresso e percentual atingido. Usa o mesmo estilo visual dos cards existentes (Card/CardContent do shadcn).
+**Destaque no topo:**
+- **Gasto total** e **ROAS** exibidos como valores grandes (text-lg/text-xl font-bold) lado a lado em 2 colunas, com labels menores acima
+- Cores condicionais no ROAS: verde se >= 3, amarelo se >= 1.5, vermelho se < 1.5
 
-### Layout em `MercadoLivre.tsx`
+**Mini sparkline:**
+- Usar `recharts` `<AreaChart>` compacto (altura ~40px) abaixo dos destaques, mostrando a evolução do ROAS nos últimos dias do período
+- Sem eixos, sem legendas — apenas a linha com gradiente sutil
 
-O bloco do gráfico (linhas ~1372-1485) será envolvido em um `div` com grid `grid-cols-1 lg:grid-cols-[1fr_320px]`, colocando o gráfico à esquerda e o `GoalsCard` à direita. Isso se aplica tanto à visão "Todos os Marketplaces" quanto à visão individual.
+**Métricas secundárias:**
+- Receita atribuída, Impressões, Cliques, Pedidos atribuídos, CTR, CPC médio organizados em grid 2x3 (grid-cols-2) com texto compacto
 
-### Dados mock do GoalsCard
+### 3. Dados para sparkline
 
-O componente receberá `currentRevenue`, `currentOrders`, `currentTicket`, `currentConversion` como props (vindos dos `effectiveMetrics` já calculados) para exibir o progresso real contra as metas simuladas.
+O hook `useMLAds` já retorna `daily` (array de `AdsDailyStat` com campo `roas`). Será necessário voltar a destructurar `daily` do hook (renomeado como `adsDaily`) para alimentar o sparkline.
 
-### Detalhes técnicos
+### Arquivos editados
 
-- **Arquivo novo**: `src/components/mercadolivre/GoalsCard.tsx`
-- **Arquivo editado**: `src/pages/MercadoLivre.tsx` — import do GoalsCard, wrapping do gráfico em grid com o card ao lado
-- Barras de progresso usarão cores condicionais (verde ≥80%, amarelo ≥50%, vermelho <50%)
+- `src/pages/MercadoLivre.tsx` — corrigir build errors + redesign do card de Publicidade com sparkline e layout em destaque
 
