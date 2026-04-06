@@ -1612,7 +1612,7 @@ export default function MercadoLivre() {
           <CardContent className="px-4 pb-4">
             {effectiveProducts.length > 0 ? (
               <div className="space-y-2">
-                {effectiveProducts.slice(0, 5).map((p, i) => {
+                {effectiveProducts.slice(0, 7).map((p, i) => {
                   const medals = ["🥇", "🥈", "🥉"];
                   const medal = i < 3 ? medals[i] : null;
                   return (
