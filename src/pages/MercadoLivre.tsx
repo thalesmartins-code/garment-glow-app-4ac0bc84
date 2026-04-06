@@ -1782,9 +1782,6 @@ export default function MercadoLivre() {
                   </div>
 
 
-                      {adsCampaigns
-                        .slice()
-                        .sort((a, b) => b.roas - a.roas)
                         .slice(0, 3)
                         .map((c, i) => (
                           <div key={c.id} className="flex items-center justify-between text-xs gap-2">
