@@ -1472,8 +1472,8 @@ export default function MercadoLivre() {
       />
       </div>
 
-      {/* === Funnel + Reputation + Products === */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      {/* === Ads + Funnel + Reputation + Products === */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Funil de Conversão */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
         <Card className="h-full">
