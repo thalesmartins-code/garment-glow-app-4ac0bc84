@@ -353,25 +353,6 @@ export default function MercadoLivre() {
 
   const canConfirm = pendingRange !== null || pendingPeriod !== null;
 
-  const metrics =
-    daily.length > 0
-      ? {
-          total_revenue: daily.reduce((s, d) => s + d.total, 0),
-          approved_revenue: daily.reduce((s, d) => s + d.approved, 0),
-          total_orders: daily.reduce((s, d) => s + d.qty, 0),
-          units_sold: daily.reduce((s, d) => s + d.units_sold, 0),
-          unique_visits: daily.reduce((s, d) => s + (d.unique_visits || 0), 0),
-          unique_buyers: daily.reduce((s, d) => s + (d.unique_buyers || 0), 0),
-          avg_ticket: 0,
-          conversion_rate: 0,
-        }
-      : null;
-
-  if (metrics) {
-    if (metrics.total_orders > 0) metrics.avg_ticket = metrics.total_revenue / metrics.total_orders;
-    if (metrics.unique_visits > 0) metrics.conversion_rate = (metrics.unique_buyers / metrics.unique_visits) * 100;
-  }
-
   // Produtos já vêm filtrados pelo período — só agrega por item_id
   const filteredTopProducts = (() => {
     const agg: Record<string, ProductSalesRow> = {};
@@ -863,10 +844,11 @@ export default function MercadoLivre() {
   // Merge real ML data with mock data when "all"
   const effectiveDaily = useMemo(() => {
     if (isAll) {
-      // Merge real daily + mock daily by date
+      // Merge real daily + mock daily by date, restricted to current period
       const dateMap = new Map<string, DailyBreakdown>();
       for (const d of daily) dateMap.set(d.date, { ...d });
       for (const d of mockDaily) {
+        if (d.date < currentFrom || d.date > currentTo) continue;
         const existing = dateMap.get(d.date);
         if (existing) {
           existing.total += d.total;
@@ -884,8 +866,8 @@ export default function MercadoLivre() {
       return Array.from(dateMap.values()).sort((a, b) => a.date.localeCompare(b.date));
     }
     if (isML) return daily;
-    return mockDaily;
-  }, [isAll, isML, daily, mockDaily]);
+    return mockDaily.filter((d) => d.date >= currentFrom && d.date <= currentTo);
+  }, [isAll, isML, daily, mockDaily, currentFrom, currentTo]);
 
   const effectiveHourly = useMemo(() => {
     if (isAll) {
