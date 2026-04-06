@@ -1622,6 +1622,9 @@ export default function MercadoLivre() {
                       <span className="text-xs text-foreground truncate flex-1 leading-tight">
                         {p.title}
                       </span>
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                        {p.available_quantity != null ? `${p.available_quantity} un` : "—"}
+                      </span>
                       <span className="text-xs font-semibold text-foreground whitespace-nowrap">
                         {p.revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </span>
