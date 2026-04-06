@@ -1015,7 +1015,27 @@ export default function MercadoLivre() {
     }));
   }, [isAll, hourly]);
 
-  
+  // ── Cost card computations ──────────────────────────────────────────────────
+  const costSummary = useMemo(() => {
+    const grossRevenue = effectiveMetrics?.total_revenue ?? 0;
+    // Estimate ML commission (~11%) and shipping (~5%) from revenue
+    const comissao = grossRevenue * 0.11;
+    const frete = grossRevenue * 0.05;
+    const ads = adsSummary.total_spend;
+    const totalKnown = comissao + frete + ads;
+    return {
+      comissao,
+      frete,
+      publicidade: ads,
+      custo_produto: 0 as number,
+      impostos: 0 as number,
+      total_known: totalKnown,
+      gross_revenue: grossRevenue,
+      pct_receita: grossRevenue > 0 ? Math.round((totalKnown / grossRevenue) * 10000) / 100 : 0,
+    };
+  }, [effectiveMetrics, adsSummary]);
+
+
 
   const MARKETPLACE_STROKE_COLORS: Record<string, string> = {
     "mercado-livre": "hsl(45, 93%, 47%)",
