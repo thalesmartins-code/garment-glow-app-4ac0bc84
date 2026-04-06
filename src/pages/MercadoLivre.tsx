@@ -1607,42 +1607,58 @@ export default function MercadoLivre() {
           </div>
           <CardContent className="px-4 pb-4">
             {effectiveMetrics ? (() => {
-              const funnelData = [
-                { name: "Visitas", value: effectiveMetrics.unique_visits, fill: "#2563eb" },
-                { name: "Compradores", value: effectiveMetrics.unique_buyers, fill: "#7c3aed" },
-              ];
-              const numFmt = (v: number) => v.toLocaleString("pt-BR");
-              const pctFmt = (v: number) => `${v.toFixed(2)}%`;
+              const visits = effectiveMetrics.unique_visits;
+              const buyers = effectiveMetrics.unique_buyers;
+              const convRate = visits > 0 ? (buyers / visits) * 100 : 0;
 
-              const visitToBuyer = effectiveMetrics.unique_visits > 0
-                ? (effectiveMetrics.unique_buyers / effectiveMetrics.unique_visits) * 100 : 0;
+              const funnelData = [
+                { name: "Visitas", value: visits, fill: "hsl(var(--accent))" },
+                { name: "Compradores", value: buyers, fill: "hsl(var(--primary))" },
+              ];
 
               return (
                 <div className="space-y-3">
-                  <ResponsiveContainer width="100%" height={180}>
+                  {/* Destaque: Visitas e Conversão */}
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Visitas</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {visits.toLocaleString("pt-BR")}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Conversão</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {convRate.toFixed(2)}%
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Mini funnel chart */}
+                  <ResponsiveContainer width="100%" height={80}>
                     <FunnelChart>
                       <Funnel dataKey="value" data={funnelData} isAnimationActive>
                       </Funnel>
                       <RechartsTooltip
                         contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                        formatter={(value: number, _: string, props: any) => [numFmt(value), props?.payload?.name]}
+                        formatter={(value: number, _: string, props: any) => [value.toLocaleString("pt-BR"), props?.payload?.name]}
                       />
                     </FunnelChart>
                   </ResponsiveContainer>
 
-                  <div className="space-y-2 pt-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Visitas → Compradores</span>
-                      <span className="font-semibold tabular-nums">{pctFmt(visitToBuyer)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs pt-2 border-t border-border/50">
-                      <span className="text-muted-foreground">Ticket Médio</span>
-                      <span className="font-bold text-foreground">{currencyFmt(effectiveMetrics.avg_ticket)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Receita Total</span>
-                      <span className="font-bold text-foreground">{currencyFmt(effectiveMetrics.total_revenue)}</span>
-                    </div>
+                  {/* Métricas detalhadas */}
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 pt-1">
+                    {[
+                      { label: "Compradores", value: buyers.toLocaleString("pt-BR") },
+                      { label: "Pedidos", value: effectiveMetrics.total_orders.toLocaleString("pt-BR") },
+                      { label: "Ticket Médio", value: currencyFmt(effectiveMetrics.avg_ticket) },
+                      { label: "Receita Total", value: currencyFmt(effectiveMetrics.total_revenue) },
+                    ].map((item) => (
+                      <div key={item.label} className="flex flex-col">
+                        <span className="text-[10px] text-muted-foreground">{item.label}</span>
+                        <span className="text-xs font-semibold text-foreground">{item.value}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
