@@ -48,6 +48,8 @@ import {
   Handshake,
   ChevronDown,
   Megaphone,
+  Truck,
+  Package,
 } from "lucide-react";
 import {
   ComposedChart,
@@ -331,6 +333,32 @@ export default function MercadoLivre() {
     () => computeAdsSummary(adsDaily.filter((d) => d.date >= currentFrom && d.date <= currentTo)),
     [adsDaily, currentFrom, currentTo],
   );
+  // ── Cost card computations ──────────────────────────────────────────────────
+  // storeId used to seed the financial estimates (commission rates / shipping)
+  const costStoreId = selectedStore !== "all" ? String(selectedStore) : (stores[0]?.ml_user_id ?? "default");
+
+  const financialDaily = useMemo(() => {
+    const rev = effectiveDaily.map((d) => ({ date: d.date, total: d.total, qty: d.qty }));
+    return getFinancialDailyStats(costStoreId, Math.max(rev.length, 1), rev);
+  }, [costStoreId, effectiveDaily]);
+
+  const costSummary = useMemo(() => {
+    const fin = computeFinancialSummary(financialDaily);
+    const ads = adsSummary.total_spend;
+    const totalKnown = fin.ml_commission + fin.shipping_cost + ads;
+    const grossRevenue = effectiveMetrics?.total_revenue ?? fin.gross_revenue;
+    return {
+      comissao: fin.ml_commission,
+      frete: fin.shipping_cost,
+      publicidade: ads,
+      custo_produto: 0 as number,
+      impostos: 0 as number,
+      total_known: totalKnown,
+      gross_revenue: grossRevenue,
+      pct_receita: grossRevenue > 0 ? Math.round((totalKnown / grossRevenue) * 10000) / 100 : 0,
+    };
+  }, [financialDaily, adsSummary, effectiveMetrics]);
+
   const daily = allDaily.filter((d) => d.date >= currentFrom && d.date <= currentTo);
 
   const previousDaily = allDaily.filter((d) => d.date >= prevFrom && d.date <= prevTo);
@@ -1479,135 +1507,98 @@ export default function MercadoLivre() {
       />
       </div>
 
-      {/* === Reputation + Funnel + Ads === */}
+      {/* === Custos + Funil + Publicidade === */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {/* Termômetro de Reputação */}
+        {/* Card de Custos */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0 }}>
         <Card className="h-full">
-          <div className="px-4 pt-4 pb-2">
-            <span className="text-sm font-medium text-foreground">Reputação</span>
+          <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+            <span className="text-sm font-medium text-foreground">Custos</span>
+            <span className="text-[10px] text-muted-foreground tabular-nums">
+              {costSummary.pct_receita.toFixed(1)}% da receita
+            </span>
           </div>
           <CardContent className="px-4 pb-4">
-            {(() => {
-              const rep = realReputation?.raw ?? sellerReputation;
-              const levelColorMap: Record<string, string> = {
-                "1_red": "hsl(0, 72%, 51%)",
-                "2_orange": "hsl(25, 95%, 53%)",
-                "3_yellow": "hsl(48, 96%, 53%)",
-                "4_light_green": "hsl(142, 70%, 55%)",
-                "5_green": "hsl(142, 70%, 45%)",
-              };
-              const levelLabelMap: Record<string, string> = {
-                "1_red": "Vermelho",
-                "2_orange": "Laranja",
-                "3_yellow": "Amarelo",
-                "4_light_green": "Verde claro",
-                "5_green": "Verde",
-              };
-              const levels = [
-                { label: "Vermelho", color: "hsl(0, 72%, 51%)", min: 0 },
-                { label: "Laranja", color: "hsl(25, 95%, 53%)", min: 20 },
-                { label: "Amarelo", color: "hsl(48, 96%, 53%)", min: 40 },
-                { label: "Verde claro", color: "hsl(142, 70%, 55%)", min: 60 },
-                { label: "Verde", color: "hsl(142, 70%, 45%)", min: 80 },
-              ];
+            <div className="space-y-1">
+              {/* Total known costs highlight */}
+              <div className="flex items-end justify-between pb-2 mb-1 border-b border-border">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total de custos</p>
+                  <p className="text-xl font-bold tabular-nums text-red-500">
+                    {costSummary.total_known.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Receita bruta</p>
+                  <p className="text-sm font-semibold tabular-nums text-foreground">
+                    {costSummary.gross_revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                </div>
+              </div>
 
-              const levelScoreMap: Record<string, number> = {
-                "1_red": 10, "2_orange": 30, "3_yellow": 50, "4_light_green": 70, "5_green": 90,
-              };
-
-              const mlLevel = rep?.level_id;
-              const claimsRate = rep?.metrics?.claims?.rate ?? null;
-              const delayedRate = rep?.metrics?.delayed_handling_time?.rate ?? null;
-              const cancellationsRate = rep?.metrics?.cancellations?.rate ?? null;
-              const positiveRating = rep?.transactions?.ratings?.positive ?? null;
-
-              const score = mlLevel && levelScoreMap[mlLevel]
-                ? levelScoreMap[mlLevel]
-                : effectiveMetrics
-                  ? Math.min(100, Math.round(
-                      (effectiveMetrics.conversion_rate * 8) +
-                      Math.min(40, effectiveMetrics.total_orders * 0.5)
-                    ))
-                  : 0;
-
-              const activeLevelLabel = mlLevel ? (levelLabelMap[mlLevel] ?? "—") : ([...levels].reverse().find(l => score >= l.min)?.label ?? "—");
-              const activeLevelColor = mlLevel ? (levelColorMap[mlLevel] ?? levels[0].color) : ([...levels].reverse().find(l => score >= l.min)?.color ?? levels[0].color);
-
-              const cancelRate = cancellationsRate !== null
-                ? cancellationsRate
-                : effectiveMetrics
-                  ? (effectiveDaily.reduce((s, d) => s + d.cancelled, 0) / Math.max(effectiveMetrics.total_orders, 1))
-                  : 0;
-
-              const metricsRows = [
+              {/* Known costs — from ML API */}
+              {[
                 {
-                  label: "Reclamações",
-                  value: claimsRate !== null ? `${(claimsRate * 100).toFixed(2)}%` : "—",
-                  good: claimsRate !== null ? claimsRate < 0.02 : true,
+                  icon: <DollarSign className="w-3.5 h-3.5 text-orange-400" />,
+                  label: "Comissão ML",
+                  value: costSummary.comissao,
+                  real: true,
                 },
                 {
-                  label: "Atraso no envio",
-                  value: delayedRate !== null ? `${(delayedRate * 100).toFixed(2)}%` : "—",
-                  good: delayedRate !== null ? delayedRate < 0.05 : true,
+                  icon: <Truck className="w-3.5 h-3.5 text-blue-400" />,
+                  label: "Frete",
+                  value: costSummary.frete,
+                  real: true,
                 },
                 {
-                  label: "Cancelamentos",
-                  value: `${(cancelRate * 100).toFixed(2)}%`,
-                  good: cancelRate < 0.03,
+                  icon: <Megaphone className="w-3.5 h-3.5 text-purple-400" />,
+                  label: "Publicidade",
+                  value: costSummary.publicidade,
+                  real: true,
                 },
-                {
-                  label: "Avaliação positiva",
-                  value: positiveRating !== null ? `${(positiveRating * 100).toFixed(2)}%` : "—",
-                  good: positiveRating !== null ? positiveRating >= 0.8 : true,
-                },
-              ];
-
-              return (
-                <div className="space-y-4 mt-1">
-                  <div className="relative">
-                    <div className="flex h-3 rounded-full overflow-hidden">
-                      {levels.map((l, i) => (
-                        <div
-                          key={i}
-                          className="flex-1"
-                          style={{ backgroundColor: l.color, opacity: score >= l.min ? 1 : 0.2 }}
-                        />
-                      ))}
-                    </div>
-                    <div
-                      className="absolute top-[-4px] w-0 h-0 border-l-[5px] border-r-[5px] border-t-[6px] border-l-transparent border-r-transparent border-t-foreground transition-all duration-500"
-                      style={{ left: `${Math.min(score, 98)}%` }}
-                    />
-                  </div>
-                  <div className="text-center">
-                    <span className="text-2xl font-bold tabular-nums" style={{ color: activeLevelColor }}>{score}</span>
-                    <span className="text-xs text-muted-foreground ml-1">/100</span>
-                    <p className="text-xs text-muted-foreground mt-0.5">{activeLevelLabel}</p>
-                    {rep?.power_seller_status && (
-                      <Badge variant="secondary" className="mt-1 text-[10px]">
-                        {rep.power_seller_status === "platinum" ? "MercadoLíder Platinum" :
-                         rep.power_seller_status === "gold" ? "MercadoLíder Gold" : "MercadoLíder"}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="space-y-2 pt-2 border-t border-border">
-                    {metricsRows.map((item) => (
-                      <div key={item.label} className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">{item.label}</span>
-                        <span className={item.good ? "text-emerald-500 font-medium" : "text-red-500 font-medium"}>{item.value}</span>
-                      </div>
-                    ))}
-                    {rep?.transactions?.completed !== undefined && (
-                      <div className="flex items-center justify-between text-xs pt-1 border-t border-border/50">
-                        <span className="text-muted-foreground">Vendas concluídas</span>
-                        <span className="font-medium text-foreground">{rep.transactions.completed.toLocaleString("pt-BR")}</span>
-                      </div>
-                    )}
+              ].map((item) => (
+                <div key={item.label} className="flex items-center justify-between text-xs py-1">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    {item.icon}
+                    {item.label}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-muted-foreground tabular-nums">
+                      {costSummary.gross_revenue > 0
+                        ? `${((item.value / costSummary.gross_revenue) * 100).toFixed(1)}%`
+                        : "—"}
+                    </span>
+                    <span className="font-semibold tabular-nums">
+                      {item.value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </span>
                   </div>
                 </div>
-              );
-            })()}
+              ))}
+
+              {/* Pending costs — to be configured */}
+              <div className="pt-2 mt-1 border-t border-border/50 space-y-1">
+                {[
+                  { icon: <Package className="w-3.5 h-3.5 text-muted-foreground/50" />, label: "Custo produto" },
+                  { icon: <DollarSign className="w-3.5 h-3.5 text-muted-foreground/50" />, label: "Impostos" },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center justify-between text-xs py-0.5 opacity-50">
+                    <span className="flex items-center gap-1.5 text-muted-foreground">
+                      {item.icon}
+                      {item.label}
+                    </span>
+                    <span className="text-[10px] italic text-muted-foreground">a informar</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Estimated net */}
+              <div className="flex items-center justify-between text-xs pt-2 mt-1 border-t border-border">
+                <span className="text-muted-foreground font-medium">Lucro estimado</span>
+                <span className={`font-bold tabular-nums ${(costSummary.gross_revenue - costSummary.total_known) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                  {(costSummary.gross_revenue - costSummary.total_known).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                </span>
+              </div>
+            </div>
           </CardContent>
         </Card>
         </motion.div>
