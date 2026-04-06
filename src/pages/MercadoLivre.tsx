@@ -1727,46 +1727,8 @@ export default function MercadoLivre() {
 
       </div>
 
-      {/* === Gráfico ADS Evolution === */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-        <Card>
-          <div className="px-4 pt-4 pb-2 flex items-center gap-2">
-            <Megaphone className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">Evolução ADS — Gasto × ROAS</span>
-          </div>
-          <CardContent className="px-4 pb-4">
-            <ResponsiveContainer width="100%" height={220}>
-              <ComposedChart data={adsDaily} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                  tickFormatter={(v: string) => {
-                    const d = new Date(v + "T00:00:00");
-                    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
-                  }}
-                  interval={Math.max(0, Math.floor(adsDaily.length / 10))}
-                />
-                <YAxis yAxisId="spend" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} />
-                <YAxis yAxisId="roas" orientation="right" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v: number) => `${v.toFixed(1)}x`} />
-                <RechartsTooltip
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                  formatter={(value: number, name: string) => {
-                    if (name === "Gasto") return [value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }), name];
-                    return [`${Number(value).toFixed(2)}x`, name];
-                  }}
-                  labelFormatter={(label: string) => {
-                    const d = new Date(label + "T00:00:00");
-                    return d.toLocaleDateString("pt-BR");
-                  }}
-                />
-                <Area yAxisId="spend" type="monotone" dataKey="spend" name="Gasto" fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                <Line yAxisId="roas" type="monotone" dataKey="roas" name="ROAS" stroke="hsl(142, 70%, 45%)" strokeWidth={2} dot={false} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </motion.div>
+
+
 
       {/* === Ranking de Anúncios === */}
       <TopSellingProducts products={effectiveProducts} loading={effectiveLoading} showOrigin={isAll} />
