@@ -1478,8 +1478,7 @@ export default function MercadoLivre() {
         {/* Card de Publicidade (ADS) */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0 }}>
           <Card className="h-full">
-            <div className="px-4 pt-4 pb-2 flex items-center gap-2">
-              <Megaphone className="w-4 h-4 text-primary" />
+            <div className="px-4 pt-4 pb-2">
               <span className="text-sm font-medium text-foreground">Publicidade</span>
             </div>
             <CardContent className="px-4 pb-4">
