@@ -450,6 +450,7 @@ export default function MLProdutos() {
                                         {columnView === "estoque" ? (
                                           <>
                                             <TableHead className="text-xs h-8 font-medium text-center">Estoque</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-center" colSpan={2}>—</TableHead>
                                           </>
                                         ) : (
                                           <>
