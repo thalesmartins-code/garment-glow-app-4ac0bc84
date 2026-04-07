@@ -619,12 +619,9 @@ export default function MLProdutos() {
                                             {columnView === "estoque" ? (
                                               <>
                                                 <TableCell className="py-2 text-center">
-                                                  <div className="flex flex-col items-center gap-0.5">
-                                                    <span className={`text-xs font-semibold ${v.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
-                                                      {v.available_quantity}
-                                                    </span>
-                                                    {stockBadge(v.available_quantity)}
-                                                  </div>
+                                                  <span className={`text-xs font-semibold ${v.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
+                                                    {v.available_quantity}
+                                                  </span>
                                                 </TableCell>
                                                 <TableCell className="py-2" colSpan={2} />
                                               </>
