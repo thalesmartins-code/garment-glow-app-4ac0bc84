@@ -74,6 +74,7 @@ export default function MLProdutos() {
   const [sortBy, setSortBy] = useState<SortBy>("sold");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [columnView, setColumnView] = useState<ColumnView>("estoque");
+  const [brandFilter, setBrandFilter] = useState("all");
 
   const toggleRow = (id: string) => {
     setExpandedRows((prev) => {
@@ -83,6 +84,13 @@ export default function MLProdutos() {
       return next;
     });
   };
+
+  // Unique brands for filter
+  const brands = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((i) => { if (i.brand) set.add(i.brand); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [items]);
 
   // Derived stats
   const totalRevenuePotential = items.reduce((s, i) => s + i.price * i.available_quantity, 0);
@@ -103,6 +111,7 @@ export default function MLProdutos() {
         if (stockFilter === "out" && item.available_quantity !== 0) return false;
         if (stockFilter === "low" && !(item.available_quantity > 0 && item.available_quantity <= 5)) return false;
         if (stockFilter === "in_stock" && item.available_quantity === 0) return false;
+        if (brandFilter !== "all" && (item.brand || "") !== brandFilter) return false;
         return true;
       })
       .sort((a, b) => {
@@ -111,7 +120,7 @@ export default function MLProdutos() {
         if (sortBy === "sold") return b.sold_quantity - a.sold_quantity;
         return a.title.localeCompare(b.title);
       });
-  }, [items, search, statusFilter, stockFilter, sortBy]);
+  }, [items, search, statusFilter, stockFilter, sortBy, brandFilter]);
 
   // ─── Reports data ───────────────────────────────────────────────────────────
   const rankingProducts: ProductSalesRow[] = useMemo(
@@ -230,7 +239,16 @@ export default function MLProdutos() {
                   </SelectContent>
                 </Select>
 
-                {/* Sort */}
+                {/* Brand filter */}
+                <Select value={brandFilter} onValueChange={setBrandFilter}>
+                  <SelectTrigger className="w-40 h-9 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as marcas</SelectItem>
+                    {brands.map((b) => (
+                      <SelectItem key={b} value={b}>{b}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
                   <SelectTrigger className="w-36 h-9 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
