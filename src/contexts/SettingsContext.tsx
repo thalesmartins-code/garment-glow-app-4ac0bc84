@@ -73,11 +73,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
 
     setLoadingTargets(true);
-    supabase
-      .from("ml_targets")
+    (supabase
+      .from("ml_targets" as any)
       .select("*")
-      .eq("user_id", user.id)
-      .then(({ data, error }) => {
+      .eq("user_id", user.id) as any)
+      .then(({ data, error }: any) => {
         if (error) {
           console.error("SettingsContext: failed to load targets from Supabase", error.message);
           return;
@@ -85,7 +85,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (data && data.length > 0) {
           const remote = data.map(rowToTarget);
           setTargets(remote);
-          // Sync local cache
           try { localStorage.setItem(STORAGE_KEY, JSON.stringify(remote)); } catch {}
         }
       })
