@@ -79,7 +79,7 @@ serve(async (req) => {
       const batch = allItemIds.slice(i, i + 20);
       const idsParam = batch.join(",");
       const multiGet = await mlFetch(
-        `/items?ids=${idsParam}&attributes=id,title,available_quantity,sold_quantity,price,currency_id,thumbnail,status,category_id,listing_type_id,health,variations,attributes`,
+        `/items?ids=${idsParam}&attributes=id,title,available_quantity,sold_quantity,price,currency_id,thumbnail,status,category_id,listing_type_id,health,variations,attributes,seller_custom_field`,
         access_token,
       );
       for (const entry of multiGet) {
