@@ -445,7 +445,7 @@ export default function MLProdutos() {
                                     </TableHeader>
                                     <TableBody>
                                       {item.variations.map((v) => {
-                                        const vSku = (v as any).seller_custom_field || "—";
+                                        const vSku = v.seller_custom_field || null;
                                         return (
                                           <TableRow key={v.variation_id} className="border-b border-border/30 last:border-0">
                                             <TableCell className="py-2 text-xs font-medium">{variationLabel(v)}</TableCell>
