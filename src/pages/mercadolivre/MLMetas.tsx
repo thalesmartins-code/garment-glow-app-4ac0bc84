@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,20 +116,29 @@ export default function MLMetas() {
   const selectedStore = stores.find((s) => s.ml_user_id === selectedStoreId);
   const hasAnyTarget = kpi.revenue > 0 || kpi.orders > 0 || kpi.ticket > 0 || kpi.conversion > 0;
 
-  const handleSave = () => {
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = useCallback(async () => {
     if (!selectedStoreId) { toast({ title: "Selecione uma loja", variant: "destructive" }); return; }
-    const id = generateTargetId(selectedStoreId, "mercado-livre", selectedYear, selectedMonth);
-    const existing = getTarget(selectedStoreId, "mercado-livre", selectedYear, selectedMonth);
-    const target: MonthlyTarget = {
-      id, sellerId: selectedStoreId, marketplaceId: "mercado-livre",
-      year: selectedYear, month: selectedMonth,
-      targetValue: kpi.revenue,
-      kpiTargets: { ...kpi },
-      pmtDistribution: existing?.pmtDistribution ?? generateDefaultPMTDistribution(selectedYear, selectedMonth),
-    };
-    saveTarget(target);
-    toast({ title: "Metas salvas", description: selectedStore?.displayName ?? selectedStoreId });
-  };
+    setSaving(true);
+    try {
+      const id = generateTargetId(selectedStoreId, "mercado-livre", selectedYear, selectedMonth);
+      const existing = getTarget(selectedStoreId, "mercado-livre", selectedYear, selectedMonth);
+      const target: MonthlyTarget = {
+        id, sellerId: selectedStoreId, marketplaceId: "mercado-livre",
+        year: selectedYear, month: selectedMonth,
+        targetValue: kpi.revenue,
+        kpiTargets: { ...kpi },
+        pmtDistribution: existing?.pmtDistribution ?? generateDefaultPMTDistribution(selectedYear, selectedMonth),
+      };
+      await saveTarget(target);
+      toast({ title: "Metas salvas", description: selectedStore?.displayName ?? selectedStoreId });
+    } catch {
+      toast({ title: "Erro ao salvar", description: "Tente novamente.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }, [selectedStoreId, selectedYear, selectedMonth, kpi, getTarget, saveTarget, toast, selectedStore]);
 
   const savedTargets = useMemo(() => {
     if (!selectedStoreId) return [];
@@ -156,8 +165,8 @@ export default function MLMetas() {
             Defina metas mensais por loja e acompanhe no card de Vendas.
           </p>
         </div>
-        <Button onClick={handleSave} disabled={!selectedStoreId || !hasAnyTarget} className="gap-2">
-          <Save className="w-4 h-4" /> Salvar
+        <Button onClick={handleSave} disabled={!selectedStoreId || !hasAnyTarget || saving} className="gap-2">
+          <Save className="w-4 h-4" /> {saving ? "Salvando..." : "Salvar"}
         </Button>
       </div>
 
