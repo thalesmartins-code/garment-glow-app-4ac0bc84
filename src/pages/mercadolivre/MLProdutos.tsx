@@ -297,7 +297,7 @@ export default function MLProdutos() {
                         <>
                           <TableHead className="text-right w-24">Custo</TableHead>
                           <TableHead className="text-center w-20">Estoque</TableHead>
-                          <TableHead className="text-center w-20">Saúde</TableHead>
+                          
                         </>
                       ) : (
                         <>
