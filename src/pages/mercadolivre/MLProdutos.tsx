@@ -71,7 +71,7 @@ export default function MLProdutos() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [stockFilter, setStockFilter] = useState<StockFilter>("all");
-  const [sortBy, setSortBy] = useState<SortBy>("sold");
+  const [sortBy, setSortBy] = useState<SortBy>("title");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [columnView, setColumnView] = useState<ColumnView>("estoque");
   const [brandFilter, setBrandFilter] = useState("all");
