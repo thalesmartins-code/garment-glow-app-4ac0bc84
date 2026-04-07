@@ -81,11 +81,12 @@ export default function MLProdutos() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [stockFilter, setStockFilter] = useState<StockFilter>("all");
-  const [sortBy, setSortBy] = useState<SortBy>("title");
+  const [sortBy, setSortBy] = useState<SortBy>("title_asc");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [columnView, setColumnView] = useState<ColumnView>("estoque");
   const [brandFilter, setBrandFilter] = useState("all");
   const [hideOutOfStock, setHideOutOfStock] = useState(true);
+  const [logisticFilter, setLogisticFilter] = useState<LogisticFilter>("all");
 
   const toggleRow = (id: string) => {
     setExpandedRows((prev) => {
