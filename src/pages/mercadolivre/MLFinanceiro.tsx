@@ -369,10 +369,9 @@ export default function MLFinanceiro() {
 
         {/* Shipping breakdown */}
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Truck className="h-4 w-4 text-primary" />
-              Frete (Custo do Vendedor)
+          <div className="px-4 pt-4 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">Frete (Custo do Vendedor)</span>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
@@ -381,8 +380,8 @@ export default function MLFinanceiro() {
                   Custo de frete absorvido pelo vendedor via Mercado Envios (Full e Flex). Estimativa baseada na proporção de envios com "frete grátis" para o comprador.
                 </TooltipContent>
               </Tooltip>
-            </CardTitle>
-          </CardHeader>
+            </div>
+          </div>
           <CardContent className="space-y-4">
             {/* Visual metric rows */}
             {[
