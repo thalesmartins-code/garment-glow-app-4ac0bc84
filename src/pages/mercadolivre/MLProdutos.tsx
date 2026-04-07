@@ -74,6 +74,7 @@ export default function MLProdutos() {
   const [sortBy, setSortBy] = useState<SortBy>("sold");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [columnView, setColumnView] = useState<ColumnView>("estoque");
+  const [brandFilter, setBrandFilter] = useState("all");
 
   const toggleRow = (id: string) => {
     setExpandedRows((prev) => {
