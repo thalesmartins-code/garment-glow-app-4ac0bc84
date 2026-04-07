@@ -249,21 +249,18 @@ export default function MLFinanceiro() {
 
       {/* ── Revenue Composition Chart ── */}
       <Card>
-        <CardHeader className="pb-2">
+        <div className="px-4 pt-4 pb-3">
           <div className="flex items-start justify-between gap-4">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Receipt className="h-4 w-4 text-primary" />
-              Composição da Receita por Dia
-            </CardTitle>
+            <span className="text-sm font-medium text-foreground">Composição da Receita por Dia</span>
             <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
               <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />Receita Líquida</span>
               <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-amber-500" />Comissão ML</span>
               <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-blue-500" />Frete</span>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
+        </div>
+        <CardContent className="px-4 pb-2 pt-0">
+          <ResponsiveContainer width="100%" height={220}>
             <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
               <XAxis
