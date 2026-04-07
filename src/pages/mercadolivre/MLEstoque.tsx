@@ -699,223 +699,232 @@ export default function MLEstoque() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-5">
-      <MLPageHeader title="Estoque" lastUpdated={lastUpdated}>
-        <Button variant="outline" size="sm" onClick={refresh} disabled={isLoading} className="gap-1.5">
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
-          Atualizar
-        </Button>
-      </MLPageHeader>
-
-      {/* Coverage period selector */}
-      <div className="flex gap-1.5">
-        {(Object.entries(COVERAGE_PERIODS) as [CoveragePeriod, { label: string }][]).map(([key, { label }]) => (
-          <button
-            key={key}
-            onClick={() => setCoveragePeriod(key)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
-              coveragePeriod === key
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-background border-border text-muted-foreground hover:bg-muted"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <KPICard title="Total SKUs" value={numFmt(items.length)} icon={<Boxes className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-primary/10 text-primary" />
-        <KPICard title="Valor em Estoque" value={currencyFmt(totalStockValue)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
-        <KPICard
-          title="Cobertura Média"
-          value={stats.avg_coverage != null ? `${stats.avg_coverage} dias` : "—"}
-          icon={<Clock className="w-4 h-4" />}
-          variant="minimal" size="compact" iconClassName="bg-success/10 text-success"
-        />
-        <KPICard
-          title="Em Ruptura"
-          value={numFmt(stats.ruptura)}
-          icon={<PackageX className="w-4 h-4" />}
-          variant={stats.ruptura > 0 ? "danger" : "minimal"}
-          size="compact"
-          iconClassName="bg-destructive/10 text-destructive"
-        />
-        <KPICard
-          title="Crítico + Alerta"
-          value={numFmt(stats.critico + stats.alerta)}
-          icon={<AlertTriangle className="w-4 h-4" />}
-          variant={stats.critico + stats.alerta > 0 ? "warning" : "minimal"}
-          size="compact"
-          iconClassName="bg-warning/10 text-warning"
-        />
-        <KPICard title="Sem Giro" value={numFmt(stats.sem_giro)} icon={<Activity className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-muted text-muted-foreground" />
-      </div>
-
-      {/* Main Tabs */}
-      <Tabs defaultValue="estoque">
-        <TabsList>
-          <TabsTrigger value="estoque">Estoque</TabsTrigger>
-          <TabsTrigger value="relatorios">Relatórios</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="estoque" className="space-y-4 mt-4">
-          <CoverageAlerts coverageMap={coverageMap} items={items} />
-
-          {/* Filter bar */}
-          <div className="flex flex-wrap gap-2 items-center">
-            <div className="relative flex-1 min-w-[180px] max-w-xs">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Buscar produto..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 h-8 text-xs"
-              />
+    <Tabs defaultValue="estoque" className="space-y-5">
+      {/* ── Sticky header ── */}
+      <div className="sticky top-0 z-20 -mx-8 px-8 pb-3 pt-1 bg-background/95 backdrop-blur-sm border-b border-border/40">
+        <div className="flex items-center justify-between gap-4">
+          <MLPageHeader title="Estoque" lastUpdated={lastUpdated} />
+          <div className="flex items-center gap-3">
+            {/* Coverage period selector */}
+            <div className="flex gap-1">
+              {(Object.entries(COVERAGE_PERIODS) as [CoveragePeriod, { label: string }][]).map(([key, { label }]) => (
+                <button
+                  key={key}
+                  onClick={() => setCoveragePeriod(key)}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors border ${
+                    coveragePeriod === key
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-border text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
-            <Select value={stockFilter} onValueChange={setStockFilter}>
-              <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="in_stock">Em Estoque</SelectItem>
-                <SelectItem value="out_of_stock">Sem Estoque</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={coverageFilter} onValueChange={setCoverageFilter}>
-              <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas coberturas</SelectItem>
-                {(Object.keys(COVERAGE_CLASS_LABELS) as CoverageClass[]).map((cls) => (
-                  <SelectItem key={cls} value={cls}>{COVERAGE_CLASS_LABELS[cls]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="title">Nome A-Z</SelectItem>
-                <SelectItem value="price_desc">Maior Preço</SelectItem>
-                <SelectItem value="price_asc">Menor Preço</SelectItem>
-                <SelectItem value="qty_desc">Maior Estoque</SelectItem>
-                <SelectItem value="qty_asc">Menor Estoque</SelectItem>
-                <SelectItem value="sold_desc">Mais Vendidos</SelectItem>
-                <SelectItem value="visits_desc">Maior Visitas</SelectItem>
-                <SelectItem value="health_asc">Menor Saúde</SelectItem>
-              </SelectContent>
-            </Select>
-            <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
-              <Checkbox checked={hideOutOfStock} onCheckedChange={(v) => setHideOutOfStock(!!v)} />
-              Ocultar sem estoque
-            </label>
+            <TabsList className="h-8">
+              <TabsTrigger value="estoque" className="text-xs px-3 h-7">Estoque</TabsTrigger>
+              <TabsTrigger value="relatorios" className="text-xs px-3 h-7">Relatórios</TabsTrigger>
+            </TabsList>
+            <Button variant="outline" size="sm" onClick={refresh} disabled={isLoading} className="h-8 gap-1.5">
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════ ABA ESTOQUE ═══════════════════ */}
+      <TabsContent value="estoque" className="space-y-5 mt-0">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <KPICard title="Total SKUs" value={numFmt(items.length)} icon={<Boxes className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-primary/10 text-primary" />
+          <KPICard title="Valor em Estoque" value={currencyFmt(totalStockValue)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
+          <KPICard
+            title="Cobertura Média"
+            value={stats.avg_coverage != null ? `${stats.avg_coverage} dias` : "—"}
+            icon={<Clock className="w-4 h-4" />}
+            variant="minimal" size="compact" iconClassName="bg-success/10 text-success"
+          />
+          <KPICard
+            title="Em Ruptura"
+            value={numFmt(stats.ruptura)}
+            icon={<PackageX className="w-4 h-4" />}
+            variant={stats.ruptura > 0 ? "danger" : "minimal"}
+            size="compact"
+            iconClassName="bg-destructive/10 text-destructive"
+          />
+          <KPICard
+            title="Crítico + Alerta"
+            value={numFmt(stats.critico + stats.alerta)}
+            icon={<AlertTriangle className="w-4 h-4" />}
+            variant={stats.critico + stats.alerta > 0 ? "warning" : "minimal"}
+            size="compact"
+            iconClassName="bg-warning/10 text-warning"
+          />
+          <KPICard title="Sem Giro" value={numFmt(stats.sem_giro)} icon={<Activity className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-muted text-muted-foreground" />
+        </div>
+
+        <CoverageAlerts coverageMap={coverageMap} items={items} />
+
+        {/* Filters + Table inside Card */}
+        <Card>
+          <div className="px-4 pt-4 pb-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <span className="text-sm font-medium text-foreground">Inventário</span>
+              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+                <div className="relative flex-1 sm:w-52">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar produto..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9 h-9 text-sm"
+                  />
+                </div>
+                <Select value={stockFilter} onValueChange={setStockFilter}>
+                  <SelectTrigger className="w-36 h-9 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="in_stock">Em Estoque</SelectItem>
+                    <SelectItem value="out_of_stock">Sem Estoque</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={coverageFilter} onValueChange={setCoverageFilter}>
+                  <SelectTrigger className="w-40 h-9 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas coberturas</SelectItem>
+                    {(Object.keys(COVERAGE_CLASS_LABELS) as CoverageClass[]).map((cls) => (
+                      <SelectItem key={cls} value={cls}>{COVERAGE_CLASS_LABELS[cls]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-40 h-9 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="title">Nome A-Z</SelectItem>
+                    <SelectItem value="price_desc">Maior Preço</SelectItem>
+                    <SelectItem value="price_asc">Menor Preço</SelectItem>
+                    <SelectItem value="qty_desc">Maior Estoque</SelectItem>
+                    <SelectItem value="qty_asc">Menor Estoque</SelectItem>
+                    <SelectItem value="sold_desc">Mais Vendidos</SelectItem>
+                    <SelectItem value="visits_desc">Maior Visitas</SelectItem>
+                    <SelectItem value="health_asc">Menor Saúde</SelectItem>
+                  </SelectContent>
+                </Select>
+                <label className="flex items-center gap-1.5 cursor-pointer opacity-60 hover:opacity-100 transition-opacity">
+                  <Checkbox checked={hideOutOfStock} onCheckedChange={(v) => setHideOutOfStock(!!v)} className="h-3.5 w-3.5" />
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">Ocultar sem estoque</span>
+                </label>
+              </div>
+            </div>
           </div>
 
-          {/* Table */}
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-8" />
-                    <TableHead className="w-10" />
-                    <TableHead className="text-xs">Produto</TableHead>
-                    <TableHead className="text-xs text-right">Preço</TableHead>
-                    <TableHead className="text-xs text-right">Disp.</TableHead>
-                    <TableHead className="text-xs text-right">Visitas</TableHead>
-                    <TableHead className="text-xs text-right">Vendidos</TableHead>
-                    <TableHead className="text-xs">Cobertura</TableHead>
-                    <TableHead className="text-xs">Saúde</TableHead>
-                    <TableHead className="w-8" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredItems.length === 0 && (
+          <CardContent className="p-0">
+            {filteredItems.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">{search || stockFilter !== "all" || coverageFilter !== "all" ? "Nenhum produto encontrado" : "Nenhum produto no inventário"}</p>
+              </div>
+            ) : (
+              <div className="max-h-[600px] overflow-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={10}>
-                        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
-                          <Package className="w-8 h-8 opacity-40" />
-                          <span className="text-sm">Nenhum produto encontrado</span>
-                        </div>
-                      </TableCell>
+                      <TableHead className="w-8" />
+                      <TableHead className="w-10" />
+                      <TableHead className="text-xs">Produto</TableHead>
+                      <TableHead className="text-xs text-right">Preço</TableHead>
+                      <TableHead className="text-xs text-right">Disp.</TableHead>
+                      <TableHead className="text-xs text-right">Visitas</TableHead>
+                      <TableHead className="text-xs text-right">Vendidos</TableHead>
+                      <TableHead className="text-xs">Cobertura</TableHead>
+                      <TableHead className="text-xs">Saúde</TableHead>
+                      <TableHead className="w-8" />
                     </TableRow>
-                  )}
-                  {filteredItems.map((item) => {
-                    const cd = coverageMap.get(item.id);
-                    const isOpen = expanded.has(item.id);
-                    return (
-                      <>
-                        <TableRow key={item.id} className="group">
-                          <TableCell className="p-1 pl-2">
-                            {item.has_variations && item.variations.length > 0 && (
-                              <button onClick={() => toggleExpand(item.id)} className="text-muted-foreground hover:text-foreground">
-                                {isOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                              </button>
-                            )}
-                          </TableCell>
-                          <TableCell className="p-1">
-                            {item.thumbnail ? (
-                              <img src={item.thumbnail} alt="" className="w-8 h-8 rounded object-cover" />
-                            ) : (
-                              <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
-                                <Package className="w-4 h-4 text-muted-foreground" />
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-xs max-w-[200px]">
-                            <div className="font-medium truncate">{item.title}</div>
-                            <div className="text-muted-foreground text-[10px] flex gap-1 flex-wrap mt-0.5">
-                              <span>{item.id}</span>
-                              {item.seller_custom_field && <Badge variant="outline" className="text-[10px] h-4 px-1">{item.seller_custom_field}</Badge>}
-                              {item.free_shipping && <Badge className="text-[10px] h-4 px-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-0">Frete grátis</Badge>}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs text-right font-medium">{currencyFmt(item.price)}</TableCell>
-                          <TableCell className={`text-xs text-right font-semibold ${item.available_quantity === 0 ? "text-red-500" : ""}`}>
-                            {numFmt(item.available_quantity)}
-                          </TableCell>
-                          <TableCell className="text-xs text-right">{numFmt(item.visits)}</TableCell>
-                          <TableCell className="text-xs text-right">{numFmt(item.sold_quantity)}</TableCell>
-                          <TableCell>{cd ? <CoverageBadge cls={cd.coverage_class} /> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
-                          <TableCell><HealthBar health={item.health} /></TableCell>
-                          <TableCell className="p-1">
-                            <a
-                              href={`https://produto.mercadolivre.com.br/${item.id.replace(/^(MLB)(\d+)$/, "$1-$2")}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </a>
-                          </TableCell>
-                        </TableRow>
-                        {isOpen && item.variations.map((v) => (
-                          <TableRow key={v.variation_id} className="bg-muted/30">
-                            <TableCell />
-                            <TableCell />
-                            <TableCell className="text-xs pl-6 text-muted-foreground" colSpan={2}>
-                              {v.attribute_combinations?.map((a) => `${a.name}: ${a.value}`).join(" / ") || `Variação ${v.variation_id}`}
+                  </TableHeader>
+                  <TableBody>
+                    {filteredItems.map((item) => {
+                      const cd = coverageMap.get(item.id);
+                      const isOpen = expanded.has(item.id);
+                      return (
+                        <>
+                          <TableRow key={item.id} className="group">
+                            <TableCell className="p-1 pl-2">
+                              {item.has_variations && item.variations.length > 0 && (
+                                <button onClick={() => toggleExpand(item.id)} className="text-muted-foreground hover:text-foreground">
+                                  {isOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                                </button>
+                              )}
                             </TableCell>
-                            <TableCell className="text-xs text-right font-medium">{numFmt(v.available_quantity)}</TableCell>
-                            <TableCell className="text-xs text-right text-muted-foreground">{numFmt(v.sold_quantity)}</TableCell>
-                            <TableCell colSpan={4} />
+                            <TableCell className="p-1">
+                              {item.thumbnail ? (
+                                <img src={item.thumbnail} alt="" className="w-8 h-8 rounded object-cover" />
+                              ) : (
+                                <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
+                                  <Package className="w-4 h-4 text-muted-foreground" />
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs max-w-[200px]">
+                              <div className="font-medium truncate">{item.title}</div>
+                              <div className="text-muted-foreground text-[10px] flex gap-1 flex-wrap mt-0.5">
+                                <span>{item.id}</span>
+                                {item.seller_custom_field && <Badge variant="outline" className="text-[10px] h-4 px-1">{item.seller_custom_field}</Badge>}
+                                {item.free_shipping && <Badge className="text-[10px] h-4 px-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-0">Frete grátis</Badge>}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-xs text-right font-medium">{currencyFmt(item.price)}</TableCell>
+                            <TableCell className={`text-xs text-right font-semibold ${item.available_quantity === 0 ? "text-red-500" : ""}`}>
+                              {numFmt(item.available_quantity)}
+                            </TableCell>
+                            <TableCell className="text-xs text-right">{numFmt(item.visits)}</TableCell>
+                            <TableCell className="text-xs text-right">{numFmt(item.sold_quantity)}</TableCell>
+                            <TableCell>{cd ? <CoverageBadge cls={cd.coverage_class} /> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                            <TableCell><HealthBar health={item.health} /></TableCell>
+                            <TableCell className="p-1">
+                              <a
+                                href={`https://produto.mercadolivre.com.br/${item.id.replace(/^(MLB)(\d+)$/, "$1-$2")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            </TableCell>
                           </TableRow>
-                        ))}
-                      </>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-            <div className="px-4 py-2 border-t text-xs text-muted-foreground">
-              {filteredItems.length} de {items.length} produtos
-            </div>
-          </Card>
-        </TabsContent>
+                          {isOpen && item.variations.map((v) => (
+                            <TableRow key={v.variation_id} className="bg-muted/30">
+                              <TableCell />
+                              <TableCell />
+                              <TableCell className="text-xs pl-6 text-muted-foreground" colSpan={2}>
+                                {v.attribute_combinations?.map((a) => `${a.name}: ${a.value}`).join(" / ") || `Variação ${v.variation_id}`}
+                              </TableCell>
+                              <TableCell className="text-xs text-right font-medium">{numFmt(v.available_quantity)}</TableCell>
+                              <TableCell className="text-xs text-right text-muted-foreground">{numFmt(v.sold_quantity)}</TableCell>
+                              <TableCell colSpan={4} />
+                            </TableRow>
+                          ))}
+                        </>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
 
-        <TabsContent value="relatorios" className="mt-4">
-          <EstoqueRelatorios items={items} coverageMap={coverageMap} coveragePeriod={coveragePeriod} />
-        </TabsContent>
-      </Tabs>
-    </div>
+            {/* Footer */}
+            <div className="border-t border-border/60 bg-muted/20 px-6 py-2.5 flex items-center gap-8 text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">{filteredItems.length} de {items.length} produtos</span>
+              <span>Valor: <strong className="text-foreground">{currencyFmt(totalStockValue)}</strong></span>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      {/* ═══════════════════ ABA RELATÓRIOS ═══════════════════ */}
+      <TabsContent value="relatorios" className="mt-0">
+        <EstoqueRelatorios items={items} coverageMap={coverageMap} coveragePeriod={coveragePeriod} />
+      </TabsContent>
+    </Tabs>
   );
 }
