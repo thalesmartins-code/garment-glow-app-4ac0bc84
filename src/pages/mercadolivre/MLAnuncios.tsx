@@ -236,7 +236,7 @@ export default function MLAnuncios() {
           <div className="px-4 pt-4 pb-3">
             <span className="text-sm font-medium text-foreground">Gasto vs Receita Atribuída</span>
           </div>
-          </CardHeader>
+          
           <CardContent className="px-4 pb-2 pt-0">
             <ResponsiveContainer width="100%" height={220}>
               <ComposedChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
