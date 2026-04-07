@@ -310,8 +310,7 @@ export default function MLProdutos() {
                     {filtered.map((item) => {
                       const soldRevenue = item.sold_quantity * item.price;
                       const isExpanded = expandedRows.has(item.id);
-                      const visiblePills = item.has_variations ? item.variations.slice(0, MAX_PILLS) : [];
-                      const extraPills = item.has_variations ? item.variations.length - MAX_PILLS : 0;
+                      const sku = (item as any).seller_custom_field || "—";
                       const sku = (item as any).seller_custom_field || "—";
 
                       return (
