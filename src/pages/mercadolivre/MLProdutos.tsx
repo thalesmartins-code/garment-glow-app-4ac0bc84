@@ -394,67 +394,86 @@ export default function MLProdutos() {
                             </TableCell>
                           </TableRow>
 
-                          {/* Expanded variation rows aligned to parent columns */}
-                          {item.has_variations && isExpanded && item.variations.map((v) => {
-                            const vSku = (v as any).seller_custom_field || "—";
-                            return (
-                              <TableRow key={v.variation_id} className="bg-muted/20 border-b border-border/30">
-                                <TableCell className="p-1 pl-3" />
-                                <TableCell className="p-2">
-                                  {v.picture_id ? (
-                                    <div className="w-10 h-10 rounded bg-muted/40 flex items-center justify-center">
-                                      <Package className="w-3 h-3 text-muted-foreground" />
-                                    </div>
-                                  ) : (
-                                    <div className="w-10 h-10" />
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  <p className="text-xs text-muted-foreground">{variationLabel(v)}</p>
-                                </TableCell>
-                                <TableCell className="text-left text-xs text-muted-foreground font-mono">{vSku}</TableCell>
-                                <TableCell className="text-right text-sm">{currencyFmt(v.price)}</TableCell>
-
-                                {columnView === "estoque" ? (
-                                  <>
-                                    <TableCell className="text-right text-xs text-muted-foreground italic">—</TableCell>
-                                    <TableCell className="text-center">
-                                      <div className="flex flex-col items-center gap-0.5">
-                                        <span className={`text-sm font-semibold ${v.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
-                                          {v.available_quantity}
-                                        </span>
-                                        {stockBadge(v.available_quantity)}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-center">—</TableCell>
-                                  </>
-                                ) : (() => {
-                                  const commRate = getCommissionRate(item.listing_type_id);
-                                  const commPerUnit = Math.round(v.price * commRate * 100) / 100;
-                                  const netPerUnit = Math.round((v.price - commPerUnit) * 100) / 100;
-                                  const marginPct = v.price > 0 ? Math.round((netPerUnit / v.price) * 1000) / 10 : 0;
-                                  const vRevenue = v.sold_quantity * v.price;
-                                  const totalNet = Math.round(netPerUnit * v.sold_quantity * 100) / 100;
-                                  const marginColor = marginPct >= 70 ? "text-emerald-600" : marginPct >= 50 ? "text-amber-600" : "text-red-600";
-                                  return (
-                                    <>
-                                      <TableCell className="text-left text-xs text-muted-foreground">{getListingLabel(item.listing_type_id)}</TableCell>
-                                      <TableCell className="text-right text-sm">{(commRate * 100).toFixed(1)}%</TableCell>
-                                      <TableCell className="text-right text-sm text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
-                                      <TableCell className="text-right text-sm font-mono">{currencyFmt(netPerUnit)}</TableCell>
-                                      <TableCell className="text-right">
-                                        <span className={`text-sm font-bold ${marginColor}`}>{marginPct.toFixed(1)}%</span>
-                                      </TableCell>
-                                      <TableCell className="text-right text-sm">{currencyFmt(vRevenue)}</TableCell>
-                                      <TableCell className="text-right text-sm font-mono">{currencyFmt(totalNet)}</TableCell>
-                                    </>
-                                  );
-                                })()}
-
-                                <TableCell />
-                              </TableRow>
-                            );
-                          })}
+                          {/* Expanded variations sub-table */}
+                          {item.has_variations && isExpanded && (
+                            <TableRow key={`${item.id}-variations`}>
+                              <TableCell colSpan={columnView === "estoque" ? 9 : 12} className="p-0 bg-muted/20 border-b">
+                                <div className="px-10 py-3">
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow className="border-b border-border/50">
+                                        <TableHead className="text-xs h-8 font-medium">Variação</TableHead>
+                                        <TableHead className="text-xs h-8 font-medium text-left">SKU</TableHead>
+                                        <TableHead className="text-xs h-8 font-medium text-right">Preço</TableHead>
+                                        {columnView === "estoque" ? (
+                                          <>
+                                            <TableHead className="text-xs h-8 font-medium text-right">Custo</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-center">Estoque</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-center">Saúde</TableHead>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <TableHead className="text-xs h-8 font-medium text-right">Comissão %</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-right">Comissão/unid.</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-right">Líq./unid. est.</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-right">Margem est.</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-right">Vendidos R$</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-right">Líq. total est.</TableHead>
+                                          </>
+                                        )}
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {item.variations.map((v) => {
+                                        const vSku = (v as any).seller_custom_field || "—";
+                                        return (
+                                          <TableRow key={v.variation_id} className="border-b border-border/30 last:border-0">
+                                            <TableCell className="py-2 text-xs font-medium">{variationLabel(v)}</TableCell>
+                                            <TableCell className="py-2 text-xs text-muted-foreground font-mono">{vSku}</TableCell>
+                                            <TableCell className="py-2 text-xs text-right">{currencyFmt(v.price)}</TableCell>
+                                            {columnView === "estoque" ? (
+                                              <>
+                                                <TableCell className="py-2 text-xs text-right text-muted-foreground italic">—</TableCell>
+                                                <TableCell className="py-2 text-center">
+                                                  <div className="flex flex-col items-center gap-0.5">
+                                                    <span className={`text-xs font-semibold ${v.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
+                                                      {v.available_quantity}
+                                                    </span>
+                                                    {stockBadge(v.available_quantity)}
+                                                  </div>
+                                                </TableCell>
+                                                <TableCell className="py-2 text-center">—</TableCell>
+                                              </>
+                                            ) : (() => {
+                                              const commRate = getCommissionRate(item.listing_type_id);
+                                              const commPerUnit = Math.round(v.price * commRate * 100) / 100;
+                                              const netPerUnit = Math.round((v.price - commPerUnit) * 100) / 100;
+                                              const marginPct = v.price > 0 ? Math.round((netPerUnit / v.price) * 1000) / 10 : 0;
+                                              const vRevenue = v.sold_quantity * v.price;
+                                              const totalNet = Math.round(netPerUnit * v.sold_quantity * 100) / 100;
+                                              const marginColor = marginPct >= 70 ? "text-emerald-600" : marginPct >= 50 ? "text-amber-600" : "text-red-600";
+                                              return (
+                                                <>
+                                                  <TableCell className="py-2 text-xs text-right">{(commRate * 100).toFixed(1)}%</TableCell>
+                                                  <TableCell className="py-2 text-xs text-right text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
+                                                  <TableCell className="py-2 text-xs text-right font-mono">{currencyFmt(netPerUnit)}</TableCell>
+                                                  <TableCell className="py-2 text-right">
+                                                    <span className={`text-xs font-bold ${marginColor}`}>{marginPct.toFixed(1)}%</span>
+                                                  </TableCell>
+                                                  <TableCell className="py-2 text-xs text-right">{currencyFmt(vRevenue)}</TableCell>
+                                                  <TableCell className="py-2 text-xs text-right font-mono">{currencyFmt(totalNet)}</TableCell>
+                                                </>
+                                              );
+                                            })()}
+                                          </TableRow>
+                                        );
+                                      })}
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
                         </>
                       );
                     })}
