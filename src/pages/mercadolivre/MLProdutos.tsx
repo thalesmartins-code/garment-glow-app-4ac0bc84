@@ -249,6 +249,17 @@ export default function MLProdutos() {
                   </SelectContent>
                 </Select>
 
+                {/* Hide out of stock */}
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs text-muted-foreground whitespace-nowrap select-none">
+                  <input
+                    type="checkbox"
+                    checked={hideOutOfStock}
+                    onChange={(e) => setHideOutOfStock(e.target.checked)}
+                    className="rounded border-border h-3.5 w-3.5 accent-primary"
+                  />
+                  Ocultar sem estoque
+                </label>
+
                 {/* Column view toggle */}
                 <Tooltip>
                   <TooltipTrigger asChild>
