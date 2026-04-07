@@ -372,14 +372,14 @@ export default function MLProdutos() {
                               const marginColor = marginPct >= 70 ? "text-emerald-600" : marginPct >= 50 ? "text-amber-600" : "text-red-600";
                               return (
                                 <>
-                                  <TableCell className="text-left text-xs text-muted-foreground">{getListingLabel(item.listing_type_id)}</TableCell>
-                                  <TableCell className="text-right text-sm">{(commRate * 100).toFixed(1)}%</TableCell>
+                                  <TableCell className="text-left text-xs text-muted-foreground">
+                                    {getListingLabel(item.listing_type_id)} · {(commRate * 100).toFixed(1)}%
+                                  </TableCell>
                                   <TableCell className="text-right text-sm text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
                                   <TableCell className="text-right text-sm font-medium font-mono">{currencyFmt(netPerUnit)}</TableCell>
                                   <TableCell className="text-right">
                                     <span className={`text-sm font-bold ${marginColor}`}>{marginPct.toFixed(1)}%</span>
                                   </TableCell>
-                                  <TableCell className="text-right text-sm font-medium">{currencyFmt(soldRevenue)}</TableCell>
                                   <TableCell className="text-right text-sm font-semibold font-mono">{currencyFmt(totalNet)}</TableCell>
                                 </>
                               );
