@@ -163,33 +163,46 @@ export default function MLProdutos() {
   }, [items, search, statusFilter, stockFilter, sortBy, brandFilter, hideOutOfStock, logisticFilter]);
 
   // ─── Reports data ───────────────────────────────────────────────────────────
-  const rankingProducts: ProductSalesRow[] = useMemo(
-    () =>
-      items
-        .sort((a, b) => b.sold_quantity - a.sold_quantity)
-        .slice(0, 10)
-        .map((i) => ({
-          item_id: i.id,
+  const rankingAll = useMemo(() => {
+    const totalRev = items.reduce((s, i) => s + i.sold_quantity * i.price, 0);
+    return [...items]
+      .sort((a, b) => b.sold_quantity - a.sold_quantity)
+      .map((i) => {
+        const rev = i.sold_quantity * i.price;
+        return {
+          id: i.id,
           title: i.title,
           thumbnail: i.thumbnail,
-          qty_sold: i.sold_quantity,
-          revenue: i.sold_quantity * i.price,
-          available_quantity: i.available_quantity,
-        })),
-    [items],
-  );
+          price: i.price,
+          sold: i.sold_quantity,
+          revenue: rev,
+          stock: i.available_quantity,
+          share: totalRev > 0 ? (rev / totalRev) * 100 : 0,
+        };
+      });
+  }, [items]);
+
+  const rankingKPIs = useMemo(() => {
+    const totalUnits = rankingAll.reduce((s, r) => s + r.sold, 0);
+    const totalRev = rankingAll.reduce((s, r) => s + r.revenue, 0);
+    return { totalUnits, totalRev, avgTicket: totalUnits > 0 ? totalRev / totalUnits : 0 };
+  }, [rankingAll]);
 
   const brandData = useMemo(() => {
-    const map = new Map<string, { revenue: number; qty: number }>();
+    const map = new Map<string, { revenue: number; qty: number; ads: number; stock: number }>();
     items.forEach((i) => {
-      const brand = extractBrand(i.title);
-      const prev = map.get(brand) ?? { revenue: 0, qty: 0 };
-      map.set(brand, { revenue: prev.revenue + i.sold_quantity * i.price, qty: prev.qty + i.sold_quantity });
+      const brand = i.brand || "Sem marca";
+      const prev = map.get(brand) ?? { revenue: 0, qty: 0, ads: 0, stock: 0 };
+      map.set(brand, {
+        revenue: prev.revenue + i.sold_quantity * i.price,
+        qty: prev.qty + i.sold_quantity,
+        ads: prev.ads + 1,
+        stock: prev.stock + i.available_quantity,
+      });
     });
     return Array.from(map.entries())
-      .map(([brand, d]) => ({ brand, ...d }))
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 10);
+      .map(([brand, d]) => ({ brand, ...d, avgTicket: d.qty > 0 ? d.revenue / d.qty : 0 }))
+      .sort((a, b) => b.revenue - a.revenue);
   }, [items]);
 
   const maxBrandRevenue = brandData.length > 0 ? brandData[0].revenue : 1;
