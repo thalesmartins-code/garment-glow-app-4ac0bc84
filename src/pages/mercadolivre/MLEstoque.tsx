@@ -904,7 +904,7 @@ export default function MLEstoque() {
                               </TableCell>
                               <TableCell className="text-xs text-right font-medium">{numFmt(v.available_quantity)}</TableCell>
                               <TableCell className="text-xs text-right text-muted-foreground">{numFmt(v.sold_quantity)}</TableCell>
-                              <TableCell colSpan={4} />
+                              <TableCell colSpan={3} />
                             </TableRow>
                           ))}
                         </>
