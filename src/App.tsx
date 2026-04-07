@@ -110,7 +110,7 @@ const App = () => (
                           element={<RoleRoute><MLPedidos /></RoleRoute>}
                         />
                         <Route
-                          path="/api/anuncios"
+                          path="/api/publicidade"
                           element={<RoleRoute><MLAnuncios /></RoleRoute>}
                         />
                         <Route
