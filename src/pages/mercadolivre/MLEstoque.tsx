@@ -613,7 +613,9 @@ function EstoqueRelatorios({ items, coverageMap, coveragePeriod }: RelatoriosPro
 // ─── Main component ──────────────────────────────────────────────────────────
 
 export default function MLEstoque() {
-  const { items, isLoading, isConnected, isSimulated, refresh, isFetching } = useMLInventory();
+  const { items, loading: isLoading, hasToken, lastUpdated, refresh } = useMLInventory();
+  // hasToken: null = ainda carregando, false = sem token, true = conectado
+  const isConnected = hasToken !== false;
   const [coveragePeriod, setCoveragePeriod] = useState<CoveragePeriod>("weekly");
   const { coverageMap, stats } = useMLCoverage(items, coveragePeriod);
 
@@ -698,16 +700,12 @@ export default function MLEstoque() {
 
   return (
     <div className="p-4 md:p-6 space-y-5">
-      <MLPageHeader
-        title="Estoque"
-        isSimulated={isSimulated}
-        action={
-          <Button variant="outline" size="sm" onClick={refresh} disabled={isFetching} className="gap-1.5">
-            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
-            Atualizar
-          </Button>
-        }
-      />
+      <MLPageHeader title="Estoque" lastUpdated={lastUpdated}>
+        <Button variant="outline" size="sm" onClick={refresh} disabled={isLoading} className="gap-1.5">
+          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+          Atualizar
+        </Button>
+      </MLPageHeader>
 
       {/* Coverage period selector */}
       <div className="flex gap-1.5">
