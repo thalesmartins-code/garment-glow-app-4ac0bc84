@@ -135,7 +135,14 @@ export default function MLAnuncios() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative opacity-75">
+      {/* Overlay "Em desenvolvimento" */}
+      <div className="sticky top-0 z-20 flex justify-center pointer-events-none mb-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-medium text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20 pointer-events-auto">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+          Em desenvolvimento
+        </span>
+      </div>
 
       <MLPageHeader title="Publicidade" lastUpdated={null}>
         <div className="flex items-center gap-2">
