@@ -9,6 +9,7 @@ import { ptBR } from "date-fns/locale";
 import {
   Megaphone, TrendingUp, TrendingDown, MousePointerClick, Eye,
   ShoppingCart, DollarSign, Zap, RefreshCw, Info, BarChart3, ListFilter, Plug,
+  BookOpen, Tag,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { useMLAds, type AdsCampaign, type AdsProductStat } from "@/hooks/useMLAds";
+import { useMLInventory } from "@/contexts/MLInventoryContext";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -46,6 +48,39 @@ function statusBadge(status: AdsCampaign["status"]) {
   return <Badge className="bg-gray-500/15 text-gray-500 border-gray-500/30">Encerrada</Badge>;
 }
 
+/** Catalog badge — shown when item is linked to the ML product catalog */
+function CatalogBadge() {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex items-center gap-0.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-600 cursor-default leading-none">
+          <BookOpen className="w-2.5 h-2.5" />
+          Catálogo
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="text-xs max-w-[180px]">
+        Anúncio vinculado ao catálogo de produtos do Mercado Livre
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+/** Promotion badge — shown when item has active deal_ids */
+function PromoBadge({ count }: { count: number }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex items-center gap-0.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 text-[10px] font-medium text-orange-600 cursor-default leading-none">
+          <Tag className="w-2.5 h-2.5" />
+          {count > 1 ? `${count} promoções` : "Em promoção"}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="text-xs max-w-[180px]">
+        Anúncio participando de {count > 1 ? `${count} promoções` : "uma promoção"} ativa no Mercado Livre
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 // ─── Mock data not-connected state ───────────────────────────────────────────
 
@@ -70,6 +105,18 @@ export default function MLAnuncios() {
 
   const { daily, campaigns, products, summary, loading, connected, isRealData, sync, syncing } =
     useMLAds({ daysBack: selectedDays });
+
+  // Inventory items for catalog/promo badge cross-reference
+  const { items: inventoryItems } = useMLInventory();
+
+  // Build a quick lookup map: item_id → { catalog_product_id, deal_ids }
+  const inventoryMap = useMemo(() => {
+    const map = new Map<string, { catalog_product_id: string | null; deal_ids: string[] }>();
+    for (const item of inventoryItems) {
+      map.set(item.id, { catalog_product_id: item.catalog_product_id, deal_ids: item.deal_ids });
+    }
+    return map;
+  }, [inventoryItems]);
 
   // ── Chart data ──
   const chartData = useMemo(() => {
@@ -236,7 +283,7 @@ export default function MLAnuncios() {
           <div className="px-4 pt-4 pb-3">
             <span className="text-sm font-medium text-foreground">Gasto vs Receita Atribuída</span>
           </div>
-          
+
           <CardContent className="px-4 pb-2 pt-0">
             <ResponsiveContainer width="100%" height={220}>
               <ComposedChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
@@ -272,7 +319,7 @@ export default function MLAnuncios() {
                     return [currFmt(value as number), name];
                   }}
                 />
-                
+
                 <Bar yAxisId="brl" dataKey="Gasto" fill="hsl(var(--destructive))" fillOpacity={0.7} radius={[3, 3, 0, 0]} maxBarSize={24} />
                 <Area yAxisId="brl" type="monotone" dataKey="Receita Atribuída" fill="hsl(var(--primary))" fillOpacity={0.12} stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
                 <Line yAxisId="roas" type="monotone" dataKey="ROAS" stroke="#f59e0b" strokeWidth={2} dot={false} strokeDasharray="4 2" />
@@ -286,7 +333,7 @@ export default function MLAnuncios() {
           <div className="px-4 pt-4 pb-3">
             <span className="text-sm font-medium text-foreground">Funil de Conversão</span>
           </div>
-          
+
           <CardContent className="space-y-3">
             <ResponsiveContainer width="100%" height={160}>
               <FunnelChart>
@@ -335,7 +382,7 @@ export default function MLAnuncios() {
         <div className="px-4 pt-4 pb-3">
           <span className="text-sm font-medium text-foreground">Campanhas</span>
         </div>
-        
+
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -405,31 +452,42 @@ export default function MLAnuncios() {
                 </tr>
               </thead>
               <tbody>
-                {(productTab === "spend" ? topBySpend : topByRoas).map((p, i) => (
-                  <tr
-                    key={p.item_id}
-                    className={`border-b border-border/40 transition-colors hover:bg-muted/20 ${i % 2 === 0 ? "" : "bg-muted/10"}`}
-                  >
-                    <td className="px-4 py-3 pl-6 text-muted-foreground font-mono text-xs">{i + 1}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5 min-w-[200px]">
-                        {p.thumbnail && (
-                          <img src={p.thumbnail} alt={p.title} className="h-9 w-9 rounded-md object-cover shrink-0 border border-border/50" />
-                        )}
-                        <div>
-                          <p className="font-medium leading-tight line-clamp-1 max-w-[200px]">{p.title}</p>
-                          <p className="text-[11px] text-muted-foreground font-mono">{p.item_id}</p>
+                {(productTab === "spend" ? topBySpend : topByRoas).map((p, i) => {
+                  const inv = inventoryMap.get(p.item_id);
+                  const isCatalog = inv?.catalog_product_id != null;
+                  const promoCount = inv?.deal_ids.length ?? 0;
+                  return (
+                    <tr
+                      key={p.item_id}
+                      className={`border-b border-border/40 transition-colors hover:bg-muted/20 ${i % 2 === 0 ? "" : "bg-muted/10"}`}
+                    >
+                      <td className="px-4 py-3 pl-6 text-muted-foreground font-mono text-xs">{i + 1}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5 min-w-[200px]">
+                          {p.thumbnail && (
+                            <img src={p.thumbnail} alt={p.title} className="h-9 w-9 rounded-md object-cover shrink-0 border border-border/50" />
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-medium leading-tight line-clamp-1 max-w-[200px]">{p.title}</p>
+                            <p className="text-[11px] text-muted-foreground font-mono">{p.item_id}</p>
+                            {(isCatalog || promoCount > 0) && (
+                              <div className="flex items-center gap-1 mt-1 flex-wrap">
+                                {isCatalog && <CatalogBadge />}
+                                {promoCount > 0 && <PromoBadge count={promoCount} />}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 tabular-nums font-medium">{currFmt(p.spend)}</td>
-                    <td className="px-4 py-3 tabular-nums">{numFmt(p.clicks)}</td>
-                    <td className="px-4 py-3 tabular-nums">{pctFmt(p.ctr)}</td>
-                    <td className="px-4 py-3 tabular-nums">{numFmt(p.attributed_orders)}</td>
-                    <td className="px-4 py-3 tabular-nums">{currFmt(p.attributed_revenue)}</td>
-                    <td className="px-4 py-3 pr-6">{roasBadge(p.roas)}</td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-4 py-3 tabular-nums font-medium">{currFmt(p.spend)}</td>
+                      <td className="px-4 py-3 tabular-nums">{numFmt(p.clicks)}</td>
+                      <td className="px-4 py-3 tabular-nums">{pctFmt(p.ctr)}</td>
+                      <td className="px-4 py-3 tabular-nums">{numFmt(p.attributed_orders)}</td>
+                      <td className="px-4 py-3 tabular-nums">{currFmt(p.attributed_revenue)}</td>
+                      <td className="px-4 py-3 pr-6">{roasBadge(p.roas)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

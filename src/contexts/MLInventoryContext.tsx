@@ -33,6 +33,10 @@ export interface ProductItem {
   variations: ProductVariation[];
   logistic_type: string | null;
   free_shipping: boolean;
+  /** Non-null when the listing is linked to the ML product catalog */
+  catalog_product_id: string | null;
+  /** Non-empty when the listing is part of at least one active promotion/deal */
+  deal_ids: string[];
 }
 
 interface InventorySummary {
@@ -103,6 +107,8 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
           variations: item.variations ?? [],
           logistic_type: item.logistic_type ?? null,
           free_shipping: item.free_shipping ?? false,
+          catalog_product_id: item.catalog_product_id ?? null,
+          deal_ids: Array.isArray(item.deal_ids) ? item.deal_ids : [],
         }));
 
         allItems = [...allItems, ...rawItems];

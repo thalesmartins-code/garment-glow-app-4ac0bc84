@@ -79,7 +79,7 @@ serve(async (req) => {
       const batch = allItemIds.slice(i, i + 20);
       const idsParam = batch.join(",");
       const multiGet = await mlFetch(
-        `/items?ids=${idsParam}&attributes=id,title,available_quantity,sold_quantity,price,currency_id,thumbnail,status,category_id,listing_type_id,health,variations,attributes,seller_custom_field,shipping`,
+        `/items?ids=${idsParam}&attributes=id,title,available_quantity,sold_quantity,price,currency_id,thumbnail,status,category_id,listing_type_id,health,variations,attributes,seller_custom_field,shipping,catalog_product_id,deal_ids`,
         access_token,
       );
       for (const entry of multiGet) {
@@ -120,6 +120,8 @@ serve(async (req) => {
             variations,
             logistic_type: b.shipping?.logistic_type ?? null,
             free_shipping: b.shipping?.free_shipping ?? false,
+            catalog_product_id: b.catalog_product_id ?? null,
+            deal_ids: Array.isArray(b.deal_ids) ? b.deal_ids : [],
           });
         }
       }
