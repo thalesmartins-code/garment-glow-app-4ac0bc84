@@ -115,6 +115,7 @@ serve(async (req) => {
             health: b.health ?? null,
             visits: 0,
             brand,
+            seller_custom_field: b.seller_custom_field ?? null,
             has_variations: variations.length > 1,
             variations,
           });
