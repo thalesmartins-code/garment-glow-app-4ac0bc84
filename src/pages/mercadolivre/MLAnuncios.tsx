@@ -237,8 +237,8 @@ export default function MLAnuncios() {
             <span className="text-sm font-medium text-foreground">Gasto vs Receita Atribuída</span>
           </div>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={260}>
+          <CardContent className="px-4 pb-2 pt-0">
+            <ResponsiveContainer width="100%" height={220}>
               <ComposedChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
                 <XAxis
