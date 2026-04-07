@@ -11,7 +11,7 @@ import {
   Plug,
   Receipt,
   Settings2,
-  Shield,
+  Handshake,
   ShoppingBag,
   Star,
   TrendingUp,
