@@ -420,7 +420,7 @@ export default function MLProdutos() {
                                             <TableHead className="text-xs h-8 font-medium text-left">Tipo / Comissão</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-right">Comissão/unid.</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-right">Margem est.</TableHead>
-                                            <TableHead className="text-xs h-8 font-medium text-right">Líq. total est.</TableHead>
+                                            
                                           </>
                                         )}
                                       </TableRow>
