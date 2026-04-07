@@ -98,6 +98,8 @@ serve(async (req) => {
             price: v.price ?? b.price ?? 0,
             picture_id: v.picture_ids?.[0] ?? null,
           }));
+          const brandAttr = (b.attributes || []).find((a: any) => a.id === "BRAND");
+          const brand = brandAttr?.value_name || null;
           items.push({
             id: b.id,
             title: b.title,
@@ -111,6 +113,7 @@ serve(async (req) => {
             listing_type_id: b.listing_type_id ?? null,
             health: b.health ?? null,
             visits: 0,
+            brand,
             has_variations: variations.length > 1,
             variations,
           });
