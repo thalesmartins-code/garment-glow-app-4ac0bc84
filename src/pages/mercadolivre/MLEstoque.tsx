@@ -32,6 +32,9 @@ import { Link } from "react-router-dom";
 const currencyFmt = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
+const currencyFmtShort = (v: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
+
 const numFmt = (v: number) =>
   new Intl.NumberFormat("pt-BR").format(v);
 
@@ -737,7 +740,7 @@ export default function MLEstoque() {
       <TabsContent value="estoque" className="space-y-5 mt-0">
         {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <KPICard title="Valor em Estoque" value={currencyFmt(totalStockValue)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
+          <KPICard title="Valor em Estoque" value={currencyFmtShort(totalStockValue)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
           <KPICard
             title="Cobertura Média"
             value={stats.avg_coverage != null ? `${stats.avg_coverage} dias` : "—"}
