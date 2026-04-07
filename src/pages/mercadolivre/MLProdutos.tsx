@@ -745,6 +745,45 @@ export default function MLProdutos() {
 
           {/* ── Sub-aba Análise por Marca ── */}
           <TabsContent value="marca" className="mt-0 space-y-4">
+            {/* KPIs */}
+            {brandData.length > 0 && (() => {
+              const topRevenue = brandData[0];
+              const topTicket = [...brandData].filter((b) => b.qty > 0).sort((a, b) => b.avgTicket - a.avgTicket)[0];
+              const topAds = [...brandData].sort((a, b) => b.ads - a.ads)[0];
+              const topSold = [...brandData].sort((a, b) => b.qty - a.qty)[0];
+              return (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <Card>
+                    <CardContent className="p-4">
+                      <p className="text-xs text-muted-foreground">Maior Receita</p>
+                      <p className="text-lg font-bold truncate">{topRevenue.brand}</p>
+                      <p className="text-xs text-primary font-semibold">{currencyFmt(topRevenue.revenue)}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <p className="text-xs text-muted-foreground">Maior Ticket Médio</p>
+                      <p className="text-lg font-bold truncate">{topTicket?.brand ?? "—"}</p>
+                      <p className="text-xs text-primary font-semibold">{topTicket ? currencyFmt(topTicket.avgTicket) : "—"}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <p className="text-xs text-muted-foreground">Mais Vendida (un.)</p>
+                      <p className="text-lg font-bold truncate">{topSold.brand}</p>
+                      <p className="text-xs text-primary font-semibold">{topSold.qty} unidades</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <p className="text-xs text-muted-foreground">Mais Anúncios</p>
+                      <p className="text-lg font-bold truncate">{topAds.brand}</p>
+                      <p className="text-xs text-primary font-semibold">{topAds.ads} anúncios</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })()}
             {/* Charts */}
             {brandData.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
