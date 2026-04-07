@@ -308,12 +308,11 @@ export default function MLProdutos() {
                       <TableHead className="text-right w-24">Preço</TableHead>
                       {columnView === "estoque" ? (
                         <>
-                          <TableHead className="text-right w-24">Custo</TableHead>
                           <TableHead className="text-center w-20">Estoque</TableHead>
-                          
                         </>
                       ) : (
                         <>
+                          <TableHead className="text-right w-24">Custo</TableHead>
                           <TableHead className="text-left w-36">Tipo / Comissão</TableHead>
                           <TableHead className="text-right w-32">Comissão/unid.</TableHead>
                           <TableHead className="text-right w-28">Margem est.</TableHead>
