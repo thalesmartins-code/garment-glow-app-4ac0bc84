@@ -14,7 +14,7 @@ const routeTitles: Record<string, { title: string; subtitle: string }> = {
   "/integracoes": { title: "Integrações", subtitle: "Conecte suas contas de marketplaces para sincronizar dados automaticamente" },
   "/api": { title: "Vendas", subtitle: "Visão geral de vendas e métricas" },
   "/api/estoque": { title: "Estoque", subtitle: "Gestão de estoque dos seus anúncios" },
-  "/api/produtos": { title: "Anúncios", subtitle: "Catálogo de produtos e anúncios ativos" },
+  "/api/anuncios": { title: "Anúncios", subtitle: "Catálogo de produtos e anúncios ativos" },
   "/api/pedidos": { title: "Pedidos", subtitle: "Acompanhamento de pedidos e envios" },
   "/api/anuncios": { title: "Publicidade", subtitle: "Gestão e performance de publicidade" },
   "/api/financeiro":  { title: "Financeiro",  subtitle: "Análise de taxas, comissões e custo de frete" },
