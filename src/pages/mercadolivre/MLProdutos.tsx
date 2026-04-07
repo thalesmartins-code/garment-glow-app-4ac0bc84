@@ -356,8 +356,13 @@ export default function MLProdutos() {
 
                             <TableCell>
                               <p className="text-sm font-medium line-clamp-2 leading-tight">{item.title}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
+                              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                 <p className="text-xs text-muted-foreground">{item.id}</p>
+                                {sku && (
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">
+                                    {sku}
+                                  </Badge>
+                                )}
                                 {item.has_variations && (
                                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                                     {item.variations.length} variações
