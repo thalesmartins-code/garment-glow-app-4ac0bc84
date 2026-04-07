@@ -498,7 +498,9 @@ export default function MLProdutos() {
                                       </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                      {item.variations.map((v) => {
+                                      {item.variations
+                                        .filter((v) => !hideOutOfStock || v.available_quantity > 0)
+                                        .map((v) => {
                                         const vSku = v.seller_custom_field || null;
                                         return (
                                           <TableRow key={v.variation_id} className="border-b border-border/30 last:border-0">
