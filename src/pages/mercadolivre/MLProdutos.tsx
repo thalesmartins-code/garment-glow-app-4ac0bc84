@@ -356,7 +356,7 @@ export default function MLProdutos() {
                           
                         </>
                       )}
-                      <TableHead className="w-10"></TableHead>
+                      
                     </TableRow>
                   </TableHeader>
                   <TableBody>
