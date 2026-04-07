@@ -903,42 +903,28 @@ export default function MLProdutos() {
 
           {/* ── Sub-aba Curva ABC ── */}
           <TabsContent value="abc" className="mt-0 space-y-4">
-            {/* Summary cards */}
-            <div className="grid grid-cols-3 gap-3">
-              <Card className="border-l-4 border-l-emerald-500">
+            {/* Summary KPIs */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <KPICard title="Total de Anúncios" value={String(abcSummary.total)} icon={<ShoppingBag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
+              <Card>
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground font-medium">Curva A</p>
-                      <p className="text-2xl font-bold text-emerald-600">{abcSummary.A.count}</p>
-                      <p className="text-xs text-muted-foreground">anúncios · {abcSummary.A.pct.toFixed(1)}% da receita</p>
-                    </div>
-                    <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 text-lg px-3">{abcSummary.total > 0 ? ((abcSummary.A.count / abcSummary.total) * 100).toFixed(0) : 0}%</Badge>
-                  </div>
+                  <p className="text-xs text-muted-foreground">Curva A</p>
+                  <p className="text-lg font-bold">{abcSummary.A.count} <span className="text-xs font-normal text-muted-foreground">anúncios</span></p>
+                  <p className="text-xs text-muted-foreground">{abcSummary.A.pct.toFixed(1)}% da receita · {currencyFmt(abcSummary.A.revenue)}</p>
                 </CardContent>
               </Card>
-              <Card className="border-l-4 border-l-amber-500">
+              <Card>
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground font-medium">Curva B</p>
-                      <p className="text-2xl font-bold text-amber-600">{abcSummary.B.count}</p>
-                      <p className="text-xs text-muted-foreground">anúncios · {abcSummary.B.pct.toFixed(1)}% da receita</p>
-                    </div>
-                    <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 text-lg px-3">{abcSummary.total > 0 ? ((abcSummary.B.count / abcSummary.total) * 100).toFixed(0) : 0}%</Badge>
-                  </div>
+                  <p className="text-xs text-muted-foreground">Curva B</p>
+                  <p className="text-lg font-bold">{abcSummary.B.count} <span className="text-xs font-normal text-muted-foreground">anúncios</span></p>
+                  <p className="text-xs text-muted-foreground">{abcSummary.B.pct.toFixed(1)}% da receita · {currencyFmt(abcSummary.B.revenue)}</p>
                 </CardContent>
               </Card>
-              <Card className="border-l-4 border-l-red-500">
+              <Card>
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground font-medium">Curva C</p>
-                      <p className="text-2xl font-bold text-red-600">{abcSummary.C.count}</p>
-                      <p className="text-xs text-muted-foreground">anúncios · {abcSummary.C.pct.toFixed(1)}% da receita</p>
-                    </div>
-                    <Badge className="bg-red-100 text-red-800 hover:bg-red-100 text-lg px-3">{abcSummary.total > 0 ? ((abcSummary.C.count / abcSummary.total) * 100).toFixed(0) : 0}%</Badge>
-                  </div>
+                  <p className="text-xs text-muted-foreground">Curva C</p>
+                  <p className="text-lg font-bold">{abcSummary.C.count} <span className="text-xs font-normal text-muted-foreground">anúncios</span></p>
+                  <p className="text-xs text-muted-foreground">{abcSummary.C.pct.toFixed(1)}% da receita · {currencyFmt(abcSummary.C.revenue)}</p>
                 </CardContent>
               </Card>
             </div>
@@ -1013,10 +999,10 @@ export default function MLProdutos() {
                           <TableRow key={r.id} className={r.curve === "A" ? "bg-emerald-500/5" : r.curve === "B" ? "bg-amber-500/5" : ""}>
                             <TableCell className="text-center text-sm font-medium text-muted-foreground">{r.rank}</TableCell>
                             <TableCell className="text-center">
-                              <Badge className={
-                                r.curve === "A" ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100" :
-                                r.curve === "B" ? "bg-amber-100 text-amber-800 hover:bg-amber-100" :
-                                "bg-red-100 text-red-800 hover:bg-red-100"
+                              <Badge variant="outline" className={
+                                r.curve === "A" ? "border-emerald-500 text-emerald-600" :
+                                r.curve === "B" ? "border-amber-500 text-amber-600" :
+                                "border-destructive text-destructive"
                               }>{r.curve}</Badge>
                             </TableCell>
                             <TableCell className="p-2">
