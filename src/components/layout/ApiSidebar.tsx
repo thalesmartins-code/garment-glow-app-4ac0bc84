@@ -30,7 +30,7 @@ const apiSections: SidebarNavSection[] = [
         noSelfLink: true,
         children: [
           { icon: TrendingUp,  label: "Vendas",      path: "/api"            },
-          { icon: Megaphone,   label: "Publicidade", path: "/api/anuncios"   },
+          { icon: Megaphone,   label: "Publicidade", path: "/api/publicidade" },
           { icon: Receipt,     label: "Margem",      path: "/api/financeiro" },
         ],
       },
