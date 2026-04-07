@@ -337,10 +337,10 @@ export default function MLProdutos() {
                     <TableRow>
                       <TableHead className="w-8"></TableHead>
                       <TableHead className="w-12"></TableHead>
-                      <TableHead>Anúncio</TableHead>
+                      <SortableHead label="Anúncio" field="title" current={sortBy} onSort={toggleSort} />
                       <TableHead className="text-left w-24">Marca</TableHead>
                       
-                      <TableHead className="text-right w-24">Preço</TableHead>
+                      <SortableHead label="Preço" field="price" current={sortBy} onSort={toggleSort} className="text-right w-24" />
                       {columnView === "estoque" ? (
                         <>
                           <TableHead className="text-center w-20">Estoque</TableHead>
