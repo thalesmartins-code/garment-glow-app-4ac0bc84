@@ -130,7 +130,7 @@ export default function MLProdutos() {
         if (sortBy === "sold") return b.sold_quantity - a.sold_quantity;
         return a.title.localeCompare(b.title);
       });
-  }, [items, search, statusFilter, stockFilter, sortBy, brandFilter]);
+  }, [items, search, statusFilter, stockFilter, sortBy, brandFilter, hideOutOfStock]);
 
   // ─── Reports data ───────────────────────────────────────────────────────────
   const rankingProducts: ProductSalesRow[] = useMemo(
