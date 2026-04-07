@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ShoppingBag, RefreshCw, Search, ExternalLink, Plug, DollarSign, Tag, TrendingUp, Package,
-  ChevronDown, ChevronRight, Receipt, LayoutGrid, Truck,
+  ChevronDown, ChevronRight, Receipt, LayoutGrid, Truck, ArrowUpDown, ArrowUp, ArrowDown,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -50,7 +50,8 @@ const listingBadge = (listingTypeId: string | null, commRate: number) => {
 
 type StatusFilter = "all" | "active" | "paused";
 type StockFilter = "all" | "in_stock" | "low" | "out";
-type SortBy = "sold" | "price_desc" | "price_asc" | "title";
+type SortBy = "title_asc" | "title_desc" | "price_desc" | "price_asc" | "stock_desc" | "stock_asc";
+type LogisticFilter = "all" | "fulfillment" | "cross_docking" | "self_service" | "drop_off";
 type ColumnView = "estoque" | "financeiro";
 
 const healthBadge = (health: number | null) => {
@@ -69,6 +70,28 @@ const stockBadge = (qty: number) => {
 const variationLabel = (v: ProductVariation) =>
   v.attribute_combinations.map((a) => a.value).join(" / ") || `Var. ${v.variation_id}`;
 
+// ─── Sortable header helper ──────────────────────────────────────────────────
+function SortableHead({ label, field, current, onSort, className = "" }: {
+  label: string; field: string; current: SortBy; onSort: (f: string) => void; className?: string;
+}) {
+  const asc = `${field}_asc` as SortBy;
+  const desc = `${field}_desc` as SortBy;
+  const isActive = current === asc || current === desc;
+  const isAsc = current === asc;
+  return (
+    <TableHead className={`${className} cursor-pointer select-none group`} onClick={() => onSort(field)}>
+      <div className="inline-flex items-center gap-1">
+        {label}
+        {isActive ? (
+          isAsc ? <ArrowUp className="w-3 h-3 text-foreground" /> : <ArrowDown className="w-3 h-3 text-foreground" />
+        ) : (
+          <ArrowUpDown className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+        )}
+      </div>
+    </TableHead>
+  );
+}
+
 // ─── Brand extraction from title ──────────────────────────────────────────────
 function extractBrand(title: string): string {
   const words = title.trim().split(/\s+/);
@@ -80,11 +103,18 @@ export default function MLProdutos() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [stockFilter, setStockFilter] = useState<StockFilter>("all");
-  const [sortBy, setSortBy] = useState<SortBy>("title");
+  const [sortBy, setSortBy] = useState<SortBy>("title_asc");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [columnView, setColumnView] = useState<ColumnView>("estoque");
   const [brandFilter, setBrandFilter] = useState("all");
   const [hideOutOfStock, setHideOutOfStock] = useState(true);
+  const [logisticFilter, setLogisticFilter] = useState<LogisticFilter>("all");
+
+  const toggleSort = (field: string) => {
+    const asc = `${field}_asc` as SortBy;
+    const desc = `${field}_desc` as SortBy;
+    setSortBy((prev) => (prev === asc ? desc : asc));
+  };
 
   const toggleRow = (id: string) => {
     setExpandedRows((prev) => {
@@ -123,15 +153,18 @@ export default function MLProdutos() {
         if (stockFilter === "in_stock" && item.available_quantity === 0) return false;
         if (brandFilter !== "all" && (item.brand || "") !== brandFilter) return false;
         if (hideOutOfStock && item.available_quantity === 0) return false;
+        if (logisticFilter !== "all" && (item.logistic_type || "") !== logisticFilter) return false;
         return true;
       })
       .sort((a, b) => {
         if (sortBy === "price_desc") return b.price - a.price;
         if (sortBy === "price_asc") return a.price - b.price;
-        if (sortBy === "sold") return b.sold_quantity - a.sold_quantity;
+        if (sortBy === "stock_desc") return b.available_quantity - a.available_quantity;
+        if (sortBy === "stock_asc") return a.available_quantity - b.available_quantity;
+        if (sortBy === "title_desc") return b.title.localeCompare(a.title);
         return a.title.localeCompare(b.title);
       });
-  }, [items, search, statusFilter, stockFilter, sortBy, brandFilter, hideOutOfStock]);
+  }, [items, search, statusFilter, stockFilter, sortBy, brandFilter, hideOutOfStock, logisticFilter]);
 
   // ─── Reports data ───────────────────────────────────────────────────────────
   const rankingProducts: ProductSalesRow[] = useMemo(
@@ -240,13 +273,15 @@ export default function MLProdutos() {
                   </SelectContent>
                 </Select>
 
-                {/* Sort */}
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
+                {/* Logistic filter */}
+                <Select value={logisticFilter} onValueChange={(v) => setLogisticFilter(v as LogisticFilter)}>
                   <SelectTrigger className="w-36 h-9 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="price_desc">Maior preço</SelectItem>
-                    <SelectItem value="price_asc">Menor preço</SelectItem>
-                    <SelectItem value="title">A–Z</SelectItem>
+                    <SelectItem value="all">Toda logística</SelectItem>
+                    <SelectItem value="fulfillment">Full</SelectItem>
+                    <SelectItem value="cross_docking">Coleta</SelectItem>
+                    <SelectItem value="self_service">Flex</SelectItem>
+                    <SelectItem value="drop_off">Drop Off</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -302,13 +337,13 @@ export default function MLProdutos() {
                     <TableRow>
                       <TableHead className="w-8"></TableHead>
                       <TableHead className="w-12"></TableHead>
-                      <TableHead>Anúncio</TableHead>
+                      <SortableHead label="Anúncio" field="title" current={sortBy} onSort={toggleSort} />
                       <TableHead className="text-left w-24">Marca</TableHead>
                       
-                      <TableHead className="text-right w-24">Preço</TableHead>
+                      <SortableHead label="Preço" field="price" current={sortBy} onSort={toggleSort} className="text-right w-24" />
                       {columnView === "estoque" ? (
                         <>
-                          <TableHead className="text-center w-20">Estoque</TableHead>
+                          <SortableHead label="Estoque" field="stock" current={sortBy} onSort={toggleSort} className="text-center w-20" />
                           <TableHead className="text-center w-24">Logística</TableHead>
                           <TableHead className="text-center w-20">Frete Grátis</TableHead>
                         </>
