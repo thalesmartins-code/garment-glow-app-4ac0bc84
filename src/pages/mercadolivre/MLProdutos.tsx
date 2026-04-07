@@ -368,7 +368,7 @@ export default function MLProdutos() {
                                     {stockBadge(item.available_quantity)}
                                   </div>
                                 </TableCell>
-                                <TableCell className="text-center">{healthBadge(item.health)}</TableCell>
+                                
                               </>
                             ) : (() => {
                               const commRate = getCommissionRate(item.listing_type_id);
