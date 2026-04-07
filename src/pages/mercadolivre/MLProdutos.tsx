@@ -297,7 +297,7 @@ export default function MLProdutos() {
                         <>
                           <TableHead className="text-right w-24">Custo</TableHead>
                           <TableHead className="text-center w-20">Estoque</TableHead>
-                          <TableHead className="text-center w-20">Saúde</TableHead>
+                          
                         </>
                       ) : (
                         <>
@@ -368,7 +368,7 @@ export default function MLProdutos() {
                                     {stockBadge(item.available_quantity)}
                                   </div>
                                 </TableCell>
-                                <TableCell className="text-center">{healthBadge(item.health)}</TableCell>
+                                
                               </>
                             ) : (() => {
                               const commRate = getCommissionRate(item.listing_type_id);
@@ -413,7 +413,7 @@ export default function MLProdutos() {
                                           <>
                                             <TableHead className="text-xs h-8 font-medium text-right">Custo</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-center">Estoque</TableHead>
-                                            <TableHead className="text-xs h-8 font-medium text-center">Saúde</TableHead>
+                                            
                                           </>
                                         ) : (
                                           <>
@@ -444,7 +444,7 @@ export default function MLProdutos() {
                                                     {stockBadge(v.available_quantity)}
                                                   </div>
                                                 </TableCell>
-                                                <TableCell className="py-2 text-center">—</TableCell>
+                                                
                                               </>
                                             ) : (() => {
                                               const commRate = getCommissionRate(item.listing_type_id);
