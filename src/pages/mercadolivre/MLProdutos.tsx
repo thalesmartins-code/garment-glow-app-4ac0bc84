@@ -379,8 +379,8 @@ export default function MLProdutos() {
                               const marginColor = marginPct >= 70 ? "text-emerald-600" : marginPct >= 50 ? "text-amber-600" : "text-red-600";
                               return (
                                 <>
-                                  <TableCell className="text-left text-xs text-muted-foreground">
-                                    {getListingLabel(item.listing_type_id)} · {(commRate * 100).toFixed(1)}%
+                                  <TableCell className="text-left">
+                                    {listingBadge(item.listing_type_id, commRate)}
                                   </TableCell>
                                   <TableCell className="text-right text-sm text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
                                   <TableCell className="text-right">
