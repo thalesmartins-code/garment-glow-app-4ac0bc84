@@ -14,6 +14,17 @@ import {
   type AdsSummary,
 } from "@/data/adsMockData";
 
+// Module-level cache  14 survives component unmount/remount (navigation)
+interface AdsCache {
+  daily: AdsDailyStat[];
+  campaigns: AdsCampaign[];
+  products: AdsProductStat[];
+  summary: AdsSummary;
+  fetchedAt: number;
+}
+const adsCache = new Map<string, AdsCache>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export type { AdsDailyStat, AdsCampaign, AdsProductStat, AdsSummary };
 
 export interface UseMLAdsOptions {
@@ -77,6 +88,8 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
     return daysBack;
   }, [daysBack, dateFrom, dateTo]);
 
+  const cacheKey = `${storeId}:${effectiveDateFrom}:${effectiveDateTo}`;
+
   // Fetch real data from edge function
   const fetchRealData = useCallback(async (force = false) => {
     if (!connected || !user || storeId === "default-store") return;
@@ -84,7 +97,8 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
     const targetStoreId = storeId === "default-store" ? stores[0]?.ml_user_id : storeId;
     if (!targetStoreId) return;
 
-    setLoading(true);
+    const hasCachedData = !!(adsCache.get(cacheKey) && Date.now() - (adsCache.get(cacheKey)?.fetchedAt ?? 0) < CACHE_TTL_MS);
+    if (!hasCachedData) setLoading(true);
     try {
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const params = new URLSearchParams({
@@ -124,6 +138,7 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
           products: result.products || [],
           summary: result.summary || computeAdsSummary(result.daily),
         });
+        adsCache.set(cacheKey, { daily: result.daily, campaigns: result.campaigns || [], products: result.products || [], summary: result.summary || computeAdsSummary(result.daily), fetchedAt: Date.now() });
         setIsRealData(true);
         console.log(`ml-ads: loaded from ${result.source || "unknown"}`);
       } else {
@@ -135,13 +150,21 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
       setLoading(false);
     }
   }, [connected, user, storeId, stores, effectiveDateFrom, effectiveDateTo]);
-
   // Auto-fetch on mount and when params change
   useEffect(() => {
-    setRealData(null);
-    setIsRealData(false);
+    const cached = adsCache.get(cacheKey);
+    const cacheValid = !!(cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS);
+    if (cacheValid) {
+      // Restore from cache immediately — no loading flash
+      setRealData(cached);
+      setIsRealData(true);
+    } else {
+      setRealData(null);
+      setIsRealData(false);
+    }
+    // Always refresh in background (skips loading if cache was valid)
     fetchRealData();
-  }, [fetchRealData]);
+  }, [fetchRealData, cacheKey]);
 
   // Mock data fallback
   const allDaily = useMemo(
