@@ -1158,8 +1158,8 @@ export default function MercadoLivre() {
     <div className="space-y-5">
       <Tabs defaultValue="vendas" className="space-y-4">
 
-        <TabsContent value="vendas" className="space-y-5 mt-0 animate-fade-in">
-
+        {/* ── Sticky header: always visible regardless of active tab ── */}
+        <div className="sticky top-0 z-20 -mx-8 px-8 pb-3 pt-1 bg-background/95 backdrop-blur-sm border-b border-border/40">
       <AnimatePresence>
         {syncProgress && (() => {
           const pct = Math.round((syncProgress.current / syncProgress.total) * 100);
@@ -1279,7 +1279,10 @@ export default function MercadoLivre() {
           </Popover>
         </div>
       </div>
+        </div>
+        {/* ── End sticky header ── */}
 
+        <TabsContent value="vendas" className="space-y-5 mt-0 animate-fade-in">
       {isML && !effectiveLoading && connected && !hasData && (
         <Card className="border-dashed">
           <CardContent className="flex items-center gap-3 py-4">
