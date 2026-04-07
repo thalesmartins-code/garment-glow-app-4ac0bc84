@@ -452,7 +452,6 @@ export default function MLProdutos() {
                                                     {getListingLabel(item.listing_type_id)} · {(commRate * 100).toFixed(1)}%
                                                   </TableCell>
                                                   <TableCell className="py-2 text-xs text-right text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
-                                                  <TableCell className="py-2 text-xs text-right font-mono">{currencyFmt(netPerUnit)}</TableCell>
                                                   <TableCell className="py-2 text-right">
                                                     <span className={`text-xs font-bold ${marginColor}`}>{marginPct.toFixed(1)}%</span>
                                                   </TableCell>
