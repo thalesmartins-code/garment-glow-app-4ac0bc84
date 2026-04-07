@@ -203,38 +203,47 @@ export default function MLFinanceiro() {
         <KPICard
           title="Receita Bruta"
           value={currFmt(summary.gross_revenue)}
-          icon={<DollarSign className="h-4 w-4" />}
+          icon={<DollarSign className="w-4 h-4" />}
           subtitle={`${numFmt(summary.total_orders)} pedidos`}
-          variant="info"
+          variant="minimal"
+          iconClassName="bg-primary/10 text-primary"
+          size="compact"
         />
         <KPICard
           title="Comissão ML"
           value={currFmt(summary.ml_commission)}
-          icon={<Receipt className="h-4 w-4" />}
+          icon={<Receipt className="w-4 h-4" />}
           subtitle={`~${pctFmt(summary.avg_commission_rate)} da receita`}
-          variant="warning"
+          variant="minimal"
+          iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]"
+          size="compact"
         />
         <KPICard
           title="Custo de Frete"
           value={currFmt(summary.shipping_cost)}
-          icon={<Truck className="h-4 w-4" />}
+          icon={<Truck className="w-4 h-4" />}
           subtitle={`${numFmt(shippingBreakdown.free_shipping_orders)} envios grátis`}
-          variant="orange"
+          variant="minimal"
+          iconClassName="bg-accent/10 text-accent"
+          size="compact"
         />
         <KPICard
           title="Receita Líquida"
           value={currFmt(summary.net_revenue)}
-          icon={<TrendingUp className="h-4 w-4" />}
+          icon={<TrendingUp className="w-4 h-4" />}
           subtitle="após comissão e frete"
-          variant="success"
+          variant="minimal"
+          iconClassName="bg-success/10 text-success"
+          size="compact"
         />
         <KPICard
           title="Margem Operacional"
           value={pctFmt(summary.net_margin_pct)}
-          icon={<Percent className="h-4 w-4" />}
+          icon={<Percent className="w-4 h-4" />}
           subtitle="líquida s/ CMV"
-          variant={summary.net_margin_pct >= 70 ? "success" : summary.net_margin_pct >= 55 ? "warning" : "danger"}
-          className="col-span-2 md:col-span-1"
+          variant="minimal"
+          iconClassName={summary.net_margin_pct >= 70 ? "bg-success/10 text-success" : summary.net_margin_pct >= 55 ? "bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" : "bg-destructive/10 text-destructive"}
+          size="compact"
         />
       </div>
 
