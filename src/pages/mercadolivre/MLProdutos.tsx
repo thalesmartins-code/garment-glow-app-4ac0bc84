@@ -603,11 +603,27 @@ export default function MLProdutos() {
         <Tabs defaultValue="ranking" className="space-y-4">
           <TabsList className="h-8">
             <TabsTrigger value="ranking" className="text-xs px-3 h-7">Ranking de Anúncios</TabsTrigger>
-            <TabsTrigger value="marca" className="text-xs px-3 h-7">Por Marca</TabsTrigger>
+            <TabsTrigger value="marca" className="text-xs px-3 h-7">Análise por Marca</TabsTrigger>
           </TabsList>
 
           {/* ── Sub-aba Ranking ── */}
           <TabsContent value="ranking" className="mt-0 space-y-4">
+            {/* Filter */}
+            <div className="flex items-center gap-3">
+              <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
+                <SelectTrigger className="w-48 h-9 text-sm"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as marcas</SelectItem>
+                  {brands.map((b) => (
+                    <SelectItem key={b} value={b}>{b}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {rankingBrandFilter !== "all" && (
+                <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => setRankingBrandFilter("all")}>Limpar filtro</Button>
+              )}
+            </div>
+
             {/* KPIs */}
             <div className="grid grid-cols-3 gap-3">
               <KPICard title="Unidades Vendidas" value={String(rankingKPIs.totalUnits)} icon={<TrendingUp className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
@@ -622,7 +638,7 @@ export default function MLProdutos() {
                     <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
                     <p className="text-sm">Carregando...</p>
                   </div>
-                ) : rankingAll.length === 0 ? (
+                ) : rankingFiltered.length === 0 ? (
                   <div className="p-8 text-center text-muted-foreground">
                     <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">Nenhum dado disponível</p>
@@ -643,7 +659,7 @@ export default function MLProdutos() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {rankingAll.map((r, idx) => (
+                        {rankingFiltered.map((r, idx) => (
                           <TableRow key={r.id} className={idx === 0 ? "bg-[hsl(45,93%,47%)]/5" : idx === 1 ? "bg-[hsl(0,0%,66%)]/5" : idx === 2 ? "bg-[hsl(25,60%,50%)]/5" : ""}>
                             <TableCell className="text-center text-sm font-bold">
                               {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}
@@ -677,17 +693,76 @@ export default function MLProdutos() {
                     </Table>
                   </div>
                 )}
-                {rankingAll.length > 0 && (
+                {rankingFiltered.length > 0 && (
                   <div className="px-4 py-3 border-t text-xs text-muted-foreground">
-                    {rankingAll.length} anúncios no ranking
+                    {rankingFiltered.length} anúncios no ranking
+                    {rankingBrandFilter !== "all" && ` · Marca: ${rankingBrandFilter}`}
                   </div>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* ── Sub-aba Por Marca ── */}
-          <TabsContent value="marca" className="mt-0">
+          {/* ── Sub-aba Análise por Marca ── */}
+          <TabsContent value="marca" className="mt-0 space-y-4">
+            {/* Charts */}
+            {brandData.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium">Receita por Marca (Top 10)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <ResponsiveContainer width="100%" height={280}>
+                      <BarChart layout="vertical" data={brandBarData} margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>
+                        <XAxis type="number" hide />
+                        <YAxis dataKey="name" type="category" width={100} fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                        <RechartsTooltip
+                          formatter={(value: number) => [currencyFmt(value), "Receita"]}
+                          contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                        />
+                        <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium">Distribuição de Vendas por Marca</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <ResponsiveContainer width="100%" height={280}>
+                      <PieChart>
+                        <Pie
+                          data={brandPieData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={100}
+                          paddingAngle={2}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          labelLine={false}
+                          fontSize={10}
+                        >
+                          {brandPieData.map((_, idx) => (
+                            <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip
+                          formatter={(value: number, name: string) => [value, name]}
+                          contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Table */}
             <Card>
               <CardContent className="p-0">
                 {loading && items.length === 0 ? (
