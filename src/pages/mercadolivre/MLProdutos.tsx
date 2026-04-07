@@ -17,7 +17,7 @@ import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { TopSellingProducts, type ProductSalesRow } from "@/components/mercadolivre/TopSellingProducts";
+
 import type { ProductVariation } from "@/contexts/MLInventoryContext";
 import { LISTING_TYPE_RATES } from "@/data/financialMockData";
 
@@ -92,11 +92,7 @@ function SortableHead({ label, field, current, onSort, className = "" }: {
   );
 }
 
-// ─── Brand extraction from title ──────────────────────────────────────────────
-function extractBrand(title: string): string {
-  const words = title.trim().split(/\s+/);
-  return words[0] || "Outros";
-}
+import { Progress } from "@/components/ui/progress";
 
 export default function MLProdutos() {
   const { items, loading, hasToken, lastUpdated, refresh } = useMLInventory();
@@ -167,33 +163,46 @@ export default function MLProdutos() {
   }, [items, search, statusFilter, stockFilter, sortBy, brandFilter, hideOutOfStock, logisticFilter]);
 
   // ─── Reports data ───────────────────────────────────────────────────────────
-  const rankingProducts: ProductSalesRow[] = useMemo(
-    () =>
-      items
-        .sort((a, b) => b.sold_quantity - a.sold_quantity)
-        .slice(0, 10)
-        .map((i) => ({
-          item_id: i.id,
+  const rankingAll = useMemo(() => {
+    const totalRev = items.reduce((s, i) => s + i.sold_quantity * i.price, 0);
+    return [...items]
+      .sort((a, b) => b.sold_quantity - a.sold_quantity)
+      .map((i) => {
+        const rev = i.sold_quantity * i.price;
+        return {
+          id: i.id,
           title: i.title,
           thumbnail: i.thumbnail,
-          qty_sold: i.sold_quantity,
-          revenue: i.sold_quantity * i.price,
-          available_quantity: i.available_quantity,
-        })),
-    [items],
-  );
+          price: i.price,
+          sold: i.sold_quantity,
+          revenue: rev,
+          stock: i.available_quantity,
+          share: totalRev > 0 ? (rev / totalRev) * 100 : 0,
+        };
+      });
+  }, [items]);
+
+  const rankingKPIs = useMemo(() => {
+    const totalUnits = rankingAll.reduce((s, r) => s + r.sold, 0);
+    const totalRev = rankingAll.reduce((s, r) => s + r.revenue, 0);
+    return { totalUnits, totalRev, avgTicket: totalUnits > 0 ? totalRev / totalUnits : 0 };
+  }, [rankingAll]);
 
   const brandData = useMemo(() => {
-    const map = new Map<string, { revenue: number; qty: number }>();
+    const map = new Map<string, { revenue: number; qty: number; ads: number; stock: number }>();
     items.forEach((i) => {
-      const brand = extractBrand(i.title);
-      const prev = map.get(brand) ?? { revenue: 0, qty: 0 };
-      map.set(brand, { revenue: prev.revenue + i.sold_quantity * i.price, qty: prev.qty + i.sold_quantity });
+      const brand = i.brand || "Sem marca";
+      const prev = map.get(brand) ?? { revenue: 0, qty: 0, ads: 0, stock: 0 };
+      map.set(brand, {
+        revenue: prev.revenue + i.sold_quantity * i.price,
+        qty: prev.qty + i.sold_quantity,
+        ads: prev.ads + 1,
+        stock: prev.stock + i.available_quantity,
+      });
     });
     return Array.from(map.entries())
-      .map(([brand, d]) => ({ brand, ...d }))
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 10);
+      .map(([brand, d]) => ({ brand, ...d, avgTicket: d.qty > 0 ? d.revenue / d.qty : 0 }))
+      .sort((a, b) => b.revenue - a.revenue);
   }, [items]);
 
   const maxBrandRevenue = brandData.length > 0 ? brandData[0].revenue : 1;
@@ -562,57 +571,153 @@ export default function MLProdutos() {
 
       {/* ═══════════════════ ABA RELATÓRIOS ═══════════════════ */}
       <TabsContent value="relatorios" className="space-y-5 mt-0">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* Ranking de Produtos */}
-          <TopSellingProducts products={rankingProducts} loading={loading && items.length === 0} />
+        <Tabs defaultValue="ranking" className="space-y-4">
+          <TabsList className="h-8">
+            <TabsTrigger value="ranking" className="text-xs px-3 h-7">Ranking de Anúncios</TabsTrigger>
+            <TabsTrigger value="marca" className="text-xs px-3 h-7">Por Marca</TabsTrigger>
+          </TabsList>
 
-          {/* Vendas por Marca */}
-          <Card className="h-full flex flex-col">
-            <div className="px-4 pt-4 pb-2">
-              <span className="text-sm font-medium text-foreground">Vendas por Marca</span>
+          {/* ── Sub-aba Ranking ── */}
+          <TabsContent value="ranking" className="mt-0 space-y-4">
+            {/* KPIs */}
+            <div className="grid grid-cols-3 gap-3">
+              <KPICard title="Unidades Vendidas" value={String(rankingKPIs.totalUnits)} icon={<TrendingUp className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
+              <KPICard title="Receita Total" value={currencyFmt(rankingKPIs.totalRev)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-success/10 text-success" />
+              <KPICard title="Ticket Médio" value={currencyFmt(rankingKPIs.avgTicket)} icon={<Tag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" />
             </div>
-            <CardContent className="flex-1 p-4 pt-0">
-              {loading && items.length === 0 ? (
-                <div className="space-y-3">
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <div key={i} className="space-y-1">
-                      <div className="h-3 bg-muted rounded w-1/3 animate-pulse" />
-                      <div className="h-5 bg-muted rounded animate-pulse" />
-                    </div>
-                  ))}
-                </div>
-              ) : brandData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground text-sm py-8">
-                  <Package className="w-8 h-8 mb-2 opacity-50" />
-                  Nenhum dado disponível
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {brandData.map((b, idx) => {
-                    const pct = maxBrandRevenue > 0 ? (b.revenue / maxBrandRevenue) * 100 : 0;
-                    return (
-                      <div key={b.brand}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-medium truncate max-w-[60%]">{b.brand}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-muted-foreground">{b.qty} un.</span>
-                            <span className="text-xs font-semibold text-primary">{currencyFmt(b.revenue)}</span>
-                          </div>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary/70 rounded-full transition-all duration-500"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+
+            <Card>
+              <CardContent className="p-0">
+                {loading && items.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    <p className="text-sm">Carregando...</p>
+                  </div>
+                ) : rankingAll.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Nenhum dado disponível</p>
+                  </div>
+                ) : (
+                  <div className="max-h-[600px] overflow-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-10 text-center">#</TableHead>
+                          <TableHead className="w-12"></TableHead>
+                          <TableHead>Anúncio</TableHead>
+                          <TableHead className="text-right w-24">Preço</TableHead>
+                          <TableHead className="text-right w-20">Vendidos</TableHead>
+                          <TableHead className="text-right w-28">Receita</TableHead>
+                          <TableHead className="text-center w-20">Estoque</TableHead>
+                          <TableHead className="text-right w-20">% Part.</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {rankingAll.map((r, idx) => (
+                          <TableRow key={r.id} className={idx === 0 ? "bg-[hsl(45,93%,47%)]/5" : idx === 1 ? "bg-[hsl(0,0%,66%)]/5" : idx === 2 ? "bg-[hsl(25,60%,50%)]/5" : ""}>
+                            <TableCell className="text-center text-sm font-bold">
+                              {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}
+                            </TableCell>
+                            <TableCell className="p-2">
+                              {r.thumbnail ? (
+                                <img src={r.thumbnail.replace("http://", "https://")} alt="" className="w-10 h-10 rounded object-cover" loading="lazy" />
+                              ) : (
+                                <div className="w-10 h-10 rounded bg-muted flex items-center justify-center"><Package className="w-4 h-4 text-muted-foreground" /></div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <a href={`https://produto.mercadolivre.com.br/${r.id.replace(/^(MLB)(\d+)$/, "$1-$2")}`} target="_blank" rel="noopener noreferrer" className="text-sm font-medium line-clamp-2 leading-tight hover:underline hover:text-primary transition-colors">
+                                {r.title} <ExternalLink className="w-3 h-3 inline mb-0.5 ml-0.5" />
+                              </a>
+                              <p className="text-xs text-muted-foreground mt-0.5">{r.id}</p>
+                            </TableCell>
+                            <TableCell className="text-right text-sm">{currencyFmt(r.price)}</TableCell>
+                            <TableCell className="text-right text-sm font-semibold">{r.sold}</TableCell>
+                            <TableCell className="text-right text-sm font-semibold text-primary">{currencyFmt(r.revenue)}</TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex flex-col items-center gap-0.5">
+                                <span className={`text-sm font-semibold ${r.stock === 0 ? "text-destructive" : ""}`}>{r.stock}</span>
+                                {stockBadge(r.stock)}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right text-sm text-muted-foreground">{r.share.toFixed(1)}%</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+                {rankingAll.length > 0 && (
+                  <div className="px-4 py-3 border-t text-xs text-muted-foreground">
+                    {rankingAll.length} anúncios no ranking
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ── Sub-aba Por Marca ── */}
+          <TabsContent value="marca" className="mt-0">
+            <Card>
+              <CardContent className="p-0">
+                {loading && items.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    <p className="text-sm">Carregando...</p>
+                  </div>
+                ) : brandData.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Nenhum dado disponível</p>
+                  </div>
+                ) : (
+                  <div className="max-h-[600px] overflow-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Marca</TableHead>
+                          <TableHead className="text-center w-20">Anúncios</TableHead>
+                          <TableHead className="text-right w-20">Vendidos</TableHead>
+                          <TableHead className="w-48">Receita</TableHead>
+                          <TableHead className="text-right w-24">TM</TableHead>
+                          <TableHead className="text-center w-20">Estoque</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {brandData.map((b) => {
+                          const pct = maxBrandRevenue > 0 ? (b.revenue / maxBrandRevenue) * 100 : 0;
+                          return (
+                            <TableRow key={b.brand}>
+                              <TableCell className="text-sm font-medium">{b.brand}</TableCell>
+                              <TableCell className="text-center text-sm">{b.ads}</TableCell>
+                              <TableCell className="text-right text-sm">{b.qty}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1">
+                                    <Progress value={pct} className="h-2" />
+                                  </div>
+                                  <span className="text-xs font-semibold text-primary whitespace-nowrap">{currencyFmt(b.revenue)}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right text-sm">{currencyFmt(b.avgTicket)}</TableCell>
+                              <TableCell className="text-center text-sm">{b.stock}</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+                {brandData.length > 0 && (
+                  <div className="px-4 py-3 border-t text-xs text-muted-foreground">
+                    {brandData.length} marcas encontradas
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </TabsContent>
     </Tabs>
   );
