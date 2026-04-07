@@ -386,7 +386,7 @@ export default function MLProdutos() {
                                   <TableCell className="text-right">
                                     <span className={`text-sm font-bold ${marginColor}`}>{marginPct.toFixed(1)}%</span>
                                   </TableCell>
-                                  <TableCell className="text-right text-sm font-semibold font-mono">{currencyFmt(totalNet)}</TableCell>
+                                  
                                 </>
                               );
                             })()}
