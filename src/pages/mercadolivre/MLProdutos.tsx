@@ -165,17 +165,17 @@ export default function MLProdutos() {
       {/* ── Sticky header ── */}
       <div className="sticky top-0 z-20 -mx-8 px-8 pb-3 pt-1 bg-background/95 backdrop-blur-sm border-b border-border/40">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <MLPageHeader title="Anúncios" lastUpdated={lastUpdated} />
+          <MLPageHeader title="Anúncios" lastUpdated={lastUpdated} />
+          <div className="flex items-center gap-3">
             <TabsList className="h-8">
               <TabsTrigger value="catalogo" className="text-xs px-3 h-7">Catálogo</TabsTrigger>
               <TabsTrigger value="relatorios" className="text-xs px-3 h-7">Relatórios</TabsTrigger>
             </TabsList>
+            <Button onClick={refresh} disabled={loading} size="sm" variant="outline" className="h-8">
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
           </div>
-          <Button onClick={refresh} disabled={loading} size="sm" variant="outline" className="h-8">
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            Atualizar
-          </Button>
         </div>
       </div>
 
