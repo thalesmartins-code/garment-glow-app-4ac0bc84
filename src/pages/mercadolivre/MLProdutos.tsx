@@ -80,7 +80,7 @@ function SortableHead({ label, field, current, onSort, className = "" }: {
   const isAsc = current === asc;
   return (
     <TableHead className={`${className} cursor-pointer select-none group`} onClick={() => onSort(field)}>
-      <div className="flex items-center gap-1 justify-inherit">
+      <div className="inline-flex items-center gap-1">
         {label}
         {isActive ? (
           isAsc ? <ArrowUp className="w-3 h-3 text-foreground" /> : <ArrowDown className="w-3 h-3 text-foreground" />
