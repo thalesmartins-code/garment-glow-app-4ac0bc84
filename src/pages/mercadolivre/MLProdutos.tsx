@@ -71,7 +71,7 @@ export default function MLProdutos() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [stockFilter, setStockFilter] = useState<StockFilter>("all");
-  const [sortBy, setSortBy] = useState<SortBy>("sold");
+  const [sortBy, setSortBy] = useState<SortBy>("title");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [columnView, setColumnView] = useState<ColumnView>("estoque");
   const [brandFilter, setBrandFilter] = useState("all");
@@ -218,27 +218,6 @@ export default function MLProdutos() {
                   <Input placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9 text-sm" />
                 </div>
 
-                {/* Status filter */}
-                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-                  <SelectTrigger className="w-28 h-9 text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="paused">Pausado</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Stock filter */}
-                <Select value={stockFilter} onValueChange={(v) => setStockFilter(v as StockFilter)}>
-                  <SelectTrigger className="w-36 h-9 text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todo estoque</SelectItem>
-                    <SelectItem value="in_stock">Com estoque</SelectItem>
-                    <SelectItem value="low">Estoque baixo</SelectItem>
-                    <SelectItem value="out">Sem estoque</SelectItem>
-                  </SelectContent>
-                </Select>
-
                 {/* Brand filter */}
                 <Select value={brandFilter} onValueChange={setBrandFilter}>
                   <SelectTrigger className="w-40 h-9 text-sm"><SelectValue /></SelectTrigger>
@@ -249,10 +228,11 @@ export default function MLProdutos() {
                     ))}
                   </SelectContent>
                 </Select>
+
+                {/* Sort */}
                 <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
                   <SelectTrigger className="w-36 h-9 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sold">Mais vendidos</SelectItem>
                     <SelectItem value="price_desc">Maior preço</SelectItem>
                     <SelectItem value="price_asc">Menor preço</SelectItem>
                     <SelectItem value="title">A–Z</SelectItem>
