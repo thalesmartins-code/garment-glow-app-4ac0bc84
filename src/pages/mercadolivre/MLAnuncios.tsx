@@ -283,10 +283,9 @@ export default function MLAnuncios() {
 
         {/* Funnel — 1/3 width */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Eye className="h-4 w-4 text-primary" />
-              Funil de Conversão
+          <div className="px-4 pt-4 pb-3">
+            <span className="text-sm font-medium text-foreground">Funil de Conversão</span>
+          </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
