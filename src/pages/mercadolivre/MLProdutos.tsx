@@ -670,7 +670,6 @@ export default function MLProdutos() {
                 )}
               </div>
             </div>
-            </div>
 
             <Card>
               <CardContent className="p-0">
