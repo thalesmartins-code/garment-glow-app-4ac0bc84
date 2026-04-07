@@ -26,6 +26,7 @@ export interface ProductItem {
   listing_type_id: string | null;
   health: number | null;
   visits: number;
+  brand: string | null;
   has_variations: boolean;
   variations: ProductVariation[];
 }
