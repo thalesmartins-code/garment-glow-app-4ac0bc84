@@ -753,10 +753,10 @@ export default function MLProdutos() {
               const topSold = [...brandData].sort((a, b) => b.qty - a.qty)[0];
               return (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <KPICard title="Maior Receita" value={topRevenue.brand} description={currencyFmt(topRevenue.revenue)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-success/10 text-success" />
-                  <KPICard title="Maior Ticket Médio" value={topTicket?.brand ?? "—"} description={topTicket ? currencyFmt(topTicket.avgTicket) : "—"} icon={<Tag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" />
-                  <KPICard title="Mais Vendida (un.)" value={topSold.brand} description={`${topSold.qty} unidades`} icon={<TrendingUp className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
-                  <KPICard title="Mais Anúncios" value={topAds.brand} description={`${topAds.ads} anúncios`} icon={<ShoppingBag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" />
+                  <KPICard title="Maior Receita" value={topRevenue.brand} subtitle={currencyFmt(topRevenue.revenue)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-success/10 text-success" />
+                  <KPICard title="Maior Ticket Médio" value={topTicket?.brand ?? "—"} subtitle={topTicket ? currencyFmt(topTicket.avgTicket) : "—"} icon={<Tag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" />
+                  <KPICard title="Mais Vendida (un.)" value={topSold.brand} subtitle={`${topSold.qty} unidades`} icon={<TrendingUp className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
+                  <KPICard title="Mais Anúncios" value={topAds.brand} subtitle={`${topAds.ads} anúncios`} icon={<ShoppingBag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" />
                 </div>
               );
             })()}
