@@ -295,7 +295,6 @@ export default function MLProdutos() {
                         <>
                           <TableHead className="text-left w-36">Tipo / Comissão</TableHead>
                           <TableHead className="text-right w-32">Comissão/unid.</TableHead>
-                          <TableHead className="text-right w-32">Líq./unid. est.</TableHead>
                           <TableHead className="text-right w-28">Margem est.</TableHead>
                           <TableHead className="text-right w-32">Líq. total est.</TableHead>
                         </>
@@ -376,7 +375,6 @@ export default function MLProdutos() {
                                     {getListingLabel(item.listing_type_id)} · {(commRate * 100).toFixed(1)}%
                                   </TableCell>
                                   <TableCell className="text-right text-sm text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
-                                  <TableCell className="text-right text-sm font-medium font-mono">{currencyFmt(netPerUnit)}</TableCell>
                                   <TableCell className="text-right">
                                     <span className={`text-sm font-bold ${marginColor}`}>{marginPct.toFixed(1)}%</span>
                                   </TableCell>
@@ -395,7 +393,7 @@ export default function MLProdutos() {
                           {/* Expanded variations sub-table */}
                           {item.has_variations && isExpanded && (
                             <TableRow key={`${item.id}-variations`}>
-                              <TableCell colSpan={columnView === "estoque" ? 10 : 11} className="p-0 bg-muted/20 border-b">
+                              <TableCell colSpan={columnView === "estoque" ? 10 : 10} className="p-0 bg-muted/20 border-b">
                                 <div className="px-10 py-3">
                                   <Table>
                                     <TableHeader>
@@ -413,7 +411,6 @@ export default function MLProdutos() {
                                           <>
                                             <TableHead className="text-xs h-8 font-medium text-left">Tipo / Comissão</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-right">Comissão/unid.</TableHead>
-                                            <TableHead className="text-xs h-8 font-medium text-right">Líq./unid. est.</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-right">Margem est.</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-right">Líq. total est.</TableHead>
                                           </>
@@ -455,7 +452,6 @@ export default function MLProdutos() {
                                                     {getListingLabel(item.listing_type_id)} · {(commRate * 100).toFixed(1)}%
                                                   </TableCell>
                                                   <TableCell className="py-2 text-xs text-right text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
-                                                  <TableCell className="py-2 text-xs text-right font-mono">{currencyFmt(netPerUnit)}</TableCell>
                                                   <TableCell className="py-2 text-right">
                                                     <span className={`text-xs font-bold ${marginColor}`}>{marginPct.toFixed(1)}%</span>
                                                   </TableCell>
