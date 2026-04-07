@@ -413,7 +413,7 @@ export default function MLProdutos() {
                                           <>
                                             <TableHead className="text-xs h-8 font-medium text-right">Custo</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-center">Estoque</TableHead>
-                                            <TableHead className="text-xs h-8 font-medium text-center">Saúde</TableHead>
+                                            
                                           </>
                                         ) : (
                                           <>
