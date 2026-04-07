@@ -381,12 +381,9 @@ export default function MLAnuncios() {
 
       {/* ── Top Products ── */}
       <Card>
-        <CardHeader className="pb-3">
+        <div className="px-4 pt-4 pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <ListFilter className="h-4 w-4 text-primary" />
-              Top Produtos Patrocinados
-            </CardTitle>
+            <span className="text-sm font-medium text-foreground">Top Produtos Patrocinados</span>
             <Tabs value={productTab} onValueChange={(v) => setProductTab(v as "spend" | "roas")}>
               <TabsList className="h-7">
                 <TabsTrigger value="spend" className="text-xs px-2.5 h-6">Maior Gasto</TabsTrigger>
