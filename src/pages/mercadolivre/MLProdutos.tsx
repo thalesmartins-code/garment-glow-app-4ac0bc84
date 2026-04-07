@@ -110,6 +110,12 @@ export default function MLProdutos() {
   const [hideOutOfStock, setHideOutOfStock] = useState(true);
   const [logisticFilter, setLogisticFilter] = useState<LogisticFilter>("all");
 
+  const toggleSort = (field: string) => {
+    const asc = `${field}_asc` as SortBy;
+    const desc = `${field}_desc` as SortBy;
+    setSortBy((prev) => (prev === asc ? desc : asc));
+  };
+
   const toggleRow = (id: string) => {
     setExpandedRows((prev) => {
       const next = new Set(prev);
