@@ -80,7 +80,7 @@ function CatalogBadge() {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="inline-flex items-center gap-0.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-600 cursor-default leading-none">
+        <span className="inline-flex items-center gap-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 cursor-default leading-none">
           <BookOpen className="w-2.5 h-2.5" />
           Catálogo
         </span>
@@ -531,12 +531,9 @@ export default function MLProdutos() {
                             {columnView === "estoque" ? (
                               <>
                                 <TableCell className="text-center">
-                                  <div className="flex flex-col items-center gap-0.5">
-                                    <span className={`text-sm font-semibold ${item.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
-                                      {item.available_quantity}
-                                    </span>
-                                    {stockBadge(item.available_quantity)}
-                                  </div>
+                                  <span className={`text-sm font-semibold ${item.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
+                                    {item.available_quantity}
+                                  </span>
                                 </TableCell>
                                 <TableCell className="text-center">
                                   {item.logistic_type ? (
@@ -622,12 +619,9 @@ export default function MLProdutos() {
                                             {columnView === "estoque" ? (
                                               <>
                                                 <TableCell className="py-2 text-center">
-                                                  <div className="flex flex-col items-center gap-0.5">
-                                                    <span className={`text-xs font-semibold ${v.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
-                                                      {v.available_quantity}
-                                                    </span>
-                                                    {stockBadge(v.available_quantity)}
-                                                  </div>
+                                                  <span className={`text-xs font-semibold ${v.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
+                                                    {v.available_quantity}
+                                                  </span>
                                                 </TableCell>
                                                 <TableCell className="py-2" colSpan={2} />
                                               </>
@@ -761,10 +755,7 @@ export default function MLProdutos() {
                             <TableCell className="text-right text-sm font-semibold">{r.sold}</TableCell>
                             <TableCell className="text-right text-sm font-semibold text-primary">{currencyFmt(r.revenue)}</TableCell>
                             <TableCell className="text-center">
-                              <div className="flex flex-col items-center gap-0.5">
-                                <span className={`text-sm font-semibold ${r.stock === 0 ? "text-destructive" : ""}`}>{r.stock}</span>
-                                {stockBadge(r.stock)}
-                              </div>
+                              <span className={`text-sm font-semibold ${r.stock === 0 ? "text-destructive" : ""}`}>{r.stock}</span>
                             </TableCell>
                             <TableCell className="text-right text-sm text-muted-foreground">{r.share.toFixed(1)}%</TableCell>
                           </TableRow>
