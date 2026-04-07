@@ -1,59 +1,39 @@
-## Reformulação da Página de Anúncios (/api/anuncios)
+
+
+## Reformulação da Aba Relatórios - Anúncios
 
 ### Objetivo
+Separar Ranking e Vendas por Marca em sub-abas (TabsList interna), tornar ambos mais completos, e corrigir "Vendas por Marca" para usar o atributo `brand` real da API do ML (já disponível em `item.brand`) em vez de extrair a primeira palavra do título.
 
-Transformar a página de Anúncios para seguir o padrão de Vendas, com sistema de abas (Catálogo / Relatórios) e filtros mais relevantes.
+### Alterações
 
-### Estrutura de Abas
+**1. Sub-abas na aba Relatórios**
 
-```text
-┌─────────────────────────────────────────────────────┐
-│ Anúncios          [Catálogo] [Relatórios]  [Atualizar] │
-│ Última sinc: ...                                     │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  Aba Catálogo:                                       │
-│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐               │
-│  │ KPI  │ │ KPI  │ │ KPI  │ │ KPI  │               │
-│  └──────┘ └──────┘ └──────┘ └──────┘               │
-│  ┌───────────────────────────────────┐              │
-│  │ [Busca] [Status] [Estoque] [Ord.] │              │
-│  │ Tabela: Anúncio|SKU|Preço|Custo|  │              │
-│  │         Estoque|Saúde             │              │
-│  └───────────────────────────────────┘              │
-│                                                      │
-│  Aba Relatórios:                                    │
-│  ┌─────────────┐  ┌─────────────────┐              │
-│  │ Ranking de   │  │ Vendas por      │              │
-│  │ Produtos     │  │ Marca/Categoria │              │
-│  └─────────────┘  └─────────────────┘              │
-└─────────────────────────────────────────────────────┘
-```
+Substituir o grid lado-a-lado por um `Tabs` interno com duas sub-abas: "Ranking" e "Por Marca", ocupando largura total.
 
-### Alterações Detalhadas
+**2. Ranking de Anúncios (mais completo)**
 
-**1. Adicionar sistema de Tabs ao header sticky**
+- Manter o `TopSellingProducts` mas adicionar colunas extras: preço unitário, estoque disponível, e % de participação na receita total.
+- Mostrar todos os itens em tabela ao invés de apenas os top 10, com scroll.
+- Incluir KPIs resumidos no topo: total de unidades vendidas, receita total gerada, ticket médio dos top sellers.
 
-- Inserir `TabsList` com duas abas: "Catálogo" e "Relatórios", no mesmo padrão visual de Vendas (`h-8`, triggers `text-xs px-3 h-7`).
+**3. Vendas por Marca (correção + enriquecimento)**
 
-**2. Aba Catálogo**
+- Usar `item.brand` (atributo BRAND da API do ML) em vez de `extractBrand(title)` (primeira palavra do título).
+- Itens sem marca ficam agrupados como "Sem marca".
+- Adicionar colunas: quantidade de anúncios por marca, unidades vendidas, receita, ticket médio, e estoque total.
+- Apresentar em formato tabela com barras de progresso na coluna de receita.
+- Manter o filtro de marca existente no catálogo funcionando com o mesmo campo `brand`.
 
-- Manter os 4 KPI cards atuais (Total de Anúncios, Ticket Médio, Unidades Vendidas, Receita Potencial).
-- Adicione indicador de variação semelhante ao da página de estoque.
-- Simplificar a tabela para 6 colunas: **Anúncio** (thumbnail + título + ID), **SKU** (extraído do seller_custom_field ou variação), **Preço**, **Custo** (placeholder "a informar" por enquanto, já que custo do produto não está disponível na API), **Estoque**, **Saúde**.
-- Remover as colunas de Vendidos, Vendidos R$, % Part., Visitas, Conv., Cobertura e mantenha a visão "Financeiro".
-- Remover os sub-filtros antigos (Cobertura, período de cobertura, toggle Estoque/Financeiro).
-- Novos filtros: **Busca** (texto), **Status** (Ativo/Pausado/Todos), **Estoque** (Todos/Com estoque/Baixo/Sem estoque), **Ordenar** (A-Z, Maior preço, Menor preço, Mais vendidos).
+### Arquivo modificado
 
-**3. Aba Relatórios**
+- `src/pages/mercadolivre/MLProdutos.tsx` — Refatorar a seção `TabsContent value="relatorios"`: adicionar sub-abas, enriquecer ranking com tabela completa, corrigir e enriquecer vendas por marca.
 
-- **Ranking de Produtos**: Reutilizar o componente `TopSellingProducts` existente, alimentado com dados do inventário (item_id, title, thumbnail, sold_quantity, price).
-- **Vendas por Marca**: Componente novo que agrupa os produtos por "marca" (extraída do título ou de atributos da API). Se a marca não estiver disponível, agrupar por categoria. Exibe barras horizontais com receita, similar ao `RevenueByMarketplace`.
+### Detalhes Técnicos
 
-### Arquivos Modificados
+- Remover a função `extractBrand()` (não mais necessária).
+- O `brandData` usará `item.brand || "Sem marca"` diretamente.
+- Sub-tabs usarão o mesmo componente `Tabs`/`TabsList`/`TabsTrigger`/`TabsContent` já importado, com estilo `h-8` / `text-xs px-3 h-7` consistente.
+- Ranking em formato `Table` com colunas: #, Anúncio (thumb+título), Preço, Vendidos, Receita, Estoque, % Part.
+- Marca em formato `Table` com colunas: Marca, Anúncios, Vendidos, Receita (com barra), TM, Estoque.
 
-- `src/pages/mercadolivre/MLProdutos.tsx` — Refatoração completa: adicionar Tabs, simplificar tabela, novos filtros, aba Relatórios.
-
-### Arquivos Potencialmente Criados
-
-- Nenhum componente novo obrigatório. O ranking usa `TopSellingProducts` existente. O "Vendas por Marca" pode ser implementado inline ou como componente separado se necessário.
