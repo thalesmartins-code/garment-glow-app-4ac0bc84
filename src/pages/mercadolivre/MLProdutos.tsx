@@ -161,50 +161,49 @@ export default function MLProdutos() {
   }
 
   return (
-    <div className="space-y-6">
-      <MLPageHeader title="Anúncios" lastUpdated={lastUpdated}>
-        <Button onClick={refresh} disabled={loading} size="sm" variant="outline">
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Atualizar
-        </Button>
-      </MLPageHeader>
-
-      {/* Period Selector */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground font-medium">Cobertura baseada em:</span>
-        </div>
-        <div className="flex items-center gap-0.5 bg-muted rounded-lg p-0.5">
-          {COVERAGE_PERIODS.map((p) => (
-            <button
-              key={p.value}
-              title={p.description}
-              onClick={() => setCoveragePeriod(p.value)}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                coveragePeriod === p.value
-                  ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+    <div className="space-y-5">
+      {/* ── Sticky header ── */}
+      <div className="sticky top-0 z-20 -mx-8 px-8 pb-3 pt-1 bg-background/95 backdrop-blur-sm border-b border-border/40">
+        <div className="flex items-center justify-between gap-4">
+          <MLPageHeader title="Anúncios" lastUpdated={lastUpdated} />
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Coverage period selector */}
+            <div className="flex items-center gap-0.5 bg-muted rounded-lg p-0.5">
+              {COVERAGE_PERIODS.map((p) => (
+                <button
+                  key={p.value}
+                  title={p.description}
+                  onClick={() => setCoveragePeriod(p.value)}
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                    coveragePeriod === p.value
+                      ? "bg-background shadow-sm text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <Button onClick={refresh} disabled={loading} size="sm" variant="outline" className="h-8">
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {loading && items.length === 0 ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}><CardContent className="p-6"><Skeleton className="h-16 w-full" /></CardContent></Card>
           ))
         ) : (
           <>
-            <KPICard title="Total de Anúncios" value={String(items.length)} icon={<ShoppingBag className="w-5 h-5" />} subtitle="Anúncios ativos" />
-            <KPICard title="Ticket Médio" value={currencyFmt(avgPrice)} icon={<Tag className="w-5 h-5" />} subtitle="Preço médio dos anúncios" />
-            <KPICard title="Unidades Vendidas" value={String(totalSold)} icon={<TrendingUp className="w-5 h-5" />} subtitle="Total histórico" />
-            <KPICard title="Receita Potencial" value={currencyFmt(totalRevenuePotential)} icon={<DollarSign className="w-5 h-5" />} subtitle="Estoque × Preço" />
+            <KPICard title="Total de Anúncios" value={String(items.length)} icon={<ShoppingBag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
+            <KPICard title="Ticket Médio" value={currencyFmt(avgPrice)} icon={<Tag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" />
+            <KPICard title="Unidades Vendidas" value={String(totalSold)} icon={<TrendingUp className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" />
+            <KPICard title="Receita Potencial" value={currencyFmt(totalRevenuePotential)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-success/10 text-success" />
           </>
         )}
       </div>
