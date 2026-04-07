@@ -620,12 +620,6 @@ function TabFunil() {
     return { funnelData, conversionStats };
   }, [daily]);
 
-  const hasAny = daily.some((d) => d.unique_visits > 0 || d.qty > 0);
-
-  if (!hasAny) {
-    return <EmptyState message="Nenhum dado de conversão disponível para o período selecionado." />;
-  }
-
   // Daily conversion rate chart
   const dailyConv = useMemo(() =>
     [...daily]
@@ -637,6 +631,12 @@ function TabFunil() {
       }))
       .filter((d) => d.visitas > 0),
     [daily]);
+
+  const hasAny = daily.some((d) => d.unique_visits > 0 || d.qty > 0);
+
+  if (!hasAny) {
+    return <EmptyState message="Nenhum dado de conversão disponível para o período selecionado." />;
+  }
 
   return (
     <div className="space-y-4">
