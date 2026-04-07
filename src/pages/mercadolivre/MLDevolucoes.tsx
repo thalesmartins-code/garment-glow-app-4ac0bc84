@@ -115,28 +115,36 @@ export default function MLDevolucoes() {
         <KPICard
           title="Reclamações abertas"
           value={String(summary.open_claims)}
-          variant={summary.open_claims === 0 ? "success" : summary.open_claims <= 5 ? "warning" : "danger"}
+          variant="minimal"
+          iconClassName={summary.open_claims === 0 ? "bg-success/10 text-success" : summary.open_claims <= 5 ? "bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" : "bg-destructive/10 text-destructive"}
+          size="compact"
           icon={<AlertCircle className="w-4 h-4" />}
           subtitle={`${summary.total_claims} total (últimos 60 dias)`}
         />
         <KPICard
           title="Taxa de resolução"
           value={`${summary.resolution_rate.toFixed(1)}%`}
-          variant={summary.resolution_rate >= 90 ? "success" : summary.resolution_rate >= 75 ? "warning" : "danger"}
+          variant="minimal"
+          iconClassName={summary.resolution_rate >= 90 ? "bg-success/10 text-success" : "bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]"}
+          size="compact"
           icon={<CheckCircle2 className="w-4 h-4" />}
           subtitle="Reclamações resolvidas"
         />
         <KPICard
           title="Tempo médio resolução"
           value={`${summary.avg_resolution_days}d`}
-          variant={summary.avg_resolution_days <= 5 ? "success" : summary.avg_resolution_days <= 10 ? "warning" : "danger"}
+          variant="minimal"
+          iconClassName={summary.avg_resolution_days <= 5 ? "bg-success/10 text-success" : "bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]"}
+          size="compact"
           icon={<Clock className="w-4 h-4" />}
           subtitle="Em dias úteis"
         />
         <KPICard
           title="Taxa de reclamações"
           value={`${summary.claims_rate_pct.toFixed(1)}%`}
-          variant={summary.claims_rate_pct < 1 ? "success" : summary.claims_rate_pct < 3 ? "warning" : "danger"}
+          variant="minimal"
+          iconClassName={summary.claims_rate_pct < 1 ? "bg-success/10 text-success" : "bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]"}
+          size="compact"
           icon={<ShieldAlert className="w-4 h-4" />}
           subtitle="Meta ML: abaixo de 1%"
         />
