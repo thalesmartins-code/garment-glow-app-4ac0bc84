@@ -386,6 +386,28 @@ export default function MLProdutos() {
                                     {stockBadge(item.available_quantity)}
                                   </div>
                                 </TableCell>
+                                <TableCell className="text-center">
+                                  {item.logistic_type ? (
+                                    <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${
+                                      item.logistic_type === "fulfillment" ? "border-blue-500 text-blue-600 bg-blue-50" :
+                                      item.logistic_type === "self_service" ? "border-amber-500 text-amber-600 bg-amber-50" :
+                                      ""
+                                    }`}>
+                                      {item.logistic_type === "fulfillment" ? "Full" :
+                                       item.logistic_type === "cross_docking" ? "Coleta" :
+                                       item.logistic_type === "self_service" ? "Flex" :
+                                       item.logistic_type === "drop_off" ? "Drop Off" :
+                                       item.logistic_type}
+                                    </Badge>
+                                  ) : <span className="text-xs text-muted-foreground">—</span>}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  {item.free_shipping ? (
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-500 text-emerald-600 bg-emerald-50">
+                                      <Truck className="w-3 h-3 mr-0.5" /> Sim
+                                    </Badge>
+                                  ) : <span className="text-xs text-muted-foreground">Não</span>}
+                                </TableCell>
                               </>
                             ) : (() => {
                               const commRate = getCommissionRate(item.listing_type_id);
