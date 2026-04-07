@@ -85,6 +85,13 @@ export default function MLProdutos() {
     });
   };
 
+  // Unique brands for filter
+  const brands = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((i) => { if (i.brand) set.add(i.brand); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [items]);
+
   // Derived stats
   const totalRevenuePotential = items.reduce((s, i) => s + i.price * i.available_quantity, 0);
   const avgPrice = items.length > 0 ? items.reduce((s, i) => s + i.price, 0) / items.length : 0;
