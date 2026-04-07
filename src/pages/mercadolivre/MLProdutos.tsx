@@ -70,6 +70,28 @@ const stockBadge = (qty: number) => {
 const variationLabel = (v: ProductVariation) =>
   v.attribute_combinations.map((a) => a.value).join(" / ") || `Var. ${v.variation_id}`;
 
+// ─── Sortable header helper ──────────────────────────────────────────────────
+function SortableHead({ label, field, current, onSort, className = "" }: {
+  label: string; field: string; current: SortBy; onSort: (f: string) => void; className?: string;
+}) {
+  const asc = `${field}_asc` as SortBy;
+  const desc = `${field}_desc` as SortBy;
+  const isActive = current === asc || current === desc;
+  const isAsc = current === asc;
+  return (
+    <TableHead className={`${className} cursor-pointer select-none group`} onClick={() => onSort(field)}>
+      <div className="flex items-center gap-1 justify-inherit">
+        {label}
+        {isActive ? (
+          isAsc ? <ArrowUp className="w-3 h-3 text-foreground" /> : <ArrowDown className="w-3 h-3 text-foreground" />
+        ) : (
+          <ArrowUpDown className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+        )}
+      </div>
+    </TableHead>
+  );
+}
+
 // ─── Brand extraction from title ──────────────────────────────────────────────
 function extractBrand(title: string): string {
   const words = title.trim().split(/\s+/);
