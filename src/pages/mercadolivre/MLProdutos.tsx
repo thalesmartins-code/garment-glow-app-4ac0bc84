@@ -39,6 +39,14 @@ function getListingLabel(listingTypeId: string | null): string {
 const currencyFmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+const listingBadge = (listingTypeId: string | null, commRate: number) => {
+  const label = getListingLabel(listingTypeId);
+  const pct = (commRate * 100).toFixed(1);
+  if (label === "Premium") return <Badge className="text-[10px] px-1.5 py-0 bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">{label} · {pct}%</Badge>;
+  if (label === "Grátis") return <Badge className="text-[10px] px-1.5 py-0 bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-100">{label} · {pct}%</Badge>;
+  return <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{label} · {pct}%</Badge>;
+};
+
 type StatusFilter = "all" | "active" | "paused";
 type StockFilter = "all" | "in_stock" | "low" | "out";
 type SortBy = "sold" | "price_desc" | "price_asc" | "title";
@@ -371,8 +379,8 @@ export default function MLProdutos() {
                               const marginColor = marginPct >= 70 ? "text-emerald-600" : marginPct >= 50 ? "text-amber-600" : "text-red-600";
                               return (
                                 <>
-                                  <TableCell className="text-left text-xs text-muted-foreground">
-                                    {getListingLabel(item.listing_type_id)} · {(commRate * 100).toFixed(1)}%
+                                  <TableCell className="text-left">
+                                    {listingBadge(item.listing_type_id, commRate)}
                                   </TableCell>
                                   <TableCell className="text-right text-sm text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
                                   <TableCell className="text-right">
@@ -448,8 +456,8 @@ export default function MLProdutos() {
                                               const marginColor = marginPct >= 70 ? "text-emerald-600" : marginPct >= 50 ? "text-amber-600" : "text-red-600";
                                               return (
                                                 <>
-                                                  <TableCell className="py-2 text-xs text-left text-muted-foreground">
-                                                    {getListingLabel(item.listing_type_id)} · {(commRate * 100).toFixed(1)}%
+                                                  <TableCell className="py-2 text-left">
+                                                    {listingBadge(item.listing_type_id, commRate)}
                                                   </TableCell>
                                                   <TableCell className="py-2 text-xs text-right text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
                                                   <TableCell className="py-2 text-right">
