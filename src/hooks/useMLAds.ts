@@ -150,19 +150,18 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
       setLoading(false);
     }
   }, [connected, user, storeId, stores, effectiveDateFrom, effectiveDateTo]);
-  // Auto-fetch on mount and when params change
+  // Auto-fetch on mount and when params change — skip if cache is still fresh
   useEffect(() => {
     const cached = adsCache.get(cacheKey);
     const cacheValid = !!(cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS);
     if (cacheValid) {
-      // Restore from cache immediately — no loading flash
+      // Restore from cache immediately — no loading flash, no background refetch
       setRealData(cached);
       setIsRealData(true);
-    } else {
-      setRealData(null);
-      setIsRealData(false);
+      return;
     }
-    // Always refresh in background (skips loading if cache was valid)
+    setRealData(null);
+    setIsRealData(false);
     fetchRealData();
   }, [fetchRealData, cacheKey]);
 
