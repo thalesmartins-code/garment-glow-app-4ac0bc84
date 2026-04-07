@@ -1,4 +1,4 @@
-import { Gavel, Package, ShoppingBag, Store, ShoppingCart, CircleDot, Home, BarChart3, SportShoe } from "lucide-react";
+import { Award, Package, ShoppingBag, Store, ShoppingCart, CircleDot, Home, BarChart3, SportShoe } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface MarketplaceBrand {
@@ -19,7 +19,7 @@ export const MARKETPLACE_BRANDS: MarketplaceBrand[] = [
   {
     id: "mercado-livre",
     name: "Mercado Livre",
-    icon: Gavel,
+    icon: Award,
     gradient: "from-[#e6b422] to-[#c9981a]",
     badge: "bg-[#e6b422]/10 text-[#b8911a] border-[#e6b422]/30",
   },
