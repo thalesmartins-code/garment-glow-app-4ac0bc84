@@ -447,7 +447,6 @@ export default function MLProdutos() {
                                             <TableCell className="py-2 text-xs text-right">{currencyFmt(v.price)}</TableCell>
                                             {columnView === "estoque" ? (
                                               <>
-                                                <TableCell className="py-2 text-xs text-right text-muted-foreground italic">—</TableCell>
                                                 <TableCell className="py-2 text-center">
                                                   <div className="flex flex-col items-center gap-0.5">
                                                     <span className={`text-xs font-semibold ${v.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
@@ -456,18 +455,16 @@ export default function MLProdutos() {
                                                     {stockBadge(v.available_quantity)}
                                                   </div>
                                                 </TableCell>
-                                                
                                               </>
                                             ) : (() => {
                                               const commRate = getCommissionRate(item.listing_type_id);
                                               const commPerUnit = Math.round(v.price * commRate * 100) / 100;
                                               const netPerUnit = Math.round((v.price - commPerUnit) * 100) / 100;
                                               const marginPct = v.price > 0 ? Math.round((netPerUnit / v.price) * 1000) / 10 : 0;
-                                              const vRevenue = v.sold_quantity * v.price;
-                                              const totalNet = Math.round(netPerUnit * v.sold_quantity * 100) / 100;
                                               const marginColor = marginPct >= 70 ? "text-emerald-600" : marginPct >= 50 ? "text-amber-600" : "text-red-600";
                                               return (
                                                 <>
+                                                  <TableCell className="py-2 text-xs text-right text-muted-foreground italic">—</TableCell>
                                                   <TableCell className="py-2 text-left">
                                                     {listingBadge(item.listing_type_id, commRate)}
                                                   </TableCell>
@@ -475,7 +472,6 @@ export default function MLProdutos() {
                                                   <TableCell className="py-2 text-right">
                                                     <span className={`text-xs font-bold ${marginColor}`}>{marginPct.toFixed(1)}%</span>
                                                   </TableCell>
-                                                  
                                                 </>
                                               );
                                             })()}
