@@ -531,12 +531,9 @@ export default function MLProdutos() {
                             {columnView === "estoque" ? (
                               <>
                                 <TableCell className="text-center">
-                                  <div className="flex flex-col items-center gap-0.5">
-                                    <span className={`text-sm font-semibold ${item.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
-                                      {item.available_quantity}
-                                    </span>
-                                    {stockBadge(item.available_quantity)}
-                                  </div>
+                                  <span className={`text-sm font-semibold ${item.available_quantity === 0 ? "text-destructive" : "text-foreground"}`}>
+                                    {item.available_quantity}
+                                  </span>
                                 </TableCell>
                                 <TableCell className="text-center">
                                   {item.logistic_type ? (
