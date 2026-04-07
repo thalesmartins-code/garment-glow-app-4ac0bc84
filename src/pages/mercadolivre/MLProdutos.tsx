@@ -639,25 +639,17 @@ export default function MLProdutos() {
 
       {/* ═══════════════════ ABA RELATÓRIOS ═══════════════════ */}
       <TabsContent value="relatorios" className="space-y-5 mt-0">
-        <Tabs defaultValue="ranking" className="space-y-4">
-          <TabsList className="h-8">
-            <TabsTrigger value="ranking" className="text-xs px-3 h-7">Ranking de Anúncios</TabsTrigger>
-            <TabsTrigger value="marca" className="text-xs px-3 h-7">Análise por Marca</TabsTrigger>
-            <TabsTrigger value="abc" className="text-xs px-3 h-7">Curva ABC</TabsTrigger>
-          </TabsList>
-
-          {/* ── Sub-aba Ranking ── */}
-          <TabsContent value="ranking" className="mt-0 space-y-4">
-            {/* KPIs + Filter */}
-            <div className="flex items-end gap-3">
-              <div className="grid grid-cols-3 gap-3 flex-1">
-                <KPICard title="Unidades Vendidas" value={String(rankingKPIs.totalUnits)} icon={<TrendingUp className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
-                <KPICard title="Receita Total" value={currencyFmt(rankingKPIs.totalRev)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-success/10 text-success" />
-                <KPICard title="Ticket Médio" value={currencyFmt(rankingKPIs.avgTicket)} icon={<Tag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" />
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
+        <Tabs defaultValue="ranking" className="space-y-4" onValueChange={(v) => setReportTab(v)}>
+          <div className="flex items-center justify-between gap-3">
+            <TabsList className="h-8">
+              <TabsTrigger value="ranking" className="text-xs px-3 h-7">Ranking de Anúncios</TabsTrigger>
+              <TabsTrigger value="marca" className="text-xs px-3 h-7">Análise por Marca</TabsTrigger>
+              <TabsTrigger value="abc" className="text-xs px-3 h-7">Curva ABC</TabsTrigger>
+            </TabsList>
+            {reportTab === "ranking" && (
+              <div className="flex items-center gap-2">
                 <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
-                  <SelectTrigger className="w-44 h-9 text-sm"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
+                  <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as marcas</SelectItem>
                     {brands.map((b) => (
@@ -666,9 +658,19 @@ export default function MLProdutos() {
                   </SelectContent>
                 </Select>
                 {rankingBrandFilter !== "all" && (
-                  <Button variant="ghost" size="sm" className="h-9 text-xs px-2" onClick={() => setRankingBrandFilter("all")}>✕</Button>
+                  <Button variant="ghost" size="sm" className="h-8 text-xs px-2" onClick={() => setRankingBrandFilter("all")}>✕</Button>
                 )}
               </div>
+            )}
+          </div>
+
+          {/* ── Sub-aba Ranking ── */}
+          <TabsContent value="ranking" className="mt-0 space-y-4">
+            {/* KPIs */}
+            <div className="grid grid-cols-3 gap-3">
+              <KPICard title="Unidades Vendidas" value={String(rankingKPIs.totalUnits)} icon={<TrendingUp className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
+              <KPICard title="Receita Total" value={currencyFmt(rankingKPIs.totalRev)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-success/10 text-success" />
+              <KPICard title="Ticket Médio" value={currencyFmt(rankingKPIs.avgTicket)} icon={<Tag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" />
             </div>
 
             <Card>
