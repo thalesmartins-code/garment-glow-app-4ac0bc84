@@ -122,9 +122,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     // 2. Persist to Supabase
     if (!user) return;
     const row = targetToRow(user.id, target);
-    const { error } = await supabase
-      .from("ml_targets")
-      .upsert(row, { onConflict: "user_id,seller_id,marketplace_id,year,month" });
+    const { error } = await (supabase
+      .from("ml_targets" as any)
+      .upsert(row as any, { onConflict: "user_id,seller_id,marketplace_id,year,month" }) as any);
 
     if (error) {
       console.error("SettingsContext: failed to save target to Supabase", error.message);
