@@ -121,6 +121,7 @@ export default function MLProdutos() {
         if (stockFilter === "low" && !(item.available_quantity > 0 && item.available_quantity <= 5)) return false;
         if (stockFilter === "in_stock" && item.available_quantity === 0) return false;
         if (brandFilter !== "all" && (item.brand || "") !== brandFilter) return false;
+        if (hideOutOfStock && item.available_quantity === 0) return false;
         return true;
       })
       .sort((a, b) => {
