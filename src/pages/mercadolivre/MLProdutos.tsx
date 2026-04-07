@@ -375,7 +375,6 @@ export default function MLProdutos() {
                                     {getListingLabel(item.listing_type_id)} · {(commRate * 100).toFixed(1)}%
                                   </TableCell>
                                   <TableCell className="text-right text-sm text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
-                                  <TableCell className="text-right text-sm font-medium font-mono">{currencyFmt(netPerUnit)}</TableCell>
                                   <TableCell className="text-right">
                                     <span className={`text-sm font-bold ${marginColor}`}>{marginPct.toFixed(1)}%</span>
                                   </TableCell>
