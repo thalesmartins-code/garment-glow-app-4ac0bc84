@@ -1005,7 +1005,6 @@ export default function MLProdutos() {
                                 "border-destructive text-destructive"
                               }>{r.curve}</Badge>
                             </TableCell>
-                            </TableCell>
                             <TableCell className="p-2">
                               {r.thumbnail ? (
                                 <img src={r.thumbnail.replace("http://", "https://")} alt="" className="w-10 h-10 rounded object-cover" loading="lazy" />
