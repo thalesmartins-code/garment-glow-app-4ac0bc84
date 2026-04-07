@@ -286,8 +286,7 @@ export default function MLAnuncios() {
           <div className="px-4 pt-4 pb-3">
             <span className="text-sm font-medium text-foreground">Funil de Conversão</span>
           </div>
-            </CardTitle>
-          </CardHeader>
+          
           <CardContent className="space-y-3">
             <ResponsiveContainer width="100%" height={160}>
               <FunnelChart>
