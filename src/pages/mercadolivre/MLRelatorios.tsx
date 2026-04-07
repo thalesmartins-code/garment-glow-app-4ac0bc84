@@ -1,728 +1,735 @@
+import { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BarChart3, FileText, TrendingDown, DollarSign, ArrowUpDown, Trophy, MapPin, CalendarRange, Circle, Clock3 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Clock3, MapPin, CreditCard, TrendingUp, GitMerge, Info } from "lucide-react";
 import { BrazilHeatMap } from "@/components/mercadolivre/BrazilHeatMap";
-import { HourlyStackedBars } from "@/components/mercadolivre/HourlyStackedBars";
-import { HourlyRadar } from "@/components/mercadolivre/HourlyRadar";
-import { HourlyBubbleChart } from "@/components/mercadolivre/HourlyBubbleChart";
-import { HourlySalesTable } from "@/components/mercadolivre/HourlySalesTable";
-import { getMarketplaceHourlyData, getAllMarketplaceMockHourly } from "@/data/marketplaceMockData";
-import { motion } from "framer-motion";
+import { useMLStore } from "@/contexts/MLStoreContext";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, ComposedChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  LineChart, Line, PieChart, Pie, Cell, FunnelChart, Funnel, LabelList,
+  AreaChart, Area,
 } from "recharts";
-import { getMarketplaceDailyData, getMarketplaceProducts } from "@/data/marketplaceMockData";
-import { useMemo } from "react";
 
-const MARKETPLACES = [
-  { key: "mercado-livre", name: "Mercado Livre", color: "#e6b422" },
-  { key: "amazon", name: "Amazon", color: "#FF9900" },
-  { key: "shopee", name: "Shopee", color: "#EE4D2D" },
-  { key: "magalu", name: "Magalu", color: "#0086FF" },
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const currencyFmt = (v: number) =>
+  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+
+const pctFmt = (v: number) => `${v.toFixed(1)}%`;
+
+const BRAND_COLORS = {
+  primary: "#e6b422",
+  blue: "#3b82f6",
+  green: "#22c55e",
+  red: "#ef4444",
+  purple: "#a855f7",
+  orange: "#f97316",
+  cyan: "#06b6d4",
+};
+
+// Typical Brazilian e-commerce state distribution (% of orders)
+const STATE_DIST: { uf: string; name: string; pct: number }[] = [
+  { uf: "SP", name: "São Paulo",            pct: 30.2 },
+  { uf: "RJ", name: "Rio de Janeiro",       pct: 12.8 },
+  { uf: "MG", name: "Minas Gerais",         pct: 10.5 },
+  { uf: "RS", name: "Rio Grande do Sul",    pct:  6.4 },
+  { uf: "PR", name: "Paraná",               pct:  6.1 },
+  { uf: "BA", name: "Bahia",                pct:  4.9 },
+  { uf: "SC", name: "Santa Catarina",       pct:  4.3 },
+  { uf: "GO", name: "Goiás",                pct:  3.1 },
+  { uf: "PE", name: "Pernambuco",           pct:  2.9 },
+  { uf: "CE", name: "Ceará",                pct:  2.7 },
+  { uf: "DF", name: "Distrito Federal",     pct:  2.2 },
+  { uf: "ES", name: "Espírito Santo",       pct:  1.8 },
+  { uf: "MT", name: "Mato Grosso",          pct:  1.3 },
+  { uf: "PA", name: "Pará",                 pct:  1.2 },
+  { uf: "MA", name: "Maranhão",             pct:  0.9 },
+  { uf: "AM", name: "Amazonas",             pct:  0.7 },
+  { uf: "MS", name: "Mato Grosso do Sul",   pct:  0.7 },
+  { uf: "PI", name: "Piauí",               pct:  0.5 },
+  { uf: "RN", name: "Rio Grande do Norte",  pct:  0.5 },
+  { uf: "PB", name: "Paraíba",             pct:  0.5 },
+  { uf: "AL", name: "Alagoas",              pct:  0.4 },
+  { uf: "SE", name: "Sergipe",              pct:  0.4 },
+  { uf: "TO", name: "Tocantins",            pct:  0.3 },
+  { uf: "RO", name: "Rondônia",            pct:  0.3 },
+  { uf: "AC", name: "Acre",                pct:  0.1 },
+  { uf: "AP", name: "Amapá",              pct:  0.1 },
+  { uf: "RR", name: "Roraima",             pct:  0.1 },
 ];
 
-const PIE_COLORS = ["#e6b422", "#FF9900", "#EE4D2D", "#0086FF"];
-
-const BRAZILIAN_STATES = [
-  { uf: "SP", name: "São Paulo" }, { uf: "RJ", name: "Rio de Janeiro" },
-  { uf: "MG", name: "Minas Gerais" }, { uf: "RS", name: "Rio Grande do Sul" },
-  { uf: "PR", name: "Paraná" }, { uf: "BA", name: "Bahia" },
-  { uf: "SC", name: "Santa Catarina" }, { uf: "GO", name: "Goiás" },
-  { uf: "PE", name: "Pernambuco" }, { uf: "CE", name: "Ceará" },
-  { uf: "DF", name: "Distrito Federal" }, { uf: "PA", name: "Pará" },
-  { uf: "ES", name: "Espírito Santo" }, { uf: "MT", name: "Mato Grosso" },
-  { uf: "MA", name: "Maranhão" }, { uf: "AM", name: "Amazonas" },
-  { uf: "MS", name: "Mato Grosso do Sul" }, { uf: "PI", name: "Piauí" },
-  { uf: "RN", name: "Rio Grande do Norte" }, { uf: "PB", name: "Paraíba" },
-  { uf: "AL", name: "Alagoas" }, { uf: "SE", name: "Sergipe" },
-  { uf: "TO", name: "Tocantins" }, { uf: "RO", name: "Rondônia" },
-  { uf: "AC", name: "Acre" }, { uf: "AP", name: "Amapá" },
-  { uf: "RR", name: "Roraima" },
+// Typical ML Brazil payment distribution
+const PAYMENT_DIST = [
+  { name: "Cartão parcelado", pct: 38.0, color: BRAND_COLORS.blue },
+  { name: "Cartão à vista",   pct: 22.0, color: BRAND_COLORS.cyan },
+  { name: "Pix",              pct: 23.0, color: BRAND_COLORS.green },
+  { name: "Boleto",           pct: 13.0, color: BRAND_COLORS.orange },
+  { name: "Outros",           pct:  4.0, color: BRAND_COLORS.purple },
 ];
 
-function useReportData() {
-  return useMemo(() => {
-    // Comparativo
-    const comparativo = MARKETPLACES.map((mp) => {
-      const daily = getMarketplaceDailyData(mp.key, 30);
-      const totalRevenue = daily.reduce((s, d) => s + d.total, 0);
-      const totalOrders = daily.reduce((s, d) => s + d.qty, 0);
-      const totalApproved = daily.reduce((s, d) => s + d.approved, 0);
-      const totalCancelled = daily.reduce((s, d) => s + d.cancelled, 0);
-      const avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-      const approvalRate = totalRevenue > 0 ? (totalApproved / totalRevenue) * 100 : 0;
-      return {
-        name: mp.name, key: mp.key, color: mp.color,
-        revenue: totalRevenue, orders: totalOrders, avgTicket, approvalRate, cancelled: totalCancelled,
-      };
-    });
+// ─── Simulated note ──────────────────────────────────────────────────────────
 
-    // Curva ABC
-    const allProducts = MARKETPLACES.flatMap((mp) =>
-      getMarketplaceProducts(mp.key).map((p) => ({ ...p, marketplace: mp.name, mpColor: mp.color, mpKey: mp.key }))
-    );
-    allProducts.sort((a, b) => b.revenue - a.revenue);
-    const totalProductRevenue = allProducts.reduce((s, p) => s + p.revenue, 0);
-    let cumulative = 0;
-    const abcProducts = allProducts.map((p) => {
-      cumulative += p.revenue;
-      const pct = (cumulative / totalProductRevenue) * 100;
-      const classification = pct <= 80 ? "A" : pct <= 95 ? "B" : "C";
-      return { ...p, cumulativePct: pct, classification };
-    });
-
-    const paretoData = abcProducts.slice(0, 20).map((p) => ({
-      name: p.title.length > 25 ? p.title.slice(0, 22) + "…" : p.title,
-      revenue: Math.round(p.revenue),
-      cumPct: Math.round(p.cumulativePct * 10) / 10,
-    }));
-
-    // Cancelamento
-    const cancelData = comparativo.map((mp) => ({
-      name: mp.name, color: mp.color, orders: mp.orders, cancelled: mp.cancelled,
-      rate: mp.orders > 0 ? (mp.cancelled / mp.orders) * 100 : 0,
-    }));
-
-    // Margem
-    const commissions: Record<string, number> = { "mercado-livre": 0.16, amazon: 0.15, shopee: 0.20, magalu: 0.18 };
-    const marginData = comparativo.map((mp) => {
-      const commission = commissions[mp.key] || 0.15;
-      const grossRevenue = mp.revenue;
-      const commissionValue = grossRevenue * commission;
-      const freight = mp.orders * 12;
-      const netRevenue = grossRevenue - commissionValue - freight;
-      const marginPct = grossRevenue > 0 ? (netRevenue / grossRevenue) * 100 : 0;
-      return {
-        name: mp.name, color: mp.color,
-        grossRevenue: Math.round(grossRevenue), commission: Math.round(commissionValue),
-        commissionPct: Math.round(commission * 100), freight: Math.round(freight),
-        netRevenue: Math.round(netRevenue), marginPct: Math.round(marginPct * 10) / 10,
-      };
-    });
-
-    // === TOP PRODUCTS RANKING (cross-marketplace) ===
-    // Group by title (simulating SKU grouping)
-    const productMap = new Map<string, { title: string; totalRevenue: number; totalQty: number; marketplaces: Set<string>; thumbnail: string | null }>();
-    allProducts.forEach((p) => {
-      const key = p.title;
-      const existing = productMap.get(key);
-      if (existing) {
-        existing.totalRevenue += p.revenue;
-        existing.totalQty += p.qty_sold;
-        existing.marketplaces.add(p.marketplace);
-      } else {
-        productMap.set(key, {
-          title: p.title, totalRevenue: p.revenue, totalQty: p.qty_sold,
-          marketplaces: new Set([p.marketplace]), thumbnail: p.thumbnail,
-        });
-      }
-    });
-    const topProducts = Array.from(productMap.values())
-      .sort((a, b) => b.totalRevenue - a.totalRevenue)
-      .slice(0, 20)
-      .map((p, i) => ({ ...p, rank: i + 1, marketplaces: Array.from(p.marketplaces) }));
-
-    const topProductsChartData = topProducts.slice(0, 10).map((p) => ({
-      name: p.title.length > 20 ? p.title.slice(0, 17) + "…" : p.title,
-      revenue: Math.round(p.totalRevenue),
-      qty: p.totalQty,
-    }));
-
-    // === GEOGRAPHIC DATA (simulated by state) ===
-    const seed = (s: string) => {
-      let h = 0;
-      for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-      return Math.abs(h);
-    };
-    const totalOrdersAll = comparativo.reduce((s, mp) => s + mp.orders, 0);
-    const stateWeights: Record<string, number> = {
-      SP: 0.32, RJ: 0.12, MG: 0.10, RS: 0.07, PR: 0.07, BA: 0.05, SC: 0.05,
-      GO: 0.04, PE: 0.04, CE: 0.03, DF: 0.03, PA: 0.02, ES: 0.02, MT: 0.02, MA: 0.02,
-      AM: 0.01, MS: 0.015, PI: 0.01, RN: 0.01, PB: 0.01, AL: 0.008, SE: 0.006,
-      TO: 0.008, RO: 0.007, AC: 0.003, AP: 0.003, RR: 0.003,
-    };
-    const geoData = BRAZILIAN_STATES.map((st) => {
-      const weight = stateWeights[st.uf] || 0.01;
-      const orders = Math.round(totalOrdersAll * weight * (0.8 + (seed(st.uf) % 40) / 100));
-      const revenue = orders * (80 + (seed(st.uf + "r") % 120));
-      const avgTicket = orders > 0 ? revenue / orders : 0;
-      return { ...st, orders, revenue, avgTicket, pct: 0 };
-    }).sort((a, b) => b.orders - a.orders);
-    const totalGeoOrders = geoData.reduce((s, g) => s + g.orders, 0);
-    geoData.forEach((g) => { g.pct = totalGeoOrders > 0 ? (g.orders / totalGeoOrders) * 100 : 0; });
-
-    // === SEASONALITY YoY (simulated monthly) ===
-    const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-    const seasonalityData = MONTHS.map((month, i) => {
-      const baseCurrentYear = 80000 + (seed(month) % 60000);
-      const basePrevYear = baseCurrentYear * (0.7 + (seed(month + "prev") % 30) / 100);
-      const seasonalMultiplier = [0.8, 0.75, 0.85, 0.9, 0.95, 1.0, 0.9, 0.95, 1.0, 1.05, 1.3, 1.5][i];
-      const currentYear = Math.round(baseCurrentYear * seasonalMultiplier);
-      const prevYear = Math.round(basePrevYear * seasonalMultiplier * 0.9);
-      const growth = prevYear > 0 ? ((currentYear - prevYear) / prevYear) * 100 : 0;
-      return { month, currentYear, prevYear, growth: Math.round(growth * 10) / 10 };
-    });
-
-    return { comparativo, abcProducts, paretoData, cancelData, marginData, topProducts, topProductsChartData, geoData, seasonalityData };
-  }, []);
+function SimNote({ text }: { text: string }) {
+  return (
+    <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+      <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+      <span>{text}</span>
+    </div>
+  );
 }
 
-const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const fmtNum = (v: number) => v.toLocaleString("pt-BR");
+// ─── Empty state ─────────────────────────────────────────────────────────────
 
-export default function MLRelatorios() {
-  const { comparativo, abcProducts, paretoData, cancelData, marginData, topProducts, topProductsChartData, geoData, seasonalityData } = useReportData();
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
+      <TrendingUp className="w-8 h-8 opacity-30" />
+      <p className="text-sm">{message}</p>
+    </div>
+  );
+}
+
+// ─── Custom tooltip helpers ───────────────────────────────────────────────────
+
+function CurrencyTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border bg-background px-3 py-2 shadow-lg text-xs space-y-1">
+      <p className="font-medium text-foreground">{label}</p>
+      {payload.map((p: any) => (
+        <p key={p.dataKey} style={{ color: p.color }}>
+          {p.name}: {p.name?.toLowerCase().includes("pedido") ? p.value : currencyFmt(p.value)}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+// ─── Tab: Venda por Hora ──────────────────────────────────────────────────────
+
+function TabHorario() {
+  const { salesCache } = useMLStore();
+  const { daily, hourly } = salesCache;
+
+  const { hourlyAgg, peakHour, totalRevenue } = useMemo(() => {
+    const buckets = Array.from({ length: 24 }, (_, h) => ({
+      label: `${String(h).padStart(2, "0")}h`,
+      hour: h,
+      receita: 0,
+      pedidos: 0,
+    }));
+
+    hourly.forEach((r) => {
+      const b = buckets[r.hour];
+      if (!b) return;
+      b.receita += r.total;
+      b.pedidos += r.qty;
+    });
+
+    const totalRevenue = buckets.reduce((s, b) => s + b.receita, 0);
+    const peak = buckets.reduce((best, b) => (b.receita > best.receita ? b : best), buckets[0]);
+    return { hourlyAgg: buckets, peakHour: peak, totalRevenue };
+  }, [hourly]);
+
+  // Day-of-week × hour heatmap from daily+hourly breakdown
+  const dayHeatmap = useMemo(() => {
+    const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+    const matrix: { day: string; hour: number; value: number }[] = [];
+    // Group hourly by weekday
+    const byDayHour = new Map<string, number>();
+    hourly.forEach((r) => {
+      const dow = new Date(r.date + "T12:00:00").getDay();
+      const key = `${dow}:${r.hour}`;
+      byDayHour.set(key, (byDayHour.get(key) ?? 0) + r.total);
+    });
+    let maxVal = 0;
+    for (let d = 0; d < 7; d++) {
+      for (let h = 0; h < 24; h++) {
+        const v = byDayHour.get(`${d}:${h}`) ?? 0;
+        if (v > maxVal) maxVal = v;
+        matrix.push({ day: days[d], hour: h, value: v });
+      }
+    }
+    return { matrix, maxVal, days };
+  }, [hourly]);
+
+  if (hourly.length === 0) {
+    return <EmptyState message="Selecione o período 'Hoje' ou um dia específico para ver vendas por hora." />;
+  }
+
+  const topHours = [...hourlyAgg]
+    .filter((b) => b.pedidos > 0)
+    .sort((a, b) => b.receita - a.receita)
+    .slice(0, 5);
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-        <div className="flex items-center gap-3 mb-1">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <FileText className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Relatórios</h1>
-            <p className="text-sm text-muted-foreground">Análises essenciais para vendedores multi-marketplace</p>
-          </div>
+    <div className="space-y-5">
+      {/* Summary chips */}
+      <div className="flex flex-wrap gap-3">
+        <div className="rounded-xl border bg-card px-4 py-2.5 text-center min-w-[120px]">
+          <p className="text-xs text-muted-foreground">Pico de receita</p>
+          <p className="text-lg font-bold text-primary">{peakHour.label}</p>
+          <p className="text-xs text-muted-foreground">{currencyFmt(peakHour.receita)}</p>
         </div>
-      </motion.div>
+        <div className="rounded-xl border bg-card px-4 py-2.5 text-center min-w-[120px]">
+          <p className="text-xs text-muted-foreground">Total pedidos</p>
+          <p className="text-lg font-bold">{hourlyAgg.reduce((s, b) => s + b.pedidos, 0).toLocaleString("pt-BR")}</p>
+        </div>
+        <div className="rounded-xl border bg-card px-4 py-2.5 text-center min-w-[120px]">
+          <p className="text-xs text-muted-foreground">Receita total</p>
+          <p className="text-lg font-bold">{currencyFmt(totalRevenue)}</p>
+        </div>
+      </div>
 
-      <Tabs defaultValue="comparativo" className="space-y-4">
-        <TabsList className="flex flex-wrap h-auto gap-1 max-w-5xl">
-          <TabsTrigger value="comparativo" className="gap-1.5 text-xs sm:text-sm">
-            <BarChart3 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Comparativo</span>
-          </TabsTrigger>
-          <TabsTrigger value="ranking" className="gap-1.5 text-xs sm:text-sm">
-            <Trophy className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Ranking</span>
-          </TabsTrigger>
-          <TabsTrigger value="abc" className="gap-1.5 text-xs sm:text-sm">
-            <ArrowUpDown className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Curva ABC</span>
-          </TabsTrigger>
-          <TabsTrigger value="cancelamento" className="gap-1.5 text-xs sm:text-sm">
-            <TrendingDown className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Cancelamento</span>
-          </TabsTrigger>
-          <TabsTrigger value="margem" className="gap-1.5 text-xs sm:text-sm">
-            <DollarSign className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Margem</span>
-          </TabsTrigger>
-          <TabsTrigger value="geo" className="gap-1.5 text-xs sm:text-sm">
-            <MapPin className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Geográfico</span>
-          </TabsTrigger>
-          <TabsTrigger value="sazonalidade" className="gap-1.5 text-xs sm:text-sm">
-            <CalendarRange className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Sazonalidade</span>
-          </TabsTrigger>
-          <TabsTrigger value="bars" className="gap-1.5 text-xs sm:text-sm">
-            <BarChart3 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Barras/Hora</span>
-          </TabsTrigger>
-          <TabsTrigger value="radar" className="gap-1.5 text-xs sm:text-sm">
-            <FileText className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Radar/Hora</span>
-          </TabsTrigger>
-          <TabsTrigger value="bubble" className="gap-1.5 text-xs sm:text-sm">
-            <Circle className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Bubble/Hora</span>
-          </TabsTrigger>
-          <TabsTrigger value="vendahora" className="gap-1.5 text-xs sm:text-sm">
-            <Clock3 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Venda/Hora</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Bar chart */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Receita por hora do dia</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={hourlyAgg} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={2} />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={48} />
+              <Tooltip content={<CurrencyTooltip />} />
+              <Bar dataKey="receita" name="Receita" fill={BRAND_COLORS.primary} radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
-        {/* === COMPARATIVO === */}
-        <TabsContent value="comparativo">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Comparativo entre Marketplaces</CardTitle>
-                <CardDescription>Receita, pedidos e ticket médio — últimos 30 dias</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[350px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={comparativo} barGap={8}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                      <YAxis yAxisId="left" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                      <YAxis yAxisId="right" orientation="right" tickFormatter={(v) => `${v}`} />
-                      <Tooltip formatter={(value: number, name: string) => name === "Receita" ? fmt(value) : fmtNum(value)} />
-                      <Legend />
-                      <Bar yAxisId="left" dataKey="revenue" name="Receita" radius={[4, 4, 0, 0]}>
-                        {comparativo.map((e, i) => (<Cell key={i} fill={e.color} />))}
-                      </Bar>
-                      <Bar yAxisId="right" dataKey="orders" name="Pedidos" radius={[4, 4, 0, 0]} fill="hsl(var(--muted-foreground))" opacity={0.5} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Marketplace</TableHead>
-                      <TableHead className="text-right">Receita</TableHead>
-                      <TableHead className="text-right">Pedidos</TableHead>
-                      <TableHead className="text-right">Ticket Médio</TableHead>
-                      <TableHead className="text-right">Taxa Aprovação</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {comparativo.map((mp) => (
-                      <TableRow key={mp.key}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: mp.color }} />
-                            {mp.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">{fmt(mp.revenue)}</TableCell>
-                        <TableCell className="text-right">{fmtNum(mp.orders)}</TableCell>
-                        <TableCell className="text-right">{fmt(mp.avgTicket)}</TableCell>
-                        <TableCell className="text-right">{mp.approvalRate.toFixed(1)}%</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
+      {/* Pedidos bar */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Pedidos por hora</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={hourlyAgg} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={2} />
+              <YAxis tick={{ fontSize: 10 }} width={32} />
+              <Tooltip content={<CurrencyTooltip />} />
+              <Bar dataKey="pedidos" name="Pedidos" fill={BRAND_COLORS.blue} radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
-        {/* === RANKING DE PRODUTOS === */}
-        <TabsContent value="ranking">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Ranking de Produtos</CardTitle>
-                <CardDescription>Top produtos por receita consolidada — todos os marketplaces</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={topProductsChartData} layout="vertical" barSize={20}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis type="number" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                      <YAxis type="category" dataKey="name" width={160} tick={{ fontSize: 11 }} />
-                      <Tooltip formatter={(v: number, name: string) => name === "Receita" ? fmt(v) : fmtNum(v)} />
-                      <Legend />
-                      <Bar dataKey="revenue" name="Receita" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">#</TableHead>
-                      <TableHead>Produto</TableHead>
-                      <TableHead>Marketplaces</TableHead>
-                      <TableHead className="text-right">Qtd Vendida</TableHead>
-                      <TableHead className="text-right">Receita Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {topProducts.map((p) => (
-                      <TableRow key={p.rank}>
-                        <TableCell>
-                          <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
-                            p.rank <= 3 ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
-                          }`}>
-                            {p.rank}
-                          </span>
-                        </TableCell>
-                        <TableCell className="font-medium max-w-[250px] truncate">
-                          <div className="flex items-center gap-2">
-                            {p.thumbnail && <img src={p.thumbnail} alt="" className="w-8 h-8 rounded object-cover" />}
-                            <span className="truncate">{p.title}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1 flex-wrap">
-                            {p.marketplaces.map((mp) => {
-                              const mpData = MARKETPLACES.find((m) => m.name === mp);
-                              return (
-                                <span key={mp} className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: `${mpData?.color}20`, color: mpData?.color }}>
-                                  {mp}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">{fmtNum(p.totalQty)}</TableCell>
-                        <TableCell className="text-right font-medium">{fmt(p.totalRevenue)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
-
-        {/* === CURVA ABC === */}
-        <TabsContent value="abc">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Curva ABC de Produtos</CardTitle>
-                <CardDescription>Classificação 80/20 por receita — todos os marketplaces</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[350px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={paretoData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={80} />
-                      <YAxis yAxisId="left" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                      <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                      <Tooltip formatter={(value: number, name: string) => name === "Receita" ? fmt(value) : `${value}%`} />
-                      <Legend />
-                      <Bar yAxisId="left" dataKey="revenue" name="Receita" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                      <Line yAxisId="right" dataKey="cumPct" name="% Acumulado" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3 }} />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  {(["A", "B", "C"] as const).map((cls) => {
-                    const items = abcProducts.filter((p) => p.classification === cls);
-                    const rev = items.reduce((s, p) => s + p.revenue, 0);
-                    const bg = cls === "A" ? "bg-green-500/10 text-green-700" : cls === "B" ? "bg-yellow-500/10 text-yellow-700" : "bg-red-500/10 text-red-700";
-                    return (
-                      <div key={cls} className={`rounded-lg p-4 ${bg}`}>
-                        <div className="text-2xl font-bold">Classe {cls}</div>
-                        <div className="text-sm">{items.length} produtos · {fmt(rev)}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Classe</TableHead>
-                      <TableHead>Produto</TableHead>
-                      <TableHead>Marketplace</TableHead>
-                      <TableHead className="text-right">Qtd</TableHead>
-                      <TableHead className="text-right">Receita</TableHead>
-                      <TableHead className="text-right">% Acum.</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {abcProducts.slice(0, 25).map((p, i) => (
-                      <TableRow key={i}>
-                        <TableCell>
-                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                            p.classification === "A" ? "bg-green-500/20 text-green-700" :
-                            p.classification === "B" ? "bg-yellow-500/20 text-yellow-700" :
-                            "bg-red-500/20 text-red-700"
-                          }`}>{p.classification}</span>
-                        </TableCell>
-                        <TableCell className="font-medium max-w-[200px] truncate">{p.title}</TableCell>
-                        <TableCell>
-                          <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: `${p.mpColor}20`, color: p.mpColor }}>
-                            {p.marketplace}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">{p.qty_sold}</TableCell>
-                        <TableCell className="text-right">{fmt(p.revenue)}</TableCell>
-                        <TableCell className="text-right">{p.cumulativePct.toFixed(1)}%</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
-
-        {/* === CANCELAMENTO === */}
-        <TabsContent value="cancelamento">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Taxa de Cancelamento</CardTitle>
-                <CardDescription>Pedidos cancelados vs. total — últimos 30 dias</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={cancelData} layout="vertical" barSize={24}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                        <XAxis type="number" tickFormatter={(v) => `${v}%`} domain={[0, "auto"]} />
-                        <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 12 }} />
-                        <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} />
-                        <Bar dataKey="rate" name="Taxa Cancel." radius={[0, 4, 4, 0]}>
-                          {cancelData.map((e, i) => (<Cell key={i} fill={e.color} />))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
+      {/* Top 5 hours */}
+      {topHours.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Top horários</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {topHours.map((h, i) => {
+                const pct = totalRevenue > 0 ? (h.receita / totalRevenue) * 100 : 0;
+                return (
+                  <div key={h.hour} className="flex items-center gap-3">
+                    <span className="text-xs font-medium w-5 text-muted-foreground">#{i + 1}</span>
+                    <span className="text-sm font-semibold w-10">{h.label}</span>
+                    <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs text-muted-foreground w-10 text-right">{pctFmt(pct)}</span>
+                    <span className="text-xs font-medium w-24 text-right">{currencyFmt(h.receita)}</span>
+                    <span className="text-xs text-muted-foreground">{h.pedidos} ped.</span>
                   </div>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={cancelData} dataKey="cancelled" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, value }) => `${name}: ${value}`}>
-                          {cancelData.map((e, i) => (<Cell key={i} fill={e.color} />))}
-                        </Pie>
-                        <Tooltip formatter={(v: number) => fmtNum(v)} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// ─── Tab: Ticket Médio ────────────────────────────────────────────────────────
+
+function TabTicket() {
+  const { salesCache } = useMLStore();
+  const { daily } = salesCache;
+
+  const chartData = useMemo(() => {
+    return [...daily]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((d) => ({
+        date: d.date.slice(5), // MM-DD
+        ticket: d.qty > 0 ? Math.round(d.approved / d.qty) : 0,
+        pedidos: d.qty,
+        receita: d.approved,
+      }))
+      .filter((d) => d.pedidos > 0);
+  }, [daily]);
+
+  const stats = useMemo(() => {
+    if (chartData.length === 0) return null;
+    const tickets = chartData.map((d) => d.ticket);
+    const avg = tickets.reduce((s, v) => s + v, 0) / tickets.length;
+    const max = Math.max(...tickets);
+    const min = Math.min(...tickets);
+    const bestDay = chartData.find((d) => d.ticket === max);
+    const worstDay = chartData.find((d) => d.ticket === min);
+    // Simple linear trend
+    const n = chartData.length;
+    const sumX = (n * (n - 1)) / 2;
+    const sumY = tickets.reduce((s, v) => s + v, 0);
+    const sumXY = tickets.reduce((s, v, i) => s + i * v, 0);
+    const sumX2 = tickets.reduce((s, _, i) => s + i * i, 0);
+    const slope = n > 1 ? (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX) : 0;
+    return { avg, max, min, bestDay, worstDay, trend: slope };
+  }, [chartData]);
+
+  if (daily.length === 0) {
+    return <EmptyState message="Nenhum dado de vendas disponível para o período selecionado." />;
+  }
+
+  return (
+    <div className="space-y-5">
+      {stats && (
+        <div className="flex flex-wrap gap-3">
+          {[
+            { label: "Ticket médio", value: currencyFmt(stats.avg), color: "text-foreground" },
+            { label: "Melhor dia", value: currencyFmt(stats.max), sub: stats.bestDay?.date, color: "text-emerald-600" },
+            { label: "Pior dia",   value: currencyFmt(stats.min), sub: stats.worstDay?.date, color: "text-red-500" },
+            {
+              label: "Tendência",
+              value: stats.trend > 0 ? `+${currencyFmt(stats.trend)}/dia` : `${currencyFmt(stats.trend)}/dia`,
+              color: stats.trend >= 0 ? "text-emerald-600" : "text-red-500",
+            },
+          ].map((s) => (
+            <div key={s.label} className="rounded-xl border bg-card px-4 py-2.5 min-w-[130px]">
+              <p className="text-xs text-muted-foreground">{s.label}</p>
+              <p className={`text-lg font-bold ${s.color}`}>{s.value}</p>
+              {s.sub && <p className="text-xs text-muted-foreground">{s.sub}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Evolução do ticket médio</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={240}>
+            <AreaChart data={chartData} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
+              <defs>
+                <linearGradient id="ticketGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={BRAND_COLORS.primary} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={BRAND_COLORS.primary} stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `R$${v}`} width={56} />
+              <Tooltip
+                formatter={(v: any) => [currencyFmt(v), "Ticket médio"]}
+                labelFormatter={(l) => `Data: ${l}`}
+                contentStyle={{ fontSize: 12 }}
+              />
+              <Area
+                type="monotone"
+                dataKey="ticket"
+                stroke={BRAND_COLORS.primary}
+                strokeWidth={2}
+                fill="url(#ticketGrad)"
+                dot={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Receita aprovada por dia</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={chartData} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={48} />
+              <Tooltip content={<CurrencyTooltip />} />
+              <Bar dataKey="receita" name="Receita" fill={BRAND_COLORS.blue} radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ─── Tab: Venda por Estado ────────────────────────────────────────────────────
+
+function TabEstado() {
+  const { salesCache } = useMLStore();
+  const { daily } = salesCache;
+
+  const stateData = useMemo(() => {
+    const totalRevenue = daily.reduce((s, d) => s + d.approved, 0);
+    const totalOrders = daily.reduce((s, d) => s + d.qty, 0);
+    return STATE_DIST.map((s) => {
+      const revenue = totalRevenue * (s.pct / 100);
+      const orders = Math.round(totalOrders * (s.pct / 100));
+      return {
+        uf: s.uf,
+        name: s.name,
+        revenue,
+        orders,
+        avgTicket: orders > 0 ? revenue / orders : 0,
+        pct: s.pct,
+      };
+    }).sort((a, b) => b.revenue - a.revenue);
+  }, [daily]);
+
+  const hasAny = daily.some((d) => d.approved > 0);
+
+  if (!hasAny) {
+    return <EmptyState message="Nenhum dado de vendas disponível para o período selecionado." />;
+  }
+
+  const top10 = stateData.slice(0, 10);
+
+  return (
+    <div className="space-y-5">
+      <SimNote text="Distribuição estimada com base em padrões típicos do e-commerce brasileiro. A API de Pedidos (Orders) é necessária para dados reais por estado." />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Mapa do Brasil</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BrazilHeatMap data={stateData} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Top 10 estados por receita</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {top10.map((s, i) => (
+                <div key={s.uf} className="flex items-center gap-2">
+                  <span className="text-[10px] font-medium w-4 text-muted-foreground text-right">{i + 1}</span>
+                  <Badge variant="outline" className="text-[10px] w-8 justify-center font-mono font-semibold">{s.uf}</Badge>
+                  <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${(s.pct / top10[0].pct) * 100}%`, background: BRAND_COLORS.primary }}
+                    />
                   </div>
+                  <span className="text-[10px] text-muted-foreground w-8 text-right">{pctFmt(s.pct)}</span>
+                  <span className="text-xs font-medium w-24 text-right tabular-nums">{currencyFmt(s.revenue)}</span>
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Marketplace</TableHead>
-                      <TableHead className="text-right">Pedidos</TableHead>
-                      <TableHead className="text-right">Cancelados</TableHead>
-                      <TableHead className="text-right">Taxa</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {cancelData.map((mp, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: mp.color }} />
-                            {mp.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">{fmtNum(mp.orders)}</TableCell>
-                        <TableCell className="text-right">{fmtNum(mp.cancelled)}</TableCell>
-                        <TableCell className="text-right">{mp.rate.toFixed(1)}%</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
-
-        {/* === MARGEM === */}
-        <TabsContent value="margem">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Margem por Marketplace</CardTitle>
-                <CardDescription>Receita líquida após comissões e frete estimados</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[350px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={marginData} barGap={4}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                      <YAxis tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip formatter={(v: number) => fmt(v)} />
-                      <Legend />
-                      <Bar dataKey="grossRevenue" name="Receita Bruta" stackId="a" fill="hsl(var(--primary))" />
-                      <Bar dataKey="commission" name="Comissão" stackId="b" fill="hsl(var(--destructive))" opacity={0.7} />
-                      <Bar dataKey="freight" name="Frete" stackId="b" fill="hsl(var(--muted-foreground))" opacity={0.5} />
-                      <Bar dataKey="netRevenue" name="Receita Líquida" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Marketplace</TableHead>
-                      <TableHead className="text-right">Receita Bruta</TableHead>
-                      <TableHead className="text-right">Comissão</TableHead>
-                      <TableHead className="text-right">Frete</TableHead>
-                      <TableHead className="text-right">Receita Líquida</TableHead>
-                      <TableHead className="text-right">Margem</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {marginData.map((mp, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: mp.color }} />
-                            {mp.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">{fmt(mp.grossRevenue)}</TableCell>
-                        <TableCell className="text-right text-destructive">{fmt(mp.commission)} ({mp.commissionPct}%)</TableCell>
-                        <TableCell className="text-right text-muted-foreground">{fmt(mp.freight)}</TableCell>
-                        <TableCell className="text-right font-medium">{fmt(mp.netRevenue)}</TableCell>
-                        <TableCell className="text-right font-bold">
-                          <span className={mp.marginPct >= 60 ? "text-green-600" : mp.marginPct >= 50 ? "text-yellow-600" : "text-red-600"}>
-                            {mp.marginPct}%
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
-
-        {/* === GEOGRÁFICO === */}
-        <TabsContent value="geo">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Mapa de Calor — Brasil</CardTitle>
-                <CardDescription>Concentração de pedidos por estado — todos os marketplaces</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <BrazilHeatMap data={geoData} />
-              </CardContent>
-            </Card>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {geoData.slice(0, 5).map((st) => (
-                <Card key={st.uf}>
-                  <CardContent className="pt-4 pb-3 px-4">
-                    <p className="text-xs text-muted-foreground">{st.name}</p>
-                    <p className="text-lg font-bold">{fmtNum(st.orders)} pedidos</p>
-                    <p className="text-xs text-muted-foreground">{fmt(st.revenue)} · {st.pct.toFixed(1)}%</p>
-                  </CardContent>
-                </Card>
               ))}
             </div>
-          </motion.div>
-        </TabsContent>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* === SAZONALIDADE === */}
-        <TabsContent value="sazonalidade">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sazonalidade (YoY)</CardTitle>
-                <CardDescription>Comparação mês a mês — Ano atual vs. ano anterior</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[380px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={seasonalityData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                      <YAxis yAxisId="left" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                      <YAxis yAxisId="right" orientation="right" tickFormatter={(v) => `${v}%`} />
-                      <Tooltip
-                        formatter={(value: number, name: string) => {
-                          if (name === "Crescimento") return `${value}%`;
-                          return fmt(value);
-                        }}
-                      />
-                      <Legend />
-                      <Bar yAxisId="left" dataKey="currentYear" name="Ano Atual" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} opacity={0.9} />
-                      <Bar yAxisId="left" dataKey="prevYear" name="Ano Anterior" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} opacity={0.4} />
-                      <Line yAxisId="right" dataKey="growth" name="Crescimento" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3 }} />
-                    </ComposedChart>
-                  </ResponsiveContainer>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Receita por estado — top 10</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart
+              data={top10.map((s) => ({ name: s.uf, receita: Math.round(s.revenue), pedidos: s.orders }))}
+              margin={{ top: 4, right: 8, left: 8, bottom: 4 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={48} />
+              <Tooltip content={<CurrencyTooltip />} />
+              <Bar dataKey="receita" name="Receita" fill={BRAND_COLORS.primary} radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ─── Tab: Forma de Pagamento ──────────────────────────────────────────────────
+
+function TabPagamento() {
+  const { salesCache } = useMLStore();
+  const { daily } = salesCache;
+
+  const payData = useMemo(() => {
+    const totalRevenue = daily.reduce((s, d) => s + d.approved, 0);
+    const totalOrders = daily.reduce((s, d) => s + d.qty, 0);
+    return PAYMENT_DIST.map((p) => ({
+      ...p,
+      revenue: totalRevenue * (p.pct / 100),
+      orders: Math.round(totalOrders * (p.pct / 100)),
+    }));
+  }, [daily]);
+
+  const hasAny = daily.some((d) => d.approved > 0);
+
+  if (!hasAny) {
+    return <EmptyState message="Nenhum dado de vendas disponível para o período selecionado." />;
+  }
+
+  const totalRevenue = payData.reduce((s, p) => s + p.revenue, 0);
+
+  return (
+    <div className="space-y-5">
+      <SimNote text="Distribuição estimada com base em padrões típicos do Mercado Livre Brasil. A API de Pagamentos é necessária para dados reais por forma de pagamento." />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Participação na receita</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={payData}
+                  dataKey="revenue"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={85}
+                  paddingAngle={2}
+                  label={({ name, pct }) => `${name} ${pctFmt(pct)}`}
+                  labelLine={false}
+                >
+                  {payData.map((p) => (
+                    <Cell key={p.name} fill={p.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(v: any, name: any) => [currencyFmt(v), name]}
+                  contentStyle={{ fontSize: 12 }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Detalhamento</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {payData.map((p) => (
+                <div key={p.name} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: p.color }} />
+                      {p.name}
+                    </span>
+                    <span className="font-medium">{pctFmt(p.pct)}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${p.pct}%`, background: p.color }} />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>{p.orders.toLocaleString("pt-BR")} pedidos</span>
+                    <span>{currencyFmt(p.revenue)}</span>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {(() => {
-                const totalCurrent = seasonalityData.reduce((s, m) => s + m.currentYear, 0);
-                const totalPrev = seasonalityData.reduce((s, m) => s + m.prevYear, 0);
-                const avgGrowth = totalPrev > 0 ? ((totalCurrent - totalPrev) / totalPrev) * 100 : 0;
-                const bestMonth = [...seasonalityData].sort((a, b) => b.currentYear - a.currentYear)[0];
-                const bestGrowthMonth = [...seasonalityData].sort((a, b) => b.growth - a.growth)[0];
-                return [
-                  { label: "Receita Ano Atual", value: fmt(totalCurrent), sub: `vs. ${fmt(totalPrev)} anterior` },
-                  { label: "Melhor Mês", value: bestMonth.month, sub: fmt(bestMonth.currentYear) },
-                  { label: "Maior Crescimento", value: `${bestGrowthMonth.growth}%`, sub: `em ${bestGrowthMonth.month}` },
-                ].map((card, i) => (
-                  <Card key={i}>
-                    <CardContent className="pt-6">
-                      <p className="text-sm text-muted-foreground">{card.label}</p>
-                      <p className="text-2xl font-bold mt-1">{card.value}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{card.sub}</p>
-                    </CardContent>
-                  </Card>
-                ));
-              })()}
+              ))}
             </div>
-            <Card>
-              <CardContent className="pt-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Mês</TableHead>
-                      <TableHead className="text-right">Ano Atual</TableHead>
-                      <TableHead className="text-right">Ano Anterior</TableHead>
-                      <TableHead className="text-right">Crescimento</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {seasonalityData.map((m, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">{m.month}</TableCell>
-                        <TableCell className="text-right">{fmt(m.currentYear)}</TableCell>
-                        <TableCell className="text-right text-muted-foreground">{fmt(m.prevYear)}</TableCell>
-                        <TableCell className="text-right">
-                          <span className={m.growth >= 0 ? "text-green-600" : "text-red-600"}>
-                            {m.growth >= 0 ? "+" : ""}{m.growth}%
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* === BARRAS/HORA === */}
-        <TabsContent value="bars">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-            <HourlyStackedBars />
-          </motion.div>
-        </TabsContent>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Receita por forma de pagamento</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart
+              data={payData.map((p) => ({ name: p.name, receita: Math.round(p.revenue) }))}
+              layout="vertical"
+              margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={110} />
+              <Tooltip content={<CurrencyTooltip />} />
+              <Bar dataKey="receita" name="Receita" radius={[0, 3, 3, 0]}>
+                {payData.map((p) => <Cell key={p.name} fill={p.color} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
-        {/* === RADAR/HORA === */}
-        <TabsContent value="radar">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-            <HourlyRadar />
-          </motion.div>
-        </TabsContent>
+// ─── Tab: Funil de Conversão ──────────────────────────────────────────────────
 
-        {/* === BUBBLE/HORA === */}
-        <TabsContent value="bubble">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-            <HourlyBubbleChart />
-          </motion.div>
-        </TabsContent>
+function TabFunil() {
+  const { salesCache } = useMLStore();
+  const { daily } = salesCache;
 
-        {/* === VENDA/HORA === */}
-        <TabsContent value="vendahora">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-            <HourlySalesTable hourly={getAllMarketplaceMockHourly()} />
-          </motion.div>
-        </TabsContent>
+  const { funnelData, conversionStats } = useMemo(() => {
+    const visits = daily.reduce((s, d) => s + d.unique_visits, 0);
+    const buyers = daily.reduce((s, d) => s + d.unique_buyers, 0);
+    const orders = daily.reduce((s, d) => s + d.qty, 0);
+    const revenue = daily.reduce((s, d) => s + d.approved, 0);
+
+    const funnelData = [
+      { name: "Visitas únicas",    value: visits,  fill: BRAND_COLORS.blue },
+      { name: "Compradores únicos",value: buyers,  fill: BRAND_COLORS.primary },
+      { name: "Pedidos",           value: orders,  fill: BRAND_COLORS.green },
+    ].filter((f) => f.value > 0);
+
+    const conversionStats = {
+      visitToBuyer: visits > 0 ? (buyers / visits) * 100 : 0,
+      buyerToOrder: buyers > 0 ? (orders / buyers) * 100 : 0,
+      visitToOrder: visits > 0 ? (orders / visits) * 100 : 0,
+      avgTicket:    orders > 0 ? revenue / orders : 0,
+      revenue,
+    };
+
+    return { funnelData, conversionStats };
+  }, [daily]);
+
+  const hasAny = daily.some((d) => d.unique_visits > 0 || d.qty > 0);
+
+  if (!hasAny) {
+    return <EmptyState message="Nenhum dado de conversão disponível para o período selecionado." />;
+  }
+
+  // Daily conversion rate chart
+  const dailyConv = useMemo(() =>
+    [...daily]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((d) => ({
+        date: d.date.slice(5),
+        taxa: d.unique_visits > 0 ? parseFloat(((d.unique_buyers / d.unique_visits) * 100).toFixed(2)) : 0,
+        visitas: d.unique_visits,
+      }))
+      .filter((d) => d.visitas > 0),
+    [daily]);
+
+  return (
+    <div className="space-y-5">
+      {/* KPI chips */}
+      <div className="flex flex-wrap gap-3">
+        {[
+          { label: "Visita → Comprador", value: pctFmt(conversionStats.visitToBuyer), color: "text-blue-600" },
+          { label: "Comprador → Pedido", value: pctFmt(conversionStats.buyerToOrder), color: "text-primary" },
+          { label: "Tx. geral (visit→ped)", value: pctFmt(conversionStats.visitToOrder), color: "text-emerald-600" },
+          { label: "Ticket médio", value: currencyFmt(conversionStats.avgTicket), color: "text-foreground" },
+        ].map((s) => (
+          <div key={s.label} className="rounded-xl border bg-card px-4 py-2.5 min-w-[150px]">
+            <p className="text-xs text-muted-foreground">{s.label}</p>
+            <p className={`text-lg font-bold ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Funnel */}
+        {funnelData.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Funil de conversão</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 py-2">
+                {funnelData.map((step, i) => {
+                  const pct = i === 0 ? 100 : (step.value / funnelData[0].value) * 100;
+                  return (
+                    <div key={step.name} className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-medium">{step.name}</span>
+                        <span className="font-bold">{step.value.toLocaleString("pt-BR")}</span>
+                      </div>
+                      <div className="h-7 rounded-lg overflow-hidden bg-muted flex items-center">
+                        <div
+                          className="h-full rounded-lg flex items-center justify-end pr-2 transition-all"
+                          style={{ width: `${Math.max(pct, 4)}%`, background: step.fill }}
+                        >
+                          {pct > 15 && <span className="text-[10px] text-white font-medium">{pctFmt(pct)}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Daily conversion rate */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Taxa de conversão diária</CardTitle>
+            <CardDescription className="text-xs">Compradores únicos / Visitas únicas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={dailyConv} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
+                <defs>
+                  <linearGradient id="convGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={BRAND_COLORS.green} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={BRAND_COLORS.green} stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${v}%`} width={36} />
+                <Tooltip
+                  formatter={(v: any) => [`${v}%`, "Taxa de conversão"]}
+                  contentStyle={{ fontSize: 12 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="taxa"
+                  stroke={BRAND_COLORS.green}
+                  strokeWidth={2}
+                  fill="url(#convGrad)"
+                  dot={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ─── Root ─────────────────────────────────────────────────────────────────────
+
+export default function MLRelatorios() {
+  return (
+    <div className="space-y-4">
+      <Tabs defaultValue="horario">
+        <TabsList className="flex-wrap h-auto gap-1">
+          <TabsTrigger value="horario"    className="gap-1.5 text-xs"><Clock3   className="w-3.5 h-3.5" />Venda por Hora</TabsTrigger>
+          <TabsTrigger value="ticket"     className="gap-1.5 text-xs"><TrendingUp className="w-3.5 h-3.5" />Ticket M&eacute;dio</TabsTrigger>
+          <TabsTrigger value="estado"     className="gap-1.5 text-xs"><MapPin   className="w-3.5 h-3.5" />Por Estado</TabsTrigger>
+          <TabsTrigger value="pagamento"  className="gap-1.5 text-xs"><CreditCard className="w-3.5 h-3.5" />Pagamento</TabsTrigger>
+          <TabsTrigger value="funil"      className="gap-1.5 text-xs"><GitMerge className="w-3.5 h-3.5" />Funil</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="horario"   className="mt-4"><TabHorario  /></TabsContent>
+        <TabsContent value="ticket"    className="mt-4"><TabTicket   /></TabsContent>
+        <TabsContent value="estado"    className="mt-4"><TabEstado   /></TabsContent>
+        <TabsContent value="pagamento" className="mt-4"><TabPagamento /></TabsContent>
+        <TabsContent value="funil"     className="mt-4"><TabFunil    /></TabsContent>
       </Tabs>
     </div>
   );
