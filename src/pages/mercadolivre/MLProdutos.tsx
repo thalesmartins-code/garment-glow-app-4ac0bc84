@@ -753,34 +753,10 @@ export default function MLProdutos() {
               const topSold = [...brandData].sort((a, b) => b.qty - a.qty)[0];
               return (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-xs text-muted-foreground">Maior Receita</p>
-                      <p className="text-lg font-bold truncate">{topRevenue.brand}</p>
-                      <p className="text-xs text-primary font-semibold">{currencyFmt(topRevenue.revenue)}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-xs text-muted-foreground">Maior Ticket Médio</p>
-                      <p className="text-lg font-bold truncate">{topTicket?.brand ?? "—"}</p>
-                      <p className="text-xs text-primary font-semibold">{topTicket ? currencyFmt(topTicket.avgTicket) : "—"}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-xs text-muted-foreground">Mais Vendida (un.)</p>
-                      <p className="text-lg font-bold truncate">{topSold.brand}</p>
-                      <p className="text-xs text-primary font-semibold">{topSold.qty} unidades</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <p className="text-xs text-muted-foreground">Mais Anúncios</p>
-                      <p className="text-lg font-bold truncate">{topAds.brand}</p>
-                      <p className="text-xs text-primary font-semibold">{topAds.ads} anúncios</p>
-                    </CardContent>
-                  </Card>
+                  <KPICard title="Maior Receita" value={topRevenue.brand} description={currencyFmt(topRevenue.revenue)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-success/10 text-success" />
+                  <KPICard title="Maior Ticket Médio" value={topTicket?.brand ?? "—"} description={topTicket ? currencyFmt(topTicket.avgTicket) : "—"} icon={<Tag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" />
+                  <KPICard title="Mais Vendida (un.)" value={topSold.brand} description={`${topSold.qty} unidades`} icon={<TrendingUp className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
+                  <KPICard title="Mais Anúncios" value={topAds.brand} description={`${topAds.ads} anúncios`} icon={<ShoppingBag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" />
                 </div>
               );
             })()}
