@@ -101,6 +101,8 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
           ...item,
           has_variations: item.has_variations ?? false,
           variations: item.variations ?? [],
+          logistic_type: item.logistic_type ?? null,
+          free_shipping: item.free_shipping ?? false,
         }));
 
         allItems = [...allItems, ...rawItems];
