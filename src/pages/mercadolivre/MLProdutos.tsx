@@ -395,7 +395,7 @@ export default function MLProdutos() {
                           {/* Expanded variations sub-table */}
                           {item.has_variations && isExpanded && (
                             <TableRow key={`${item.id}-variations`}>
-                              <TableCell colSpan={columnView === "estoque" ? 10 : 13} className="p-0 bg-muted/20 border-b">
+                              <TableCell colSpan={columnView === "estoque" ? 10 : 11} className="p-0 bg-muted/20 border-b">
                                 <div className="px-10 py-3">
                                   <Table>
                                     <TableHeader>
