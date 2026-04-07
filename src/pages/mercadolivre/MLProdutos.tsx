@@ -401,7 +401,7 @@ export default function MLProdutos() {
                               <TableRow key={v.variation_id} className="bg-muted/20 border-b border-border/30">
                                 <TableCell className="p-1 pl-3" />
                                 <TableCell className="p-2">
-                                  {v.picture_ids?.[0] ? (
+                                  {v.picture_id ? (
                                     <div className="w-10 h-10 rounded bg-muted/40 flex items-center justify-center">
                                       <Package className="w-3 h-3 text-muted-foreground" />
                                     </div>
