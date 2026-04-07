@@ -648,27 +648,27 @@ export default function MLProdutos() {
 
           {/* ── Sub-aba Ranking ── */}
           <TabsContent value="ranking" className="mt-0 space-y-4">
-            {/* Filter */}
-            <div className="flex items-center gap-3">
-              <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
-                <SelectTrigger className="w-48 h-9 text-sm"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as marcas</SelectItem>
-                  {brands.map((b) => (
-                    <SelectItem key={b} value={b}>{b}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {rankingBrandFilter !== "all" && (
-                <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => setRankingBrandFilter("all")}>Limpar filtro</Button>
-              )}
-            </div>
-
-            {/* KPIs */}
-            <div className="grid grid-cols-3 gap-3">
-              <KPICard title="Unidades Vendidas" value={String(rankingKPIs.totalUnits)} icon={<TrendingUp className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
-              <KPICard title="Receita Total" value={currencyFmt(rankingKPIs.totalRev)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-success/10 text-success" />
-              <KPICard title="Ticket Médio" value={currencyFmt(rankingKPIs.avgTicket)} icon={<Tag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" />
+            {/* KPIs + Filter */}
+            <div className="flex items-end gap-3">
+              <div className="grid grid-cols-3 gap-3 flex-1">
+                <KPICard title="Unidades Vendidas" value={String(rankingKPIs.totalUnits)} icon={<TrendingUp className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
+                <KPICard title="Receita Total" value={currencyFmt(rankingKPIs.totalRev)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-success/10 text-success" />
+                <KPICard title="Ticket Médio" value={currencyFmt(rankingKPIs.avgTicket)} icon={<Tag className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" />
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
+                  <SelectTrigger className="w-44 h-9 text-sm"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as marcas</SelectItem>
+                    {brands.map((b) => (
+                      <SelectItem key={b} value={b}>{b}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {rankingBrandFilter !== "all" && (
+                  <Button variant="ghost" size="sm" className="h-9 text-xs px-2" onClick={() => setRankingBrandFilter("all")}>✕</Button>
+                )}
+              </div>
             </div>
 
             <Card>
