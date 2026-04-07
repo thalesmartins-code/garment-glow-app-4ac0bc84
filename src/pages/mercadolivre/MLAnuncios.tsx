@@ -391,7 +391,7 @@ export default function MLAnuncios() {
               </TabsList>
             </Tabs>
           </div>
-        </CardHeader>
+        </div>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
