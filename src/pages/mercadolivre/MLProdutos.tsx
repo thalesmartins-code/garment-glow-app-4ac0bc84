@@ -183,15 +183,21 @@ export default function MLProdutos() {
           revenue: rev,
           stock: i.available_quantity,
           share: totalRev > 0 ? (rev / totalRev) * 100 : 0,
+          brand: i.brand || "Sem marca",
         };
       });
   }, [items]);
 
+  const rankingFiltered = useMemo(() => {
+    if (rankingBrandFilter === "all") return rankingAll;
+    return rankingAll.filter((r) => r.brand === rankingBrandFilter);
+  }, [rankingAll, rankingBrandFilter]);
+
   const rankingKPIs = useMemo(() => {
-    const totalUnits = rankingAll.reduce((s, r) => s + r.sold, 0);
-    const totalRev = rankingAll.reduce((s, r) => s + r.revenue, 0);
+    const totalUnits = rankingFiltered.reduce((s, r) => s + r.sold, 0);
+    const totalRev = rankingFiltered.reduce((s, r) => s + r.revenue, 0);
     return { totalUnits, totalRev, avgTicket: totalUnits > 0 ? totalRev / totalUnits : 0 };
-  }, [rankingAll]);
+  }, [rankingFiltered]);
 
   const brandData = useMemo(() => {
     const map = new Map<string, { revenue: number; qty: number; ads: number; stock: number }>();
@@ -211,6 +217,24 @@ export default function MLProdutos() {
   }, [items]);
 
   const maxBrandRevenue = brandData.length > 0 ? brandData[0].revenue : 1;
+
+  // Chart data for brand analysis
+  const CHART_COLORS = [
+    "hsl(var(--primary))", "hsl(var(--accent))", "hsl(25,95%,53%)", "hsl(270,70%,50%)",
+    "hsl(160,60%,45%)", "hsl(340,75%,55%)", "hsl(200,70%,50%)", "hsl(45,93%,47%)",
+    "hsl(120,40%,55%)", "hsl(0,65%,50%)",
+  ];
+
+  const brandBarData = useMemo(() =>
+    brandData.slice(0, 10).map((b) => ({ name: b.brand, revenue: b.revenue })),
+  [brandData]);
+
+  const brandPieData = useMemo(() => {
+    const top8 = brandData.slice(0, 8).map((b) => ({ name: b.brand, value: b.qty }));
+    const othersQty = brandData.slice(8).reduce((s, b) => s + b.qty, 0);
+    if (othersQty > 0) top8.push({ name: "Outros", value: othersQty });
+    return top8;
+  }, [brandData]);
 
   if (hasToken === false) {
     return (
