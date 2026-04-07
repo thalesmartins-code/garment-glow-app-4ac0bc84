@@ -73,11 +73,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
 
     setLoadingTargets(true);
-    supabase
-      .from("ml_targets")
+    (supabase
+      .from("ml_targets" as any)
       .select("*")
-      .eq("user_id", user.id)
-      .then(({ data, error }) => {
+      .eq("user_id", user.id) as any)
+      .then(({ data, error }: any) => {
         if (error) {
           console.error("SettingsContext: failed to load targets from Supabase", error.message);
           return;
@@ -85,7 +85,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (data && data.length > 0) {
           const remote = data.map(rowToTarget);
           setTargets(remote);
-          // Sync local cache
           try { localStorage.setItem(STORAGE_KEY, JSON.stringify(remote)); } catch {}
         }
       })
@@ -123,9 +122,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     // 2. Persist to Supabase
     if (!user) return;
     const row = targetToRow(user.id, target);
-    const { error } = await supabase
-      .from("ml_targets")
-      .upsert(row, { onConflict: "user_id,seller_id,marketplace_id,year,month" });
+    const { error } = await (supabase
+      .from("ml_targets" as any)
+      .upsert(row as any, { onConflict: "user_id,seller_id,marketplace_id,year,month" }) as any);
 
     if (error) {
       console.error("SettingsContext: failed to save target to Supabase", error.message);
@@ -138,11 +137,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
     // 2. Delete from Supabase
     if (!user) return;
-    const { error } = await supabase
-      .from("ml_targets")
+    const { error } = await (supabase
+      .from("ml_targets" as any)
       .delete()
       .eq("user_id", user.id)
-      .eq("target_id", id);
+      .eq("target_id", id) as any);
 
     if (error) {
       console.error("SettingsContext: failed to delete target from Supabase", error.message);
@@ -158,9 +157,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       const target = prev.find((t) => t.id === targetId);
       if (target && user) {
         const row = targetToRow(user.id, { ...target, pmtDistribution: distribution });
-        supabase.from("ml_targets")
-          .upsert(row, { onConflict: "user_id,seller_id,marketplace_id,year,month" })
-          .then(({ error }) => {
+        (supabase.from("ml_targets" as any)
+          .upsert(row as any, { onConflict: "user_id,seller_id,marketplace_id,year,month" }) as any)
+          .then(({ error }: any) => {
             if (error) console.error("updatePMTDistribution supabase error:", error.message);
           });
       }
@@ -176,9 +175,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       const target = prev.find((t) => t.id === targetId);
       if (target && user) {
         const row = targetToRow(user.id, { ...target, targetValue: value });
-        supabase.from("ml_targets")
-          .upsert(row, { onConflict: "user_id,seller_id,marketplace_id,year,month" })
-          .then(({ error }) => {
+        (supabase.from("ml_targets" as any)
+          .upsert(row as any, { onConflict: "user_id,seller_id,marketplace_id,year,month" }) as any)
+          .then(({ error }: any) => {
             if (error) console.error("updateTargetValue supabase error:", error.message);
           });
       }

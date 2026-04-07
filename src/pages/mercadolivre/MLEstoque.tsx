@@ -726,26 +726,31 @@ export default function MLEstoque() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <KPICard title="Total SKUs" value={numFmt(items.length)} icon={<Boxes className="w-4 h-4" />} />
-        <KPICard title="Valor em Estoque" value={currencyFmt(totalStockValue)} icon={<DollarSign className="w-4 h-4" />} />
+        <KPICard title="Total SKUs" value={numFmt(items.length)} icon={<Boxes className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-primary/10 text-primary" />
+        <KPICard title="Valor em Estoque" value={currencyFmt(totalStockValue)} icon={<DollarSign className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-accent/10 text-accent" />
         <KPICard
           title="Cobertura Média"
           value={stats.avg_coverage != null ? `${stats.avg_coverage} dias` : "—"}
           icon={<Clock className="w-4 h-4" />}
+          variant="minimal" size="compact" iconClassName="bg-success/10 text-success"
         />
         <KPICard
           title="Em Ruptura"
           value={numFmt(stats.ruptura)}
           icon={<PackageX className="w-4 h-4" />}
-          variant={stats.ruptura > 0 ? "danger" : undefined}
+          variant={stats.ruptura > 0 ? "danger" : "minimal"}
+          size="compact"
+          iconClassName="bg-destructive/10 text-destructive"
         />
         <KPICard
           title="Crítico + Alerta"
           value={numFmt(stats.critico + stats.alerta)}
           icon={<AlertTriangle className="w-4 h-4" />}
-          variant={stats.critico + stats.alerta > 0 ? "warning" : undefined}
+          variant={stats.critico + stats.alerta > 0 ? "warning" : "minimal"}
+          size="compact"
+          iconClassName="bg-warning/10 text-warning"
         />
-        <KPICard title="Sem Giro" value={numFmt(stats.sem_giro)} icon={<Activity className="w-4 h-4" />} />
+        <KPICard title="Sem Giro" value={numFmt(stats.sem_giro)} icon={<Activity className="w-4 h-4" />} variant="minimal" size="compact" iconClassName="bg-muted text-muted-foreground" />
       </div>
 
       {/* Main Tabs */}
