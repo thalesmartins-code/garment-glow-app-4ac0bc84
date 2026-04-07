@@ -861,6 +861,159 @@ export default function MLProdutos() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* ── Sub-aba Curva ABC ── */}
+          <TabsContent value="abc" className="mt-0 space-y-4">
+            {/* Summary cards */}
+            <div className="grid grid-cols-3 gap-3">
+              <Card className="border-l-4 border-l-emerald-500">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium">Curva A</p>
+                      <p className="text-2xl font-bold text-emerald-600">{abcSummary.A.count}</p>
+                      <p className="text-xs text-muted-foreground">anúncios · {abcSummary.A.pct.toFixed(1)}% da receita</p>
+                    </div>
+                    <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 text-lg px-3">{abcSummary.total > 0 ? ((abcSummary.A.count / abcSummary.total) * 100).toFixed(0) : 0}%</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-amber-500">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium">Curva B</p>
+                      <p className="text-2xl font-bold text-amber-600">{abcSummary.B.count}</p>
+                      <p className="text-xs text-muted-foreground">anúncios · {abcSummary.B.pct.toFixed(1)}% da receita</p>
+                    </div>
+                    <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 text-lg px-3">{abcSummary.total > 0 ? ((abcSummary.B.count / abcSummary.total) * 100).toFixed(0) : 0}%</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-red-500">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium">Curva C</p>
+                      <p className="text-2xl font-bold text-red-600">{abcSummary.C.count}</p>
+                      <p className="text-xs text-muted-foreground">anúncios · {abcSummary.C.pct.toFixed(1)}% da receita</p>
+                    </div>
+                    <Badge className="bg-red-100 text-red-800 hover:bg-red-100 text-lg px-3">{abcSummary.total > 0 ? ((abcSummary.C.count / abcSummary.total) * 100).toFixed(0) : 0}%</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* ABC Chart */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Curva ABC — Receita Acumulada</CardTitle>
+              </CardHeader>
+              <CardContent className="pb-4">
+                {abcChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <ComposedChart data={abcChartData} margin={{ left: 0, right: 16, top: 8, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="abcAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="rank" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} label={{ value: "Anúncios (posição)", position: "insideBottom", offset: -2, fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                      <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} />
+                      <RechartsTooltip
+                        formatter={(value: number, name: string) => [`${value.toFixed(1)}%`, name === "cumPct" ? "Acumulado" : "Participação"]}
+                        labelFormatter={(label) => `Posição ${label}`}
+                        contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                      />
+                      {/* Reference lines for 80% and 95% thresholds */}
+                      <Area type="monotone" dataKey="cumPct" fill="url(#abcAreaGrad)" stroke="none" />
+                      <Line type="monotone" dataKey="cumPct" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="cumPct" />
+                      <Line type="monotone" dataKey="pct" stroke="hsl(var(--accent))" strokeWidth={1.5} dot={false} name="pct" strokeDasharray="4 3" />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">Sem dados</div>
+                )}
+                <div className="flex items-center gap-6 mt-3 text-xs text-muted-foreground justify-center">
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-0.5 bg-primary rounded" /> % Acumulado</div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-0.5 bg-accent rounded" style={{ borderTop: "2px dashed" }} /> % Individual</div>
+                  <div className="flex items-center gap-1.5"><span className="text-emerald-600 font-semibold">A</span> até 80%</div>
+                  <div className="flex items-center gap-1.5"><span className="text-amber-600 font-semibold">B</span> 80–95%</div>
+                  <div className="flex items-center gap-1.5"><span className="text-red-600 font-semibold">C</span> 95–100%</div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ABC Table */}
+            <Card>
+              <CardContent className="p-0">
+                {abcData.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Nenhum dado disponível</p>
+                  </div>
+                ) : (
+                  <div className="max-h-[600px] overflow-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-10 text-center">#</TableHead>
+                          <TableHead className="w-16 text-center">Curva</TableHead>
+                          <TableHead className="w-12"></TableHead>
+                          <TableHead>Anúncio</TableHead>
+                          <TableHead className="text-right w-24">Receita</TableHead>
+                          <TableHead className="text-right w-16">% Ind.</TableHead>
+                          <TableHead className="text-right w-20">% Acum.</TableHead>
+                          <TableHead className="text-right w-20">Vendidos</TableHead>
+                          <TableHead className="text-center w-20">Estoque</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {abcData.map((r) => (
+                          <TableRow key={r.id} className={r.curve === "A" ? "bg-emerald-500/5" : r.curve === "B" ? "bg-amber-500/5" : ""}>
+                            <TableCell className="text-center text-sm font-medium text-muted-foreground">{r.rank}</TableCell>
+                            <TableCell className="text-center">
+                              <Badge className={
+                                r.curve === "A" ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100" :
+                                r.curve === "B" ? "bg-amber-100 text-amber-800 hover:bg-amber-100" :
+                                "bg-red-100 text-red-800 hover:bg-red-100"
+                              }>{r.curve}</Badge>
+                            </TableCell>
+                            <TableCell className="p-2">
+                              {r.thumbnail ? (
+                                <img src={r.thumbnail.replace("http://", "https://")} alt="" className="w-10 h-10 rounded object-cover" loading="lazy" />
+                              ) : (
+                                <div className="w-10 h-10 rounded bg-muted flex items-center justify-center"><Package className="w-4 h-4 text-muted-foreground" /></div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <a href={`https://produto.mercadolivre.com.br/${r.id.replace(/^(MLB)(\d+)$/, "$1-$2")}`} target="_blank" rel="noopener noreferrer" className="text-sm font-medium line-clamp-2 leading-tight hover:underline hover:text-primary transition-colors">
+                                {r.title} <ExternalLink className="w-3 h-3 inline mb-0.5 ml-0.5" />
+                              </a>
+                              <p className="text-xs text-muted-foreground mt-0.5">{r.brand} · {r.id}</p>
+                            </TableCell>
+                            <TableCell className="text-right text-sm font-semibold text-primary">{currencyFmt(r.revenue)}</TableCell>
+                            <TableCell className="text-right text-sm text-muted-foreground">{r.pct.toFixed(1)}%</TableCell>
+                            <TableCell className="text-right text-sm font-medium">{r.cumPct.toFixed(1)}%</TableCell>
+                            <TableCell className="text-right text-sm">{r.sold}</TableCell>
+                            <TableCell className="text-center">
+                              <span className={`text-sm font-semibold ${r.stock === 0 ? "text-destructive" : ""}`}>{r.stock}</span>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+                {abcData.length > 0 && (
+                  <div className="px-4 py-3 border-t text-xs text-muted-foreground">
+                    {abcData.length} anúncios · A: {abcSummary.A.count} · B: {abcSummary.B.count} · C: {abcSummary.C.count}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </TabsContent>
     </Tabs>
