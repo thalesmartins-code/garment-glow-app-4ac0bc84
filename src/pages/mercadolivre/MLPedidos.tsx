@@ -245,10 +245,10 @@ export default function MLPedidos() {
 
       {/* Chart */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Receita — últimos 30 dias</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <div className="px-4 pt-4 pb-3">
+          <span className="text-sm font-medium text-foreground">Receita — últimos 30 dias</span>
+        </div>
+        <CardContent className="px-4 pb-2 pt-0">
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={chartData}>
               <defs>
