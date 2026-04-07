@@ -999,11 +999,12 @@ export default function MLProdutos() {
                           <TableRow key={r.id} className={r.curve === "A" ? "bg-emerald-500/5" : r.curve === "B" ? "bg-amber-500/5" : ""}>
                             <TableCell className="text-center text-sm font-medium text-muted-foreground">{r.rank}</TableCell>
                             <TableCell className="text-center">
-                              <Badge className={
-                                r.curve === "A" ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100" :
-                                r.curve === "B" ? "bg-amber-100 text-amber-800 hover:bg-amber-100" :
-                                "bg-red-100 text-red-800 hover:bg-red-100"
+                              <Badge variant="outline" className={
+                                r.curve === "A" ? "border-emerald-500 text-emerald-600" :
+                                r.curve === "B" ? "border-amber-500 text-amber-600" :
+                                "border-destructive text-destructive"
                               }>{r.curve}</Badge>
+                            </TableCell>
                             </TableCell>
                             <TableCell className="p-2">
                               {r.thumbnail ? (
