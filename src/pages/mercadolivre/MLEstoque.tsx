@@ -165,21 +165,12 @@ function SubTabCobertura({ items, coverageMap, coveragePeriod }: Pick<Relatorios
 
       {/* ── KPI row ── */}
       <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
-        {[
-          { label: "SKUs analisados",   value: String(kpis.total),                          color: "text-foreground" },
-          { label: "Cobertos (OK)",     value: `${kpis.okPct}%`,                            color: "text-emerald-600" },
-          { label: "Média cobertura",   value: kpis.avgDays != null ? `${kpis.avgDays}d` : "—", color: "text-foreground" },
-          { label: "Ruptura",           value: String(kpis.ruptura),                         color: kpis.ruptura > 0 ? "text-red-500" : "text-foreground" },
-          { label: "Crítico + Alerta",  value: String(kpis.critico + kpis.alerta),           color: kpis.critico + kpis.alerta > 0 ? "text-amber-500" : "text-foreground" },
-          { label: "Sem giro",          value: String(kpis.semGiro),                         color: "text-slate-400" },
-        ].map(k => (
-          <Card key={k.label}>
-            <CardContent className="pt-3 pb-2 px-3">
-              <p className="text-[11px] text-muted-foreground leading-tight">{k.label}</p>
-              <p className={`text-xl font-bold tabular-nums mt-0.5 ${k.color}`}>{k.value}</p>
-            </CardContent>
-          </Card>
-        ))}
+        <KPICard title="SKUs analisados" value={String(kpis.total)} variant="minimal" size="compact" icon={<Boxes className="w-4 h-4" />} iconClassName="bg-primary/10 text-primary" />
+        <KPICard title="Cobertos (OK)" value={`${kpis.okPct}%`} variant="minimal" size="compact" icon={<CheckCircle2 className="w-4 h-4" />} iconClassName="bg-success/10 text-success" />
+        <KPICard title="Média cobertura" value={kpis.avgDays != null ? `${kpis.avgDays}d` : "—"} variant="minimal" size="compact" icon={<Clock className="w-4 h-4" />} iconClassName="bg-accent/10 text-accent" />
+        <KPICard title="Ruptura" value={String(kpis.ruptura)} variant="minimal" size="compact" icon={<PackageX className="w-4 h-4" />} iconClassName="bg-destructive/10 text-destructive" />
+        <KPICard title="Crítico + Alerta" value={String(kpis.critico + kpis.alerta)} variant="minimal" size="compact" icon={<AlertTriangle className="w-4 h-4" />} iconClassName="bg-warning/10 text-warning" />
+        <KPICard title="Sem giro" value={String(kpis.semGiro)} variant="minimal" size="compact" icon={<Package className="w-4 h-4" />} iconClassName="bg-muted text-muted-foreground" />
       </div>
 
       {/* ── Distribution + Buckets ── */}
