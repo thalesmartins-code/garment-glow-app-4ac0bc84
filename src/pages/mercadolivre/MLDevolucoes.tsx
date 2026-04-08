@@ -85,7 +85,7 @@ export default function MLDevolucoes() {
   if (!connected) return <NotConnected />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 -mt-8">
 
       <div className="flex items-center justify-between flex-wrap gap-2">
         <MLPageHeader title="Devoluções" lastUpdated={null} />

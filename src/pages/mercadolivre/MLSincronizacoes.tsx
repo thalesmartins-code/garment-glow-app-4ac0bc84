@@ -94,7 +94,7 @@ export default function MLPedidos() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 -mt-8">
       <MLPageHeader title="Sincronizações" />
 
       {/* KPI cards */}

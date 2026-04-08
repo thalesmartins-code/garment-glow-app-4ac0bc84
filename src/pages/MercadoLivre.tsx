@@ -1155,11 +1155,11 @@ export default function MercadoLivre() {
   const chartTitle = showHourlyChart ? `Receita por Hora — ${periodLabel}` : `Receita Diária — ${periodLabel}`;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 -mt-8">
       <Tabs defaultValue="vendas" className="space-y-4">
 
         {/* ── Sticky header: always visible regardless of active tab ── */}
-        <div className="sticky top-0 z-20 -mx-8 -mt-8 px-8 pb-3 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
+        <div className="sticky top-0 z-20 -mx-8 px-8 pb-3 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
       <AnimatePresence>
         {syncProgress && (() => {
           const pct = Math.round((syncProgress.current / syncProgress.total) * 100);
