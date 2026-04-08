@@ -22,7 +22,7 @@ export function LayoutShell({ sidebar, showSellerSwitcher = true, showMarketplac
       {sidebar}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header title={title} subtitle={subtitle} showSellerSwitcher={!hideSwitcher && showSellerSwitcher} showMarketplaceSwitcher={showMarketplaceSwitcher} showSellerMarketplaceBar={!hideSwitcher && showSellerMarketplaceBar} />
-        <main className="flex-1 overflow-auto p-8">
+        <main className="flex-1 overflow-auto px-8 pb-8">
           <Outlet />
         </main>
       </div>
