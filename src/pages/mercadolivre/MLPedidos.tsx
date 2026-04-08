@@ -149,7 +149,7 @@ export default function MLPedidos() {
   return (
     <div className="space-y-6">
 
-      <div className="sticky top-0 z-20 -mx-8 px-8 -mt-6 pb-3 pt-1 bg-background/95 backdrop-blur-sm border-b border-border/40">
+      <div className="sticky top-0 z-20 -mx-8 px-8 pb-3 pt-1 bg-background/95 backdrop-blur-sm border-b border-border/40">
         <div className="flex items-center justify-between gap-4">
           <MLPageHeader title="Pedidos" lastUpdated={null} />
           <div className="flex items-center gap-2">
