@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function CoverageAlerts({ items, coverageMap }: Props) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const critical = items
     .filter((i) => {
