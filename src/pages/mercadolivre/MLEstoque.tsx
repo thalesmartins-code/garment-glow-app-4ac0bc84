@@ -955,15 +955,6 @@ export default function MLEstoque() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="title">Nome A-Z</SelectItem>
-                    <SelectItem value="sold_desc">Mais Vendidos</SelectItem>
-                    <SelectItem value="visits_desc">Maior Visitas</SelectItem>
-                    <SelectItem value="health_asc">Menor Saúde</SelectItem>
-                  </SelectContent>
-                </Select>
                 <label className="flex items-center gap-1.5 cursor-pointer opacity-60 hover:opacity-100 transition-opacity">
                   <Checkbox checked={hideOutOfStock} onCheckedChange={(v) => setHideOutOfStock(!!v)} className="h-3.5 w-3.5" />
                   <span className="text-xs text-muted-foreground whitespace-nowrap">Ocultar sem estoque</span>
