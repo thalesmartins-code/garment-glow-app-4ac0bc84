@@ -356,9 +356,9 @@ function SubTabValorRisco({ items, coverageMap }: Pick<RelatoriosProps, "items" 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <KPICard title="Capital em Ruptura/Crítico" value={currencyFmt(capitalCards.risco)} variant="danger" size="compact" />
-        <KPICard title="Capital Parado (Sem Giro)" value={currencyFmt(capitalCards.parado)} variant="neutral" size="compact" />
-        <KPICard title="Capital Saudável" value={currencyFmt(capitalCards.saudavel)} variant="success" size="compact" />
+        <KPICard title="Capital em Ruptura/Crítico" value={currencyFmt(capitalCards.risco)} variant="minimal" size="compact" icon={<AlertTriangle className="w-4 h-4" />} iconClassName="bg-destructive/10 text-destructive" />
+        <KPICard title="Capital Parado (Sem Giro)" value={currencyFmt(capitalCards.parado)} variant="minimal" size="compact" icon={<Package className="w-4 h-4" />} iconClassName="bg-muted text-muted-foreground" />
+        <KPICard title="Capital Saudável" value={currencyFmt(capitalCards.saudavel)} variant="minimal" size="compact" icon={<CheckCircle2 className="w-4 h-4" />} iconClassName="bg-success/10 text-success" />
       </div>
 
       <Card>
