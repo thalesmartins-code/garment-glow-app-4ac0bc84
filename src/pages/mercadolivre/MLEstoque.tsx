@@ -169,7 +169,7 @@ function SubTabCobertura({ items, coverageMap, coveragePeriod }: Pick<Relatorios
         <KPICard title="Cobertos (OK)" value={`${kpis.okPct}%`} variant="minimal" size="compact" icon={<CheckCircle2 className="w-4 h-4" />} iconClassName="bg-success/10 text-success" />
         <KPICard title="Média cobertura" value={kpis.avgDays != null ? `${kpis.avgDays}d` : "—"} variant="minimal" size="compact" icon={<Clock className="w-4 h-4" />} iconClassName="bg-accent/10 text-accent" />
         <KPICard title="Ruptura" value={String(kpis.ruptura)} variant="minimal" size="compact" icon={<PackageX className="w-4 h-4" />} iconClassName="bg-destructive/10 text-destructive" />
-        <KPICard title="Crítico + Alerta" value={String(kpis.critico + kpis.alerta)} variant="minimal" size="compact" icon={<AlertTriangle className="w-4 h-4" />} iconClassName="bg-warning/10 text-warning" />
+        <KPICard title="CRÍTICO + ALERTA" value={String(kpis.critico + kpis.alerta)} variant="minimal" size="compact" icon={<AlertTriangle className="w-4 h-4" />} iconClassName="bg-warning/10 text-warning" />
         <KPICard title="Sem giro" value={String(kpis.semGiro)} variant="minimal" size="compact" icon={<Package className="w-4 h-4" />} iconClassName="bg-muted text-muted-foreground" />
       </div>
 
