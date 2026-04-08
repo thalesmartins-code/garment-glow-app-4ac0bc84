@@ -1013,7 +1013,7 @@ export default function MLEstoque() {
             ) : (
               <div className="max-h-[600px] overflow-auto">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0 bg-card z-10">
                     <TableRow>
                       <TableHead className="w-8" />
                       <TableHead className="w-10" />

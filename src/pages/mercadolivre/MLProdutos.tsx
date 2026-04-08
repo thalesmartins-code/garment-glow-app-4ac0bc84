@@ -448,7 +448,7 @@ export default function MLProdutos() {
             ) : (
               <div className="max-h-[600px] overflow-auto">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0 bg-card z-10">
                     <TableRow>
                       <TableHead className="w-8"></TableHead>
                       <TableHead className="w-12"></TableHead>
