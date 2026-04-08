@@ -311,14 +311,9 @@ function SubTabCurvaABC({ items }: Pick<RelatoriosProps, "items">) {
         <span>{summary}</span>
       </div>
       <div className="grid grid-cols-3 gap-3">
-        {(["A", "B", "C"] as const).map((cls) => (
-          <Card key={cls}>
-            <CardContent className="pt-4 pb-3 text-center">
-              <p className="text-2xl font-bold">{counts[cls]}</p>
-              <p className="text-xs text-muted-foreground">Classe {cls}</p>
-            </CardContent>
-          </Card>
-        ))}
+        <KPICard title="Classe A" value={String(counts.A)} variant="success" size="compact" />
+        <KPICard title="Classe B" value={String(counts.B)} variant="warning" size="compact" />
+        <KPICard title="Classe C" value={String(counts.C)} variant="danger" size="compact" />
       </div>
       <Card>
         <CardHeader className="pb-2">
