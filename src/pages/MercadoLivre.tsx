@@ -1159,7 +1159,7 @@ export default function MercadoLivre() {
       <Tabs defaultValue="vendas" className="space-y-4">
 
         {/* ── Sticky header: always visible regardless of active tab ── */}
-        <div className="sticky top-0 z-20 -mx-8 -mt-8 px-8 pb-3 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
+        <div className="sticky -top-8 z-20 -mx-8 -mt-8 px-8 pb-4 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
       <AnimatePresence>
         {syncProgress && (() => {
           const pct = Math.round((syncProgress.current / syncProgress.total) * 100);

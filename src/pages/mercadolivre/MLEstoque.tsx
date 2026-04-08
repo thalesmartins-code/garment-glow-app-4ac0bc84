@@ -991,7 +991,7 @@ export default function MLEstoque() {
   return (
     <Tabs defaultValue="estoque" className="space-y-5">
       {/* ── Sticky header ── */}
-      <div className="sticky top-0 z-20 -mx-8 -mt-8 px-8 pb-3 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
+      <div className="sticky -top-8 z-20 -mx-8 -mt-8 px-8 pb-4 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
         <div className="flex items-center justify-between gap-4">
           <MLPageHeader title="Estoque" lastUpdated={lastUpdated} />
           <div className="flex items-center gap-3">
