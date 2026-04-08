@@ -791,8 +791,10 @@ export default function MLEstoque() {
         case "qty_desc": return b.available_quantity - a.available_quantity;
         case "qty_asc": return a.available_quantity - b.available_quantity;
         case "sold_desc": return b.sold_quantity - a.sold_quantity;
-        case "visits_desc": return b.visits - a.visits;
+        case "sold_asc": return a.sold_quantity - b.sold_quantity;
         case "health_asc": return (a.health ?? 1) - (b.health ?? 1);
+        case "health_desc": return (b.health ?? 0) - (a.health ?? 0);
+        case "title_desc": return b.title.localeCompare(a.title);
         default: return a.title.localeCompare(b.title);
       }
     });
