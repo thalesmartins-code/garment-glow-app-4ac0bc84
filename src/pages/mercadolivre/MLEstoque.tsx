@@ -565,10 +565,9 @@ function SubTabSaude({ items }: Pick<RelatoriosProps, "items">) {
       </div>
 
       {unhealthy.length > 0 && (
-        <Card className="border-amber-200 dark:border-amber-800">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-amber-500" />
+            <CardTitle className="text-sm font-medium text-foreground">
               Anúncios com Saúde Baixa (&lt;60%) — por Visitas
             </CardTitle>
           </CardHeader>
