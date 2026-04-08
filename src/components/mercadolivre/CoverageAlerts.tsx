@@ -26,7 +26,10 @@ export function CoverageAlerts({ items, coverageMap }: Props) {
 
   return (
     <Card className="border-destructive/40 bg-destructive/5">
-      <CardHeader className="pb-2 pt-3 px-4">
+      <CardHeader
+        className="pb-2 pt-3 px-4 cursor-pointer select-none"
+        onClick={() => setCollapsed((p) => !p)}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-destructive" />
@@ -34,14 +37,7 @@ export function CoverageAlerts({ items, coverageMap }: Props) {
               {critical.length} produto{critical.length !== 1 ? "s" : ""} em risco de ruptura
             </CardTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0"
-            onClick={() => setCollapsed((p) => !p)}
-          >
-            {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-          </Button>
+          {collapsed ? <ChevronDown className="w-4 h-4 text-destructive/60" /> : <ChevronUp className="w-4 h-4 text-destructive/60" />}
         </div>
       </CardHeader>
 
