@@ -994,11 +994,16 @@ export default function MLEstoque() {
                     {filteredItems.map((item) => {
                       const cd = coverageMap.get(item.id);
                       const isOpen = expanded.has(item.id);
+                      const visibleVariations = hideOutOfStock
+                        ? item.variations.filter((v) => v.available_quantity > 0)
+                        : item.variations;
+                      const hasVisibleVariations = item.has_variations && visibleVariations.length > 0;
+
                       return (
                         <>
                           <TableRow key={item.id} className="group">
                             <TableCell className="p-1 pl-2">
-                              {item.has_variations && item.variations.length > 0 && (
+                              {hasVisibleVariations && (
                                 <button onClick={() => toggleExpand(item.id)} className="text-muted-foreground hover:text-foreground">
                                   {isOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                                 </button>
@@ -1019,8 +1024,8 @@ export default function MLEstoque() {
                                 <span>{item.id}</span>
                                 {item.seller_custom_field && <Badge variant="outline" className="text-[10px] h-4 px-1">{item.seller_custom_field}</Badge>}
                                 {item.free_shipping && <Badge className="text-[10px] h-4 px-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-0">Frete grátis</Badge>}
-                                {item.has_variations && item.variations.length > 0 && (
-                                  <Badge variant="outline" className="text-[10px] h-4 px-1">{item.variations.length} var.</Badge>
+                                {hasVisibleVariations && (
+                                  <Badge variant="outline" className="text-[10px] h-4 px-1">{visibleVariations.length} var.</Badge>
                                 )}
                               </div>
                             </TableCell>
@@ -1067,7 +1072,7 @@ export default function MLEstoque() {
                               </a>
                             </TableCell>
                           </TableRow>
-                          {isOpen && item.variations.map((v) => (
+                          {isOpen && visibleVariations.map((v) => (
                             <TableRow key={v.variation_id} className="bg-muted/30">
                               <TableCell />
                               <TableCell />
