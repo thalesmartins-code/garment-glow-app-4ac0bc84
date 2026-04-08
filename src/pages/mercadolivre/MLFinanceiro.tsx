@@ -161,7 +161,7 @@ export default function MLFinanceiro() {
               <TooltipTrigger asChild>
                 <span className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-600 cursor-help">
                   <Info className="h-3 w-3" />
-                  Receita simulada · Taxas estimadas
+                  Dados simulados
                 </span>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
