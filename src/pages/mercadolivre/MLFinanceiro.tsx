@@ -152,9 +152,9 @@ export default function MLFinanceiro() {
   }
 
   return (
-    <div className="space-y-6 -mt-8">
+    <div className="space-y-6">
 
-      <div className="sticky top-0 z-20 -mx-8 px-8 pb-3 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
+      <div className="sticky top-0 z-20 -mx-8 -mt-8 px-8 pb-3 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
         <MLPageHeader title="Financeiro" lastUpdated={isRealRevenue ? new Date() : null}>
           {!isRealRevenue && (
             <Tooltip>

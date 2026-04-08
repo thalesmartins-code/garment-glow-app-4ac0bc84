@@ -752,7 +752,7 @@ function TabFunil() {
 
 export default function MLRelatorios() {
   return (
-    <div className="space-y-4 -mt-8">
+    <div className="space-y-4">
       <Tabs defaultValue="horario">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="horario"    className="gap-1.5 text-xs"><Clock3   className="w-3.5 h-3.5" />Venda por Hora</TabsTrigger>

@@ -77,7 +77,7 @@ export default function MLImportacao() {
   const mp = marketplaces.find(m => m.id === selectedMarketplace);
 
   return (
-    <div className="space-y-6 -mt-8">
+    <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 pt-1 pb-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
