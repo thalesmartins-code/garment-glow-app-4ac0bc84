@@ -955,8 +955,8 @@ export default function MLEstoque() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <span className="text-sm font-medium text-foreground">Inventário</span>
-                <p className="text-[11px] text-muted-foreground mt-0.5 max-w-[50%]">
-                  Cobertura calculada com base nas vendas dos últimos {coveragePeriod} dias — horizonte de {coveragePeriod} dias
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Cobertura: últimos {coveragePeriod}d
                 </p>
               </div>
               <div className="flex items-center gap-1.5 w-full sm:w-auto flex-wrap">
