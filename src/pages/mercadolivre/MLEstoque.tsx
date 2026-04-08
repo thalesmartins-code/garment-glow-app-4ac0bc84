@@ -219,24 +219,9 @@ function SubTabValorRisco({ items, coverageMap }: Pick<RelatoriosProps, "items" 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Card className="border-red-200 dark:border-red-800">
-          <CardContent className="pt-4 pb-3">
-            <p className="text-xs text-muted-foreground">Capital em Ruptura/Crítico</p>
-            <p className="text-lg font-bold text-red-500">{currencyFmt(capitalCards.risco)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200 dark:border-slate-700">
-          <CardContent className="pt-4 pb-3">
-            <p className="text-xs text-muted-foreground">Capital Parado (Sem Giro)</p>
-            <p className="text-lg font-bold text-slate-500">{currencyFmt(capitalCards.parado)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-green-200 dark:border-green-800">
-          <CardContent className="pt-4 pb-3">
-            <p className="text-xs text-muted-foreground">Capital Saudável</p>
-            <p className="text-lg font-bold text-green-500">{currencyFmt(capitalCards.saudavel)}</p>
-          </CardContent>
-        </Card>
+        <KPICard title="Capital em Ruptura/Crítico" value={currencyFmt(capitalCards.risco)} variant="danger" size="compact" />
+        <KPICard title="Capital Parado (Sem Giro)" value={currencyFmt(capitalCards.parado)} variant="neutral" size="compact" />
+        <KPICard title="Capital Saudável" value={currencyFmt(capitalCards.saudavel)} variant="success" size="compact" />
       </div>
 
       <Card>
@@ -326,14 +311,9 @@ function SubTabCurvaABC({ items }: Pick<RelatoriosProps, "items">) {
         <span>{summary}</span>
       </div>
       <div className="grid grid-cols-3 gap-3">
-        {(["A", "B", "C"] as const).map((cls) => (
-          <Card key={cls}>
-            <CardContent className="pt-4 pb-3 text-center">
-              <p className="text-2xl font-bold">{counts[cls]}</p>
-              <p className="text-xs text-muted-foreground">Classe {cls}</p>
-            </CardContent>
-          </Card>
-        ))}
+        <KPICard title="Classe A" value={String(counts.A)} variant="success" size="compact" />
+        <KPICard title="Classe B" value={String(counts.B)} variant="warning" size="compact" />
+        <KPICard title="Classe C" value={String(counts.C)} variant="danger" size="compact" />
       </div>
       <Card>
         <CardHeader className="pb-2">
@@ -628,22 +608,10 @@ function SubTabEstoqueMarca({ items }: Pick<RelatoriosProps, "items">) {
     <div className="space-y-4">
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card><CardContent className="pt-4 pb-3">
-          <p className="text-xs text-muted-foreground">Marcas</p>
-          <p className="text-2xl font-bold">{brandData.length}</p>
-        </CardContent></Card>
-        <Card><CardContent className="pt-4 pb-3">
-          <p className="text-xs text-muted-foreground">Total de SKUs</p>
-          <p className="text-2xl font-bold">{numFmt(items.length)}</p>
-        </CardContent></Card>
-        <Card><CardContent className="pt-4 pb-3">
-          <p className="text-xs text-muted-foreground">Unidades em Estoque</p>
-          <p className="text-2xl font-bold">{numFmt(totalUnits)}</p>
-        </CardContent></Card>
-        <Card><CardContent className="pt-4 pb-3">
-          <p className="text-xs text-muted-foreground">Valor em Estoque</p>
-          <p className="text-lg font-bold">{currencyFmtShort(totalValue)}</p>
-        </CardContent></Card>
+        <KPICard title="Marcas" value={String(brandData.length)} variant="minimal" size="compact" />
+        <KPICard title="Total de SKUs" value={numFmt(items.length)} variant="minimal" size="compact" />
+        <KPICard title="Unidades em Estoque" value={numFmt(totalUnits)} variant="minimal" size="compact" />
+        <KPICard title="Valor em Estoque" value={currencyFmtShort(totalValue)} variant="minimal" size="compact" />
       </div>
 
       {/* Charts */}
