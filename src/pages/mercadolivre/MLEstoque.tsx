@@ -448,9 +448,9 @@ function SubTabCurvaABC({ items }: Pick<RelatoriosProps, "items">) {
         <span>{summary}</span>
       </div>
       <div className="grid grid-cols-3 gap-3">
-        <KPICard title="Classe A" value={String(counts.A)} variant="success" size="compact" />
-        <KPICard title="Classe B" value={String(counts.B)} variant="warning" size="compact" />
-        <KPICard title="Classe C" value={String(counts.C)} variant="danger" size="compact" />
+        <KPICard title="Classe A" value={String(counts.A)} variant="minimal" size="compact" icon={<TrendingUp className="w-4 h-4" />} iconClassName="bg-success/10 text-success" />
+        <KPICard title="Classe B" value={String(counts.B)} variant="minimal" size="compact" icon={<Activity className="w-4 h-4" />} iconClassName="bg-warning/10 text-warning" />
+        <KPICard title="Classe C" value={String(counts.C)} variant="minimal" size="compact" icon={<BarChart3 className="w-4 h-4" />} iconClassName="bg-destructive/10 text-destructive" />
       </div>
       <Card>
         <CardHeader className="pb-2">
