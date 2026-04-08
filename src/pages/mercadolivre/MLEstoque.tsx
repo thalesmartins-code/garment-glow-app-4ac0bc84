@@ -744,10 +744,10 @@ function SubTabEstoqueMarca({ items }: Pick<RelatoriosProps, "items">) {
     <div className="space-y-4">
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KPICard title="Marcas" value={String(brandData.length)} variant="minimal" size="compact" />
-        <KPICard title="Total de SKUs" value={numFmt(items.length)} variant="minimal" size="compact" />
-        <KPICard title="Unidades em Estoque" value={numFmt(totalUnits)} variant="minimal" size="compact" />
-        <KPICard title="Valor em Estoque" value={currencyFmtShort(totalValue)} variant="minimal" size="compact" />
+        <KPICard title="Marcas" value={String(brandData.length)} variant="minimal" size="compact" icon={<Tag className="w-4 h-4" />} iconClassName="bg-primary/10 text-primary" />
+        <KPICard title="Total de SKUs" value={numFmt(items.length)} variant="minimal" size="compact" icon={<Boxes className="w-4 h-4" />} iconClassName="bg-accent/10 text-accent" />
+        <KPICard title="Unidades em Estoque" value={numFmt(totalUnits)} variant="minimal" size="compact" icon={<Package className="w-4 h-4" />} iconClassName="bg-success/10 text-success" />
+        <KPICard title="Valor em Estoque" value={currencyFmtShort(totalValue)} variant="minimal" size="compact" icon={<DollarSign className="w-4 h-4" />} iconClassName="bg-warning/10 text-warning" />
       </div>
 
       {/* Charts */}
