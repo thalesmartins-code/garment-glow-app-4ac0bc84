@@ -149,26 +149,28 @@ export default function MLPedidos() {
   return (
     <div className="space-y-6">
 
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <MLPageHeader title="Pedidos" lastUpdated={null} />
-        <div className="flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge variant="outline" className="text-xs gap-1.5 text-muted-foreground cursor-help">
-                <Info className="w-3 h-3" /> Dados simulados
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>Integração com a API de pedidos em breve</TooltipContent>
-          </Tooltip>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={syncing}
-            onClick={() => { setSyncing(true); setTimeout(() => setSyncing(false), 1200); }}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
-            Atualizar
-          </Button>
+      <div className="sticky top-0 z-20 -mx-8 px-8 pb-3 pt-1 bg-background/95 backdrop-blur-sm border-b border-border/40">
+        <div className="flex items-center justify-between gap-4">
+          <MLPageHeader title="Pedidos" lastUpdated={null} />
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="text-xs gap-1.5 text-muted-foreground cursor-help">
+                  <Info className="w-3 h-3" /> Dados simulados
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>Integração com a API de pedidos em breve</TooltipContent>
+            </Tooltip>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={syncing}
+              onClick={() => { setSyncing(true); setTimeout(() => setSyncing(false), 1200); }}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
+          </div>
         </div>
       </div>
 

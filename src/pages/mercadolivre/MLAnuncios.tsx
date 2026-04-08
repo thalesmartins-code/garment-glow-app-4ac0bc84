@@ -137,33 +137,35 @@ export default function MLAnuncios() {
   return (
     <div className="space-y-6">
 
-      <MLPageHeader title="Publicidade" lastUpdated={null}>
-        <div className="flex items-center gap-2">
-          {!isRealData && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-600 cursor-help">
-                  <Info className="h-3 w-3" />
-                  Dados simulados
-                </span>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs text-xs">
-                A integração com o Mercado Ads está em desenvolvimento. Os dados exibidos são simulados para demonstração.
-              </TooltipContent>
-            </Tooltip>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={sync}
-            disabled={syncing || !connected}
-            className="h-8 gap-1.5"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Sincronizando..." : "Sincronizar"}
-          </Button>
-        </div>
-      </MLPageHeader>
+      <div className="sticky top-0 z-20 -mx-8 px-8 pb-3 pt-1 bg-background/95 backdrop-blur-sm border-b border-border/40">
+        <MLPageHeader title="Publicidade" lastUpdated={null}>
+          <div className="flex items-center gap-2">
+            {!isRealData && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-600 cursor-help">
+                    <Info className="h-3 w-3" />
+                    Dados simulados
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs text-xs">
+                  A integração com o Mercado Ads está em desenvolvimento. Os dados exibidos são simulados para demonstração.
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={sync}
+              disabled={syncing || !connected}
+              className="h-8 gap-1.5"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Sincronizando..." : "Sincronizar"}
+            </Button>
+          </div>
+        </MLPageHeader>
+      </div>
 
       {/* Period selector */}
       <div className="flex items-center gap-1.5">

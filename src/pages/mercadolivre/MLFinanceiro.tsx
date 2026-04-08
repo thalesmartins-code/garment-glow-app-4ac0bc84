@@ -154,34 +154,36 @@ export default function MLFinanceiro() {
   return (
     <div className="space-y-6">
 
-      <MLPageHeader title="Financeiro" lastUpdated={isRealRevenue ? new Date() : null}>
-        {!isRealRevenue && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-600 cursor-help">
-                <Info className="h-3 w-3" />
-                Receita simulada · Taxas estimadas
-              </span>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs text-xs">
-              A receita bruta usa dados simulados. As taxas de comissão e frete são estimativas baseadas nas tabelas oficiais do ML. Sincronize os pedidos para dados exatos.
-            </TooltipContent>
-          </Tooltip>
-        )}
-        {isRealRevenue && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-600 cursor-help">
-                <Info className="h-3 w-3" />
-                Receita real · Taxas estimadas
-              </span>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs text-xs">
-              A receita bruta vem dos dados sincronizados. As taxas de comissão e frete são estimativas — para valores exatos, use o relatório de vendas do ML.
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </MLPageHeader>
+      <div className="sticky top-0 z-20 -mx-8 px-8 pb-3 pt-1 bg-background/95 backdrop-blur-sm border-b border-border/40">
+        <MLPageHeader title="Financeiro" lastUpdated={isRealRevenue ? new Date() : null}>
+          {!isRealRevenue && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-600 cursor-help">
+                  <Info className="h-3 w-3" />
+                  Receita simulada · Taxas estimadas
+                </span>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs text-xs">
+                A receita bruta usa dados simulados. As taxas de comissão e frete são estimativas baseadas nas tabelas oficiais do ML. Sincronize os pedidos para dados exatos.
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {isRealRevenue && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-600 cursor-help">
+                  <Info className="h-3 w-3" />
+                  Receita real · Taxas estimadas
+                </span>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs text-xs">
+                A receita bruta vem dos dados sincronizados. As taxas de comissão e frete são estimativas — para valores exatos, use o relatório de vendas do ML.
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </MLPageHeader>
+      </div>
 
       {/* Period selector */}
       <div className="flex items-center gap-1.5">
