@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMenuVisibility, MENU_SECTIONS, MenuVisibilityConfig, AppRole } from "@/contexts/MenuVisibilityContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +9,37 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Camera, Loader2, Save, LayoutDashboard, ShieldCheck, Eye, Pencil } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Camera, Loader2, Save, LayoutDashboard, ShieldCheck, Eye, Pencil, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+interface UserRow {
+  user_id: string;
+  role: AppRole;
+  email: string;
+  full_name: string | null;
+}
+
+const roleBadgeVariant: Record<AppRole, "default" | "secondary" | "outline"> = {
+  admin: "default",
+  editor: "secondary",
+  viewer: "outline",
+};
 
 const ROLE_TABS: { value: AppRole; label: string; icon: React.ElementType; description: string }[] = [
   { value: "admin",  label: "Admin",  icon: ShieldCheck, description: "Administradores sempre veem todos os itens." },
@@ -42,6 +71,60 @@ export default function Profile() {
   useEffect(() => {
     setLocalConfig(deepCopy(config));
   }, [config]);
+
+  // ── User role assignment ──
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  const fetchUsers = useCallback(async () => {
+    setLoadingUsers(true);
+    try {
+      const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+      if (!roles) return;
+
+      const userIds = roles.map((r) => r.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+      const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
+
+      const { data: usersData } = await supabase.functions.invoke("admin-list-users");
+      const emailMap = new Map<string, string>();
+      if (usersData?.users) {
+        for (const u of usersData.users) emailMap.set(u.id, u.email);
+      }
+
+      setUsers(
+        roles.map((r) => ({
+          user_id: r.user_id,
+          role: r.role as AppRole,
+          email: emailMap.get(r.user_id) ?? "—",
+          full_name: profileMap.get(r.user_id)?.full_name ?? null,
+        }))
+      );
+    } finally {
+      setLoadingUsers(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (role === "admin") fetchUsers();
+  }, [role, fetchUsers]);
+
+  const handleRoleChange = async (userId: string, newRole: AppRole) => {
+    const { error } = await supabase
+      .from("user_roles")
+      .update({ role: newRole })
+      .eq("user_id", userId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar perfil", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Perfil atualizado" });
+      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, role: newRole } : u)));
+    }
+  };
 
   const initials = (fullName || "U")
     .split(" ")
@@ -175,6 +258,67 @@ export default function Profile() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* ── User Role Assignment Card (admin only) ── */}
+      {role === "admin" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Atribuição de Perfis
+            </CardTitle>
+            <CardDescription>
+              Defina qual perfil (Admin, Editor ou Viewer) cada usuário possui no sistema.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingUsers ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Perfil atual</TableHead>
+                    <TableHead className="w-[160px]">Alterar perfil</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((u) => (
+                    <TableRow key={u.user_id}>
+                      <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{u.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={roleBadgeVariant[u.role]}>
+                          {u.role.charAt(0).toUpperCase() + u.role.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={u.role}
+                          onValueChange={(v) => handleRoleChange(u.user_id, v as AppRole)}
+                        >
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="editor">Editor</SelectItem>
+                            <SelectItem value="viewer">Viewer</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* ── Menu Visibility Card (admin only) ── */}
       {role === "admin" && (
