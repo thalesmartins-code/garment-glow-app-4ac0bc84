@@ -64,10 +64,15 @@ serve(async (req) => {
 
     // Update role if not default viewer
     if (role && role !== "viewer" && newUser.user) {
-      await adminClient
+      const { error: roleError } = await adminClient
         .from("user_roles")
-        .update({ role })
-        .eq("user_id", newUser.user.id);
+        .upsert(
+          { user_id: newUser.user.id, role },
+          { onConflict: "user_id" }
+        );
+      if (roleError) {
+        console.error("Role assignment error:", roleError);
+      }
     }
 
     return new Response(JSON.stringify({ user: { id: newUser.user?.id, email } }), {
