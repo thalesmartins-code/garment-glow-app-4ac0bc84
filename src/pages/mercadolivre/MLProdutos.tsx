@@ -162,7 +162,14 @@ export default function MLProdutos() {
   const [hideOutOfStock, setHideOutOfStock] = useState(true);
   const [logisticFilter, setLogisticFilter] = useState<LogisticFilter>("all");
   const [rankingBrandFilter, setRankingBrandFilter] = useState("all");
+  const [rankingSort, setRankingSort] = useState("sold_desc");
   const [reportTab, setReportTab] = useState("ranking");
+
+  const toggleRankingSort = (field: string) => {
+    setRankingSort((prev) =>
+      prev === `${field}_asc` ? `${field}_desc` : `${field}_asc`
+    );
+  };
 
   // ── Ranking date filter ──────────────────────────────────────────────────────
   const { user } = useAuth();
@@ -326,9 +333,27 @@ export default function MLProdutos() {
   }, [items, rankingSoldMap]);
 
   const rankingFiltered = useMemo(() => {
-    if (rankingBrandFilter === "all") return rankingAll;
-    return rankingAll.filter((r) => r.brand === rankingBrandFilter);
-  }, [rankingAll, rankingBrandFilter]);
+    const base = rankingBrandFilter === "all"
+      ? rankingAll
+      : rankingAll.filter((r) => r.brand === rankingBrandFilter);
+
+    const [field, dir] = rankingSort.split("_");
+    return [...base].sort((a, b) => {
+      const aVal = field === "price" ? a.price
+        : field === "sold"    ? a.sold
+        : field === "revenue" ? a.revenue
+        : field === "stock"   ? a.stock
+        : field === "share"   ? a.share
+        : a.sold;
+      const bVal = field === "price" ? b.price
+        : field === "sold"    ? b.sold
+        : field === "revenue" ? b.revenue
+        : field === "stock"   ? b.stock
+        : field === "share"   ? b.share
+        : b.sold;
+      return dir === "asc" ? aVal - bVal : bVal - aVal;
+    });
+  }, [rankingAll, rankingBrandFilter, rankingSort]);
 
   const rankingKPIs = useMemo(() => {
     const totalUnits = rankingFiltered.reduce((s, r) => s + r.sold, 0);
@@ -903,14 +928,14 @@ export default function MLProdutos() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-10 text-center">#</TableHead>
+                          <TableHead className="w-10 text-center text-xs">#</TableHead>
                           <TableHead className="w-12"></TableHead>
-                          <TableHead>Anúncio</TableHead>
-                          <TableHead className="text-right w-24">Preço</TableHead>
-                          <TableHead className="text-right w-20">Vendidos</TableHead>
-                          <TableHead className="text-right w-28">Receita</TableHead>
-                          <TableHead className="text-center w-20">Estoque</TableHead>
-                          <TableHead className="text-right w-20">% Part.</TableHead>
+                          <TableHead className="text-xs">Anúncio</TableHead>
+                          <SortableHead label="Preço"    field="price"   current={rankingSort as SortBy} onSort={toggleRankingSort} className="text-right w-24" />
+                          <SortableHead label="Vendidos" field="sold"    current={rankingSort as SortBy} onSort={toggleRankingSort} className="text-right w-20" />
+                          <SortableHead label="Receita"  field="revenue" current={rankingSort as SortBy} onSort={toggleRankingSort} className="text-right w-28" />
+                          <SortableHead label="Estoque"  field="stock"   current={rankingSort as SortBy} onSort={toggleRankingSort} className="text-center w-20" />
+                          <SortableHead label="% Part."  field="share"   current={rankingSort as SortBy} onSort={toggleRankingSort} className="text-right w-20" />
                         </TableRow>
                       </TableHeader>
                       <TableBody>
