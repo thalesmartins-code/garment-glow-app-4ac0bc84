@@ -31,6 +31,7 @@ import {
 } from "recharts";
 
 const RANKING_QUICK_RANGES = [
+  { label: "Hoje",    value: 0  },
   { label: "7 dias",  value: 7  },
   { label: "15 dias", value: 15 },
   { label: "30 dias", value: 30 },
@@ -197,14 +198,16 @@ export default function MLProdutos() {
 
   const rankingLabel = rankingRange
     ? `${format(rankingRange.from, "dd/MM")} – ${format(rankingRange.to, "dd/MM")}`
-    : `Últimos ${rankingPeriod} dias`;
+    : rankingPeriod === 0
+      ? "Hoje"
+      : `Últimos ${rankingPeriod} dias`;
 
   const pendingLabel = pendingRange?.from
     ? pendingRange.to && pendingRange.to.getTime() !== pendingRange.from.getTime()
       ? `${format(pendingRange.from, "dd/MM/yy")} – ${format(pendingRange.to, "dd/MM/yy")}`
       : format(pendingRange.from, "dd/MM/yy")
     : pendingPeriod !== null
-      ? `Últimos ${pendingPeriod} dias`
+      ? pendingPeriod === 0 ? "Hoje" : `Últimos ${pendingPeriod} dias`
       : null;
 
   const canConfirm = pendingRange?.from != null || pendingPeriod !== null;
