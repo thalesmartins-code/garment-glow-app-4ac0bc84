@@ -1,6 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useMLInventory } from "@/contexts/MLInventoryContext";
-import { useMLCoverage, COVERAGE_PERIODS, type CoveragePeriod } from "@/hooks/useMLCoverage";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { format, subDays, startOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,10 +14,12 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   ShoppingBag, RefreshCw, Search, ExternalLink, Plug, DollarSign, Tag, TrendingUp, Package,
   ChevronDown, ChevronRight, Receipt, LayoutGrid, Truck, ArrowUpDown, ArrowUp, ArrowDown,
-  BookOpen,
+  BookOpen, CalendarIcon, X, Check,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +29,12 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell, ComposedChart, Line, Area,
 } from "recharts";
+
+const RANKING_QUICK_RANGES = [
+  { label: "7 dias",  value: 7  },
+  { label: "15 dias", value: 15 },
+  { label: "30 dias", value: 30 },
+] as const;
 
 import type { ProductVariation } from "@/contexts/MLInventoryContext";
 import { LISTING_TYPE_RATES } from "@/data/financialMockData";
@@ -146,10 +158,67 @@ export default function MLProdutos() {
   const [hideOutOfStock, setHideOutOfStock] = useState(true);
   const [logisticFilter, setLogisticFilter] = useState<LogisticFilter>("all");
   const [rankingBrandFilter, setRankingBrandFilter] = useState("all");
-  const [rankingPeriod, setRankingPeriod] = useState<CoveragePeriod>(30);
   const [reportTab, setReportTab] = useState("ranking");
 
-  const { coverageMap: rankingCoverage } = useMLCoverage(items, rankingPeriod);
+  // ── Ranking date filter ──────────────────────────────────────────────────────
+  const { user } = useAuth();
+  const [rankingPeriod, setRankingPeriod] = useState<number>(30);
+  const [rankingRange, setRankingRange] = useState<{ from: Date; to: Date } | null>(null);
+  const [rankingPopoverOpen, setRankingPopoverOpen] = useState(false);
+  const [pendingPeriod, setPendingPeriod] = useState<number | null>(30);
+  const [pendingRange, setPendingRange] = useState<DateRange | null>(null);
+  const [rankingRawData, setRankingRawData] = useState<{ item_id: string; qty_sold: number }[]>([]);
+
+  const fetchRankingSales = useCallback(async () => {
+    if (!user) return;
+    const toDate = format(new Date(), "yyyy-MM-dd");
+    const fromDate = rankingRange
+      ? format(rankingRange.from, "yyyy-MM-dd")
+      : format(subDays(new Date(), rankingPeriod), "yyyy-MM-dd");
+    const toDateFinal = rankingRange ? format(rankingRange.to, "yyyy-MM-dd") : toDate;
+    const { data } = await supabase
+      .from("ml_product_daily_cache")
+      .select("item_id, qty_sold")
+      .eq("user_id", user.id)
+      .gte("date", fromDate)
+      .lte("date", toDateFinal);
+    setRankingRawData(data ?? []);
+  }, [user, rankingPeriod, rankingRange]);
+
+  useEffect(() => { fetchRankingSales(); }, [fetchRankingSales]);
+
+  const rankingSoldMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const row of rankingRawData) {
+      map.set(row.item_id, (map.get(row.item_id) ?? 0) + row.qty_sold);
+    }
+    return map;
+  }, [rankingRawData]);
+
+  const rankingLabel = rankingRange
+    ? `${format(rankingRange.from, "dd/MM")} – ${format(rankingRange.to, "dd/MM")}`
+    : `Últimos ${rankingPeriod} dias`;
+
+  const pendingLabel = pendingRange?.from
+    ? pendingRange.to && pendingRange.to.getTime() !== pendingRange.from.getTime()
+      ? `${format(pendingRange.from, "dd/MM/yy")} – ${format(pendingRange.to, "dd/MM/yy")}`
+      : format(pendingRange.from, "dd/MM/yy")
+    : pendingPeriod !== null
+      ? `Últimos ${pendingPeriod} dias`
+      : null;
+
+  const canConfirm = pendingRange?.from != null || pendingPeriod !== null;
+
+  const handleRankingConfirm = () => {
+    if (pendingRange?.from) {
+      setRankingRange({ from: pendingRange.from, to: pendingRange.to ?? pendingRange.from });
+      setRankingPeriod(0);
+    } else if (pendingPeriod !== null) {
+      setRankingPeriod(pendingPeriod);
+      setRankingRange(null);
+    }
+    setRankingPopoverOpen(false);
+  };
 
   const toggleSort = (field: string) => {
     const asc = `${field}_asc` as SortBy;
@@ -211,16 +280,14 @@ export default function MLProdutos() {
 
   // ─── Reports data ───────────────────────────────────────────────────────────
   const rankingAll = useMemo(() => {
-    const getSold = (id: string, fallback: number) =>
-      rankingCoverage.size > 0
-        ? (rankingCoverage.get(id)?.total_sold ?? 0)
-        : fallback;
+    const getSold = (id: string) =>
+      rankingSoldMap.size > 0 ? (rankingSoldMap.get(id) ?? 0) : items.find(i => i.id === id)?.sold_quantity ?? 0;
 
-    const totalRev = items.reduce((s, i) => s + getSold(i.id, i.sold_quantity) * i.price, 0);
+    const totalRev = items.reduce((s, i) => s + getSold(i.id) * i.price, 0);
 
     return [...items]
       .map((i) => {
-        const sold = getSold(i.id, i.sold_quantity);
+        const sold = getSold(i.id);
         const rev = sold * i.price;
         return {
           id: i.id,
@@ -235,7 +302,7 @@ export default function MLProdutos() {
         };
       })
       .sort((a, b) => b.sold - a.sold);
-  }, [items, rankingCoverage]);
+  }, [items, rankingSoldMap]);
 
   const rankingFiltered = useMemo(() => {
     if (rankingBrandFilter === "all") return rankingAll;
@@ -692,22 +759,86 @@ export default function MLProdutos() {
             </TabsList>
             {reportTab === "ranking" && (
               <div className="flex items-center gap-2">
-                {/* Period selector */}
-                <div className="flex gap-1">
-                  {COVERAGE_PERIODS.map(({ label, value }) => (
-                    <button
-                      key={value}
-                      onClick={() => setRankingPeriod(value)}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors border ${
-                        rankingPeriod === value
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-background border-border text-muted-foreground hover:bg-muted"
-                      }`}
+                {/* Date / period selector */}
+                <Popover
+                  open={rankingPopoverOpen}
+                  onOpenChange={(open) => {
+                    setRankingPopoverOpen(open);
+                    if (open) {
+                      setPendingRange(rankingRange ? { from: rankingRange.from, to: rankingRange.to } : null);
+                      setPendingPeriod(rankingRange ? null : rankingPeriod);
+                    } else {
+                      setPendingRange(null);
+                      setPendingPeriod(null);
+                    }
+                  }}
+                >
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-1.5 rounded-lg bg-muted/60 px-3 text-xs font-medium text-foreground hover:bg-muted/60 hover:text-foreground cursor-pointer"
                     >
-                      {label}
-                    </button>
-                  ))}
-                </div>
+                      <span className="text-muted-foreground">Período:</span>
+                      <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground" />
+                      {rankingLabel}
+                      <ChevronDown className="w-3 h-3 text-muted-foreground ml-0.5" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-3" align="start">
+                    <div className="flex gap-1 mb-3">
+                      {RANKING_QUICK_RANGES.map((opt) => (
+                        <Button
+                          key={opt.value}
+                          variant={pendingPeriod === opt.value && !pendingRange ? "default" : "outline"}
+                          size="sm"
+                          className="h-7 px-3 text-xs"
+                          onClick={() => { setPendingPeriod(opt.value); setPendingRange(null); }}
+                        >
+                          {opt.label}
+                        </Button>
+                      ))}
+                    </div>
+                    <Calendar
+                      mode="range"
+                      selected={pendingRange ?? undefined}
+                      onSelect={(range) => {
+                        if (!range?.from) { setPendingRange(null); return; }
+                        const from = startOfDay(range.from);
+                        const to = range.to ? startOfDay(range.to) : from;
+                        setPendingRange({ from, to });
+                        setPendingPeriod(null);
+                      }}
+                      disabled={(date) => date > new Date()}
+                      numberOfMonths={2}
+                      locale={ptBR}
+                      className="pointer-events-auto"
+                    />
+                    {pendingLabel && (
+                      <p className="text-xs text-center text-muted-foreground mt-2 mb-1">{pendingLabel}</p>
+                    )}
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs text-muted-foreground"
+                        onClick={() => { setPendingRange(null); setPendingPeriod(30); }}
+                      >
+                        <X className="w-3.5 h-3.5 mr-1" />
+                        Limpar
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-7 text-xs"
+                        disabled={!canConfirm}
+                        onClick={handleRankingConfirm}
+                      >
+                        <Check className="w-3.5 h-3.5 mr-1" />
+                        Confirmar
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <div className="w-px h-4 bg-border" />
                 <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
                   <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
@@ -795,7 +926,7 @@ export default function MLProdutos() {
                 )}
                 {rankingFiltered.length > 0 && (
                   <div className="px-4 py-3 border-t text-xs text-muted-foreground">
-                    {rankingFiltered.length} anúncios · Últimos {rankingPeriod} dias
+                    {rankingFiltered.length} anúncios · {rankingLabel}
                     {rankingBrandFilter !== "all" && ` · Marca: ${rankingBrandFilter}`}
                   </div>
                 )}
