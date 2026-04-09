@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useMLInventory } from "@/contexts/MLInventoryContext";
+import { useMLCoverage, COVERAGE_PERIODS, type CoveragePeriod } from "@/hooks/useMLCoverage";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -145,7 +146,10 @@ export default function MLProdutos() {
   const [hideOutOfStock, setHideOutOfStock] = useState(true);
   const [logisticFilter, setLogisticFilter] = useState<LogisticFilter>("all");
   const [rankingBrandFilter, setRankingBrandFilter] = useState("all");
+  const [rankingPeriod, setRankingPeriod] = useState<CoveragePeriod>(30);
   const [reportTab, setReportTab] = useState("ranking");
+
+  const { coverageMap: rankingCoverage } = useMLCoverage(items, rankingPeriod);
 
   const toggleSort = (field: string) => {
     const asc = `${field}_asc` as SortBy;
@@ -207,24 +211,31 @@ export default function MLProdutos() {
 
   // ─── Reports data ───────────────────────────────────────────────────────────
   const rankingAll = useMemo(() => {
-    const totalRev = items.reduce((s, i) => s + i.sold_quantity * i.price, 0);
+    const getSold = (id: string, fallback: number) =>
+      rankingCoverage.size > 0
+        ? (rankingCoverage.get(id)?.total_sold ?? 0)
+        : fallback;
+
+    const totalRev = items.reduce((s, i) => s + getSold(i.id, i.sold_quantity) * i.price, 0);
+
     return [...items]
-      .sort((a, b) => b.sold_quantity - a.sold_quantity)
       .map((i) => {
-        const rev = i.sold_quantity * i.price;
+        const sold = getSold(i.id, i.sold_quantity);
+        const rev = sold * i.price;
         return {
           id: i.id,
           title: i.title,
           thumbnail: i.thumbnail,
           price: i.price,
-          sold: i.sold_quantity,
+          sold,
           revenue: rev,
           stock: i.available_quantity,
           share: totalRev > 0 ? (rev / totalRev) * 100 : 0,
           brand: i.brand || "Sem marca",
         };
-      });
-  }, [items]);
+      })
+      .sort((a, b) => b.sold - a.sold);
+  }, [items, rankingCoverage]);
 
   const rankingFiltered = useMemo(() => {
     if (rankingBrandFilter === "all") return rankingAll;
@@ -681,6 +692,23 @@ export default function MLProdutos() {
             </TabsList>
             {reportTab === "ranking" && (
               <div className="flex items-center gap-2">
+                {/* Period selector */}
+                <div className="flex gap-1">
+                  {COVERAGE_PERIODS.map(({ label, value }) => (
+                    <button
+                      key={value}
+                      onClick={() => setRankingPeriod(value)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors border ${
+                        rankingPeriod === value
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div className="w-px h-4 bg-border" />
                 <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
                   <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
                   <SelectContent>
@@ -767,7 +795,7 @@ export default function MLProdutos() {
                 )}
                 {rankingFiltered.length > 0 && (
                   <div className="px-4 py-3 border-t text-xs text-muted-foreground">
-                    {rankingFiltered.length} anúncios no ranking
+                    {rankingFiltered.length} anúncios · Últimos {rankingPeriod} dias
                     {rankingBrandFilter !== "all" && ` · Marca: ${rankingBrandFilter}`}
                   </div>
                 )}
