@@ -16,7 +16,6 @@ import { MarketplaceSwitcher } from "./MarketplaceSwitcher";
 import { SellerMarketplaceBar } from "./SellerMarketplaceBar";
 import { HistoricalSyncModal } from "@/components/mercadolivre/HistoricalSyncModal";
 import { useMLStoreSafe } from "@/contexts/MLStoreContext";
-import { MLStoreSelector } from "@/components/mercadolivre/MLStoreSelector";
 
 interface HeaderProps {
   title: string;
@@ -58,7 +57,7 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
       </div>
 
       <div className="flex items-center gap-3">
-        {isApi && <MLStoreSelector />}
+        {/* Store selection is now handled by SellerMarketplaceBar */}
         {showMarketplaceSwitcher && !showSellerMarketplaceBar && <MarketplaceSwitcher />}
         {showSellerSwitcher && (
           <DropdownMenu>
