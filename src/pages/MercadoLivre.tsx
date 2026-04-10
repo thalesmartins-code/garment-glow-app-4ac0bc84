@@ -234,7 +234,7 @@ function getComparisonRanges(customRange: DateRange, period: number) {
 export default function MercadoLivre() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { stores, selectedStore, salesCache, setSalesCache, scopeKey, sellerId, resolvedMLUserIds, hasMLConnection } = useMLStore();
+  const { stores, selectedStore, salesCache, setSalesCache, scopeKey, sellerId, resolvedMLUserIds, hasMLConnection, loading: storeLoading } = useMLStore();
   const { selectedMarketplace, activeMarketplace } = useMarketplace();
   const { selectedSeller, selectedStoreIds } = useSeller();
 
@@ -774,7 +774,7 @@ export default function MercadoLivre() {
   }, [scopeKey]);
 
   useEffect(() => {
-    if (!user || cacheLoadedRef.current) return;
+    if (!user || cacheLoadedRef.current || storeLoading) return;
     cacheLoadedRef.current = true;
 
     // If no ML connection for this seller, stop immediately
