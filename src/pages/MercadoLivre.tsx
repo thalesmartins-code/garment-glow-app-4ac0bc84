@@ -99,6 +99,7 @@ interface HourlyBreakdown {
   total: number;
   approved: number;
   qty: number;
+  ml_user_id?: string;
 }
 
 type ChartMode = "daily" | "hourly";
@@ -150,6 +151,7 @@ function mapHourlyRow(row: any): HourlyBreakdown {
     total: Number(row.total_revenue ?? row.total ?? 0),
     approved: Number(row.approved_revenue ?? row.approved ?? 0),
     qty: Number(row.qty_orders ?? row.qty ?? 0),
+    ml_user_id: row.ml_user_id ?? undefined,
   };
 }
 
