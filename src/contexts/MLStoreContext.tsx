@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSeller } from "@/contexts/SellerContext";
+import { useHeaderScope } from "@/contexts/HeaderScopeContext";
 
 export interface MLStore {
   ml_user_id: string;
@@ -67,6 +67,11 @@ interface MLStoreState {
   refresh: () => Promise<void>;
   salesCache: MLSalesCache;
   setSalesCache: (updater: (prev: MLSalesCache) => MLSalesCache) => void;
+  // Scope fields
+  scopeKey: string;
+  sellerId: string | null;
+  resolvedMLUserIds: string[];
+  hasMLConnection: boolean;
 }
 
 const defaultSalesCache: MLSalesCache = {
@@ -84,7 +89,9 @@ const MLStoreContext = createContext<MLStoreState | null>(null);
 
 export function MLStoreProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const { selectedSeller, selectedStoreIds } = useSeller();
+  const scope = useHeaderScope();
+  const { sellerId, resolvedMLUserIds, scopeKey, hasMLConnection, tokens, loading: scopeLoading } = scope;
+
   const [stores, setStores] = useState<MLStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [salesCache, setSalesCacheRaw] = useState<MLSalesCache>(defaultSalesCache);
@@ -93,84 +100,24 @@ export function MLStoreProvider({ children }: { children: ReactNode }) {
     setSalesCacheRaw(updater);
   }, []);
 
-  // Derive selectedStore from SellerContext.selectedStoreIds
+  // Derive selectedStore from scope
   const selectedStore = useMemo(() => {
-    if (selectedStoreIds.length === 0) return "all";
+    if (resolvedMLUserIds.length === 1) return resolvedMLUserIds[0];
+    return "all";
+  }, [resolvedMLUserIds]);
 
-    // Map seller_stores ids → external_ids → find matching ml_user_ids
-    const sellerStores = (selectedSeller?.stores ?? []).filter(
-      (s) => s.is_active && s.marketplace === "ml" && selectedStoreIds.includes(s.id)
-    );
+  // No-op — selection comes from HeaderScopeContext
+  const setSelectedStore = useCallback((_id: string) => {}, []);
 
-    if (sellerStores.length === 0) return "all";
-
-    // Get the external_ids (which should match ml_user_id)
-    const externalIds = sellerStores
-      .map((s) => s.external_id)
-      .filter((id): id is string => !!id);
-
-    if (externalIds.length === 0) return "all";
-
-    // If exactly one ML store is selected, return its ml_user_id
-    if (externalIds.length === 1) {
-      const matched = stores.find((s) => s.ml_user_id === externalIds[0]);
-      return matched ? matched.ml_user_id : "all";
-    }
-
-    // Multiple ML stores selected — check if it's ALL stores for this seller
-    const allMlExternalIds = (selectedSeller?.stores ?? [])
-      .filter((s) => s.is_active && s.marketplace === "ml" && s.external_id)
-      .map((s) => s.external_id!);
-
-    const allSelected = allMlExternalIds.every((id) => externalIds.includes(id));
-    if (allSelected) return "all";
-
-    // Multiple but not all — return the first one (best effort)
-    const matched = stores.find((s) => externalIds.includes(s.ml_user_id));
-    return matched ? matched.ml_user_id : "all";
-  }, [selectedStoreIds, selectedSeller, stores]);
-
-  // Reset sales cache when derived selectedStore changes
-  const prevStoreRef = useMemo(() => ({ current: selectedStore }), []);
-  useEffect(() => {
-    if (prevStoreRef.current !== selectedStore) {
-      prevStoreRef.current = selectedStore;
-      setSalesCacheRaw(defaultSalesCache);
-    }
-  }, [selectedStore, prevStoreRef]);
-
-  // setSelectedStore is now a no-op externally (selection comes from SellerContext)
-  const setSelectedStore = useCallback((_id: string) => {
-    // No-op — store selection is driven by SellerContext.selectedStoreIds
-  }, []);
-
+  // Build stores list from scope tokens + user cache
   const fetchStores = useCallback(async () => {
-    if (!user) {
+    if (!user || !sellerId || tokens.length === 0) {
       setStores([]);
       setLoading(false);
       return;
     }
 
     try {
-      let query = supabase
-        .from("ml_tokens")
-        .select("ml_user_id, access_token, seller_id")
-        .eq("user_id", user.id)
-        .not("access_token", "is", null);
-
-      if (selectedSeller?.id) {
-        query = query.eq("seller_id", selectedSeller.id);
-      }
-
-      const { data: tokens } = await query;
-
-      if (!tokens || tokens.length === 0) {
-        setStores([]);
-        setSalesCacheRaw(defaultSalesCache);
-        setLoading(false);
-        return;
-      }
-
       const { data: userCaches } = await supabase
         .from("ml_user_cache")
         .select("ml_user_id, nickname, custom_name")
@@ -184,32 +131,34 @@ export function MLStoreProvider({ children }: { children: ReactNode }) {
         };
       });
 
-      const storeList: MLStore[] = tokens
-        .filter((t) => t.ml_user_id)
-        .map((t) => {
-          const cache = cacheMap[t.ml_user_id!] || { nickname: null, custom_name: null };
-          return {
-            ml_user_id: t.ml_user_id!,
-            nickname: cache.nickname,
-            custom_name: cache.custom_name,
-            access_token: t.access_token!,
-            displayName: cache.custom_name || cache.nickname || `Loja ${t.ml_user_id}`,
-            seller_id: (t as any).seller_id || null,
-          };
-        });
+      const storeList: MLStore[] = tokens.map((t) => {
+        const cache = cacheMap[t.ml_user_id] || { nickname: null, custom_name: null };
+        return {
+          ml_user_id: t.ml_user_id,
+          nickname: cache.nickname,
+          custom_name: cache.custom_name,
+          access_token: t.access_token,
+          displayName: cache.custom_name || cache.nickname || `Loja ${t.ml_user_id}`,
+          seller_id: t.seller_id,
+        };
+      });
 
       setStores(storeList);
-      setSalesCacheRaw(defaultSalesCache);
     } catch (err) {
       console.error("Failed to fetch ML stores:", err);
     } finally {
       setLoading(false);
     }
-  }, [user, selectedSeller?.id]);
+  }, [user, sellerId, tokens]);
 
   useEffect(() => {
     fetchStores();
   }, [fetchStores]);
+
+  // Reset salesCache when scopeKey changes
+  useEffect(() => {
+    setSalesCacheRaw(defaultSalesCache);
+  }, [scopeKey]);
 
   return (
     <MLStoreContext.Provider
@@ -217,10 +166,14 @@ export function MLStoreProvider({ children }: { children: ReactNode }) {
         stores,
         selectedStore,
         setSelectedStore,
-        loading,
+        loading: loading || scopeLoading,
         refresh: fetchStores,
         salesCache,
         setSalesCache,
+        scopeKey,
+        sellerId,
+        resolvedMLUserIds,
+        hasMLConnection,
       }}
     >
       {children}

@@ -8,6 +8,7 @@ import { ApiLayout } from "@/components/layout/ApiLayout";
 import { SellerProvider } from "@/contexts/SellerContext";
 import { MLInventoryProvider } from "@/contexts/MLInventoryContext";
 import { MLStoreProvider } from "@/contexts/MLStoreContext";
+import { HeaderScopeProvider } from "@/contexts/HeaderScopeContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { SalesDataProvider } from "@/contexts/SalesDataContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -93,7 +94,7 @@ const App = () => (
                       </Route>
 
                       {/* Marketplaces via API */}
-                      <Route element={<MLStoreProvider><MLInventoryProvider><ApiLayout /></MLInventoryProvider></MLStoreProvider>}>
+                      <Route element={<HeaderScopeProvider><MLStoreProvider><MLInventoryProvider><ApiLayout /></MLInventoryProvider></MLStoreProvider></HeaderScopeProvider>}>
                         <Route path="/api/perfil" element={<Profile />} />
                         <Route
                           path="/api"

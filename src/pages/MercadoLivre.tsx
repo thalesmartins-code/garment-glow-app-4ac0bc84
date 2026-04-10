@@ -234,7 +234,7 @@ function getComparisonRanges(customRange: DateRange, period: number) {
 export default function MercadoLivre() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { stores, selectedStore, salesCache, setSalesCache } = useMLStore();
+  const { stores, selectedStore, salesCache, setSalesCache, scopeKey, sellerId, resolvedMLUserIds, hasMLConnection } = useMLStore();
   const { selectedMarketplace, activeMarketplace } = useMarketplace();
   const { selectedSeller, selectedStoreIds } = useSeller();
 
@@ -397,7 +397,7 @@ export default function MercadoLivre() {
   // Carrega produtos filtrados pelo período exato
   const loadProductCache = useCallback(
     async (fromDate: string, toDate: string) => {
-      if (!user) {
+      if (!user || resolvedMLUserIds.length === 0) {
         setAllProductSales([]);
         return;
       }
@@ -411,6 +411,8 @@ export default function MercadoLivre() {
         .limit(5000);
       if (selectedStore !== "all") {
         query = query.eq("ml_user_id", selectedStore);
+      } else {
+        query = query.in("ml_user_id", resolvedMLUserIds);
       }
       const { data } = await query;
       setAllProductSales(
@@ -424,12 +426,12 @@ export default function MercadoLivre() {
         })),
       );
     },
-    [user, selectedStore],
+    [user, selectedStore, resolvedMLUserIds],
   );
 
   const loadHourlyCache = useCallback(
     async (overrideDate?: string | null) => {
-      if (!user) {
+      if (!user || resolvedMLUserIds.length === 0) {
         setAllHourly([]);
         return [] as HourlyBreakdown[];
       }
@@ -440,6 +442,8 @@ export default function MercadoLivre() {
         .eq("user_id", user.id);
       if (selectedStore !== "all") {
         query = query.eq("ml_user_id", selectedStore);
+      } else {
+        query = query.in("ml_user_id", resolvedMLUserIds);
       }
       query = query
         .order("date", { ascending: false })
@@ -459,11 +463,14 @@ export default function MercadoLivre() {
       setAllHourly(mapped);
       return mapped;
     },
-    [user, isHourlyAvailable, hourlyTargetDate, selectedStore],
+    [user, isHourlyAvailable, hourlyTargetDate, selectedStore, resolvedMLUserIds],
   );
 
   const loadFromCache = useCallback(async (overrideFrom?: string, overrideTo?: string): Promise<boolean> => {
-    if (!user) return false;
+    if (!user || resolvedMLUserIds.length === 0) {
+      setAllDaily([]);
+      return false;
+    }
 
     // Stamp this request; any older in-flight call that resolves after us will be discarded.
     const reqId = ++loadDailyReqRef.current;
@@ -471,6 +478,8 @@ export default function MercadoLivre() {
     let userCacheQuery = supabase.from("ml_user_cache").select("*").eq("user_id", user.id);
     if (selectedStore !== "all") {
       userCacheQuery = userCacheQuery.eq("ml_user_id", Number(selectedStore));
+    } else if (resolvedMLUserIds.length > 0) {
+      userCacheQuery = userCacheQuery.in("ml_user_id", resolvedMLUserIds.map(Number));
     }
 
     // Use explicit dates if provided, otherwise derive from current state
@@ -488,6 +497,8 @@ export default function MercadoLivre() {
       .limit(1000);
     if (selectedStore !== "all") {
       dailyCacheQuery = dailyCacheQuery.eq("ml_user_id", selectedStore);
+    } else {
+      dailyCacheQuery = dailyCacheQuery.in("ml_user_id", resolvedMLUserIds);
     }
 
     const [{ data: userCacheData }, { data: dailyCache }] = await Promise.all([
@@ -515,7 +526,7 @@ export default function MercadoLivre() {
     setAllDaily(dailyCache.map(mapDailyRow));
     setConnected(true);
     return true;
-  }, [user, selectedStore, customRange, period]);
+  }, [user, selectedStore, resolvedMLUserIds, customRange, period]);
 
   const saveToCache = useCallback(
     async (
@@ -747,7 +758,7 @@ export default function MercadoLivre() {
 
   const autoSyncTriggeredRef = useRef(false);
 
-  // Reset refs and local state when seller or store changes so data re-fetches
+  // Reset refs and local state when scope changes (seller or store switch)
   useEffect(() => {
     cacheLoadedRef.current = false;
     autoSyncTriggeredRef.current = false;
@@ -760,40 +771,36 @@ export default function MercadoLivre() {
     setCachedAccessToken(null);
     setProductStockMap({});
     setLastSyncedAt(null);
-  }, [selectedSeller?.id, selectedStore]);
+  }, [scopeKey]);
 
   useEffect(() => {
     if (!user || cacheLoadedRef.current) return;
     cacheLoadedRef.current = true;
 
-    (async () => {
-      // Check for any token
-      const { data: tokenRows } = await supabase
-        .from("ml_tokens")
-        .select("access_token, ml_user_id")
-        .eq("user_id", user.id)
-        .not("access_token", "is", null)
-        .limit(10);
+    // If no ML connection for this seller, stop immediately
+    if (!hasMLConnection || resolvedMLUserIds.length === 0) {
+      setConnected(false);
+      setLoading(false);
+      return;
+    }
 
-      if (!tokenRows || tokenRows.length === 0) {
+    (async () => {
+      // Use tokens from the scope (already filtered by seller)
+      const firstStore = stores.find((s) => resolvedMLUserIds.includes(s.ml_user_id));
+      if (!firstStore) {
         setConnected(false);
         setLoading(false);
         return;
       }
 
-      // Use the first available token (or the selected one)
-      const targetToken = selectedStore !== "all"
-        ? tokenRows.find((t) => t.ml_user_id === selectedStore) || tokenRows[0]
-        : tokenRows[0];
-
-      setCachedAccessToken(targetToken.access_token!);
+      setCachedAccessToken(firstStore.access_token);
       setConnected(true);
 
       const { fromDate, toDate } = getFilterDates(customRange, period);
       await Promise.all([loadFromCache(), loadHourlyCache(), loadProductCache(fromDate, toDate)]);
 
       supabase.functions
-        .invoke("ml-inventory", { body: { access_token: targetToken.access_token } })
+        .invoke("ml-inventory", { body: { access_token: firstStore.access_token } })
         .then(({ data: invData }) => {
           if (invData?.items) {
             const stockMap: Record<string, number> = {};
@@ -813,7 +820,7 @@ export default function MercadoLivre() {
         }
       }
     })();
-  }, [user, loadFromCache, loadHourlyCache, loadProductCache, syncFromAPI, selectedStore]);
+  }, [user, loadFromCache, loadHourlyCache, loadProductCache, syncFromAPI, scopeKey, hasMLConnection, resolvedMLUserIds, stores]);
 
 
   // Recarrega diário, horário E produtos sempre que o filtro mudar
