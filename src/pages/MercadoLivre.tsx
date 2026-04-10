@@ -455,7 +455,7 @@ export default function MercadoLivre() {
       const filterByDate = overrideDate !== undefined ? !!overrideDate : isHourlyAvailable && !!hourlyTargetDate;
 
       if (filterByDate && dateToFilter) {
-        query = query.eq("date", dateToFilter).limit(24);
+        query = query.eq("date", dateToFilter).limit(24 * Math.max(resolvedMLUserIds.length, 1));
       } else {
         query = query.limit(1000);
       }
