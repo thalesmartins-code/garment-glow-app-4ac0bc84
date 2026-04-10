@@ -1556,25 +1556,39 @@ export default function MercadoLivre() {
         </Card>
         </motion.div>
 
-        {/* Ranking Top 5 */}
+        {/* Top Anúncios — expanded */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
         <Card className="h-full">
-          <div className="px-4 pt-4 pb-2">
+          <div className="px-4 pt-4 pb-2 flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">Top Anúncios</span>
+            <span className="text-[10px] text-muted-foreground">{effectiveProducts.length} produtos</span>
           </div>
           <CardContent className="px-4 pb-4">
             {effectiveProducts.length > 0 ? (
-              <div className="space-y-2">
-                {effectiveProducts.slice(0, 6).map((p, i) => {
+              <div className="space-y-0">
+                {/* Header */}
+                <div className="flex items-center gap-2 pb-1.5 mb-1.5 border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                  <span className="w-5" />
+                  <span className="w-7" />
+                  <span className="flex-1">Produto</span>
+                  <span className="w-14 text-right">Vendidos</span>
+                  <span className="w-20 text-right">Receita</span>
+                  <span className="w-20 text-right">Ticket</span>
+                  <span className="w-14 text-right">Estoque</span>
+                </div>
+                {effectiveProducts.slice(0, 8).map((p, i) => {
                   const medals = ["🥇", "🥈", "🥉"];
                   const medal = i < 3 ? medals[i] : null;
+                  const ticket = p.qty_sold > 0 ? p.revenue / p.qty_sold : 0;
                   return (
-                    <div key={p.item_id || i} className="flex items-center gap-2">
+                    <div key={p.item_id || i} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-0">
                       <span className="w-5 text-center text-xs font-semibold text-muted-foreground">
                         {medal ?? `${i + 1}`}
                       </span>
-                      {p.thumbnail && (
+                      {p.thumbnail ? (
                         <img src={p.thumbnail} alt="" className="w-7 h-7 rounded object-cover flex-shrink-0" />
+                      ) : (
+                        <span className="w-7 h-7 rounded bg-muted flex-shrink-0" />
                       )}
                       {p.item_id ? (
                         <a
@@ -1590,11 +1604,17 @@ export default function MercadoLivre() {
                           {p.title}
                         </span>
                       )}
-                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                        {p.available_quantity != null ? `${p.available_quantity} un` : "—"}
+                      <span className="w-14 text-right text-xs font-semibold tabular-nums text-foreground">
+                        {p.qty_sold.toLocaleString("pt-BR")}
                       </span>
-                      <span className="text-xs font-semibold text-foreground whitespace-nowrap">
+                      <span className="w-20 text-right text-xs font-semibold tabular-nums text-foreground">
                         {p.revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </span>
+                      <span className="w-20 text-right text-xs tabular-nums text-muted-foreground">
+                        {ticket > 0 ? ticket.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 }) : "—"}
+                      </span>
+                      <span className="w-14 text-right text-[10px] text-muted-foreground whitespace-nowrap">
+                        {p.available_quantity != null ? `${p.available_quantity} un` : "—"}
                       </span>
                     </div>
                   );
@@ -1605,158 +1625,6 @@ export default function MercadoLivre() {
             )}
           </CardContent>
         </Card>
-        </motion.div>
-
-        {/* Card de Publicidade (ADS) */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-           <Card className="h-full relative overflow-hidden opacity-75 border border-dashed border-muted-foreground/30">
-            {/* Overlay "Em desenvolvimento" */}
-            <div className="absolute top-2 right-2 z-10">
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                Em desenvolvimento
-              </span>
-            </div>
-            <div className="px-4 pt-4 pb-2">
-              <span className="text-sm font-medium text-foreground">Publicidade</span>
-            </div>
-            <CardContent className="px-4 pb-4">
-              {adsLoading ? (
-                <div className="space-y-3">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="h-4 bg-muted rounded animate-pulse" />
-                  ))}
-                </div>
-              ) : adsAvailable === false ? (
-                <div className="flex flex-col items-center justify-center py-6 gap-3 text-center">
-                  <Megaphone className="w-8 h-8 text-muted-foreground/40" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-foreground">Mercado Ads n&atilde;o ativado</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed max-w-[200px]">
-                      A API de Publicidade retornou erro 404. Verifique se o Mercado Ads est&aacute; ativo na sua conta ou se o App possui o escopo <span className="font-mono bg-muted px-1 rounded">advertising</span>.
-                    </p>
-                  </div>
-                  <a
-                    href="https://www.mercadolivre.com.br/publicidade"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary underline underline-offset-2"
-                  >
-                    Ativar Mercado Ads →
-                  </a>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {/* Destaque: Gasto e ROAS */}
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Gasto</p>
-                       <p className="text-2xl font-bold text-foreground">
-                        {adsSummary.total_spend.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">ROAS</p>
-                      <p className={`text-2xl font-bold ${
-                        adsSummary.avg_roas >= 3 ? "text-green-500" :
-                        adsSummary.avg_roas >= 1.5 ? "text-yellow-500" :
-                        "text-red-500"
-                      }`}>
-                        {adsSummary.avg_roas.toFixed(2)}x
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Sparkline ROAS */}
-                  <div className="h-10">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={adsDaily}>
-                        <XAxis dataKey="date" hide />
-                        <defs>
-                          <linearGradient id="colorRoasSparkline" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <RechartsTooltip
-                          contentStyle={{
-                            background: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: 8,
-                            fontSize: 11,
-                            padding: "4px 8px",
-                          }}
-                          formatter={(value: number) => [`${value.toFixed(2)}x`, "ROAS"]}
-                          labelFormatter={(label: string) => {
-                            try {
-                              return format(parseISO(label), "dd/MM", { locale: ptBR });
-                            } catch { return label; }
-                          }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="roas"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth={1.5}
-                          fillOpacity={1}
-                          fill="url(#colorRoasSparkline)"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Métricas secundárias */}
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-2 border-t border-border/50">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Receita</span>
-                      <span className="font-semibold tabular-nums">
-                        {adsSummary.total_attributed_revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Impressões</span>
-                      <span className="font-semibold tabular-nums">{adsSummary.total_impressions.toLocaleString("pt-BR")}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Cliques</span>
-                      <span className="font-semibold tabular-nums">{adsSummary.total_clicks.toLocaleString("pt-BR")}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Pedidos</span>
-                      <span className="font-semibold tabular-nums">{adsSummary.total_attributed_orders.toLocaleString("pt-BR")}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">CTR</span>
-                      <span className="font-semibold tabular-nums">{adsSummary.avg_ctr.toFixed(2)}%</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">CPC</span>
-                      <span className="font-semibold tabular-nums">
-                        {adsSummary.avg_cpc.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Conv. ADS</span>
-                      <span className="font-semibold tabular-nums">
-                        {adsSummary.total_clicks > 0
-                          ? ((adsSummary.total_attributed_orders / adsSummary.total_clicks) * 100).toFixed(2)
-                          : "0.00"}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">CPP</span>
-                      <span className="font-semibold tabular-nums">
-                        {adsSummary.total_attributed_orders > 0
-                          ? (adsSummary.total_spend / adsSummary.total_attributed_orders).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-                          : "R$ 0,00"}
-                      </span>
-                    </div>
-                   </div>
-                </div>
-              )}
-
-            </CardContent>
-          </Card>
         </motion.div>
 
       </div>
