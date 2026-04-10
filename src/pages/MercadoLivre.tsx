@@ -1047,12 +1047,7 @@ export default function MercadoLivre() {
 
 
 
-  const MARKETPLACE_STROKE_COLORS: Record<string, string> = {
-    "mercado-livre": "hsl(45, 93%, 47%)",
-    amazon: "hsl(25, 95%, 53%)",
-    shopee: "hsl(15, 85%, 50%)",
-    magalu: "hsl(225, 70%, 55%)",
-  };
+  const STORE_STROKE_COLORS = ["hsl(45, 93%, 47%)", "hsl(200, 70%, 50%)", "hsl(140, 60%, 45%)", "hsl(280, 60%, 55%)"];
 
   // Overlaid hourly chart data: { label, hour, "Mercado Livre": val, "Amazon": val, ... }
   const overlaidHourlyData = useMemo(() => {
