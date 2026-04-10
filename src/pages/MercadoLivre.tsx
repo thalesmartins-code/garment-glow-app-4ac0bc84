@@ -99,6 +99,7 @@ interface HourlyBreakdown {
   total: number;
   approved: number;
   qty: number;
+  ml_user_id?: string;
 }
 
 type ChartMode = "daily" | "hourly";
@@ -150,6 +151,7 @@ function mapHourlyRow(row: any): HourlyBreakdown {
     total: Number(row.total_revenue ?? row.total ?? 0),
     approved: Number(row.approved_revenue ?? row.approved ?? 0),
     qty: Number(row.qty_orders ?? row.qty ?? 0),
+    ml_user_id: row.ml_user_id ?? undefined,
   };
 }
 
@@ -1009,25 +1011,21 @@ export default function MercadoLivre() {
 
   const deltaLabel = period === 0 ? "vs ontem" : customRange ? "vs período anterior" : `vs ${period}d anteriores`;
 
-  // Per-marketplace hourly data for "Todos" grid view
+  // Per-store hourly data for "Todas" view (e.g. SP vs MG)
   const perMarketplaceHourly = useMemo(() => {
-    if (!isAll) return null;
-    const mpIds = ["mercado-livre", "amazon", "shopee", "magalu"] as const;
-    const mpList = mpIds.map((id) => {
-      const brand = getMarketplaceBrand(id)!;
-      const MpIcon = brand.icon;
-      return {
-        id,
-        name: brand.name,
-        data: id === "mercado-livre" ? hourly : getMarketplaceHourlyData(id),
-        icon: <MpIcon className="w-4 h-4" />,
-      };
-    });
-    return mpList.map((mp) => ({
-      ...mp,
-      chartData: buildHourlyChartData(mp.data),
-    }));
-  }, [isAll, hourly]);
+    if (!isAll || stores.length < 2) return null;
+    return stores
+      .filter((s) => resolvedMLUserIds.includes(s.ml_user_id))
+      .map((store) => ({
+        id: store.ml_user_id,
+        name: store.displayName,
+        data: hourly.filter((h: any) => h.ml_user_id === store.ml_user_id),
+        icon: null,
+        chartData: buildHourlyChartData(
+          hourly.filter((h: any) => h.ml_user_id === store.ml_user_id)
+        ),
+      }));
+  }, [isAll, stores, resolvedMLUserIds, hourly]);
 
   // ── Cost card computations ──────────────────────────────────────────────────
   const costSummary = useMemo(() => {
@@ -1051,12 +1049,7 @@ export default function MercadoLivre() {
 
 
 
-  const MARKETPLACE_STROKE_COLORS: Record<string, string> = {
-    "mercado-livre": "hsl(45, 93%, 47%)",
-    amazon: "hsl(25, 95%, 53%)",
-    shopee: "hsl(15, 85%, 50%)",
-    magalu: "hsl(225, 70%, 55%)",
-  };
+  const STORE_STROKE_COLORS = ["hsl(45, 93%, 47%)", "hsl(200, 70%, 50%)", "hsl(140, 60%, 45%)", "hsl(280, 60%, 55%)"];
 
   // Overlaid hourly chart data: { label, hour, "Mercado Livre": val, "Amazon": val, ... }
   const overlaidHourlyData = useMemo(() => {
@@ -1331,7 +1324,7 @@ export default function MercadoLivre() {
       {isAll && overlaidHourlyData && perMarketplaceHourly ? (
         <Card>
           <div className="px-4 pt-4 pb-3">
-            <span className="text-sm font-medium text-foreground">Receita por Hora — Todos os Marketplaces</span>
+            <span className="text-sm font-medium text-foreground">Receita por Hora — Todas as Lojas</span>
           </div>
           <CardContent className="px-4 pb-2 pt-0">
             <ResponsiveContainer width="100%" height={220}>
@@ -1343,12 +1336,12 @@ export default function MercadoLivre() {
                   formatter={(value: number, name: string) => [currencyFmt(Number(value)), name]}
                   contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
                 />
-                {perMarketplaceHourly.map((mp) => (
+                {perMarketplaceHourly.map((mp, idx) => (
                   <Line
                     key={mp.id}
                     type="monotone"
                     dataKey={mp.name}
-                    stroke={MARKETPLACE_STROKE_COLORS[mp.id] || "hsl(var(--primary))"}
+                    stroke={STORE_STROKE_COLORS[idx % STORE_STROKE_COLORS.length]}
                     strokeWidth={2}
                     dot={false}
                     activeDot={{ r: 4 }}
