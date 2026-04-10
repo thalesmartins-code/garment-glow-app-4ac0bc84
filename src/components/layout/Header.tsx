@@ -57,7 +57,7 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
       </div>
 
       <div className="flex items-center gap-3">
-        {isApi && <MLStoreSelector />}
+        {/* Store selection is now handled by SellerMarketplaceBar */}
         {showMarketplaceSwitcher && !showSellerMarketplaceBar && <MarketplaceSwitcher />}
         {showSellerSwitcher && (
           <DropdownMenu>
