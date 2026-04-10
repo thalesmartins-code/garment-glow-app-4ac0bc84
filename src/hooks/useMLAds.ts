@@ -14,7 +14,7 @@ import {
   type AdsSummary,
 } from "@/data/adsMockData";
 
-// Module-level cache  14 survives component unmount/remount (navigation)
+// Module-level cache survives component unmount/remount (navigation)
 interface AdsCache {
   daily: AdsDailyStat[];
   campaigns: AdsCampaign[];
@@ -40,13 +40,7 @@ export interface UseMLAdsResult {
   summary: AdsSummary;
   loading: boolean;
   connected: boolean;
-  /** true = showing real ML Ads data, false = mock/unavailable */
   isRealData: boolean;
-  /**
-   * null  = not yet checked (loading)
-   * true  = Mercado Ads API is accessible for this seller
-   * false = API returned 404/403 — ads not activated or app scope missing
-   */
   adsAvailable: boolean | null;
   sync: () => Promise<void>;
   syncing: boolean;
@@ -54,7 +48,7 @@ export interface UseMLAdsResult {
 
 export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
   const { daysBack = 30, dateFrom, dateTo } = opts;
-  const { stores, selectedStore, loading: storeLoading } = useMLStore();
+  const { stores, selectedStore, loading: storeLoading, scopeKey, hasMLConnection } = useMLStore();
   const { user } = useAuth();
   const [syncing, setSyncing] = useState(false);
   const [realData, setRealData] = useState<{
@@ -98,7 +92,8 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
     return daysBack;
   }, [daysBack, dateFrom, dateTo]);
 
-  const cacheKey = `${targetStoreIds.join(",")}:${effectiveDateFrom}:${effectiveDateTo}`;
+  // Include scopeKey in cache key so seller/store changes invalidate cache
+  const cacheKey = `${scopeKey}:${effectiveDateFrom}:${effectiveDateTo}`;
 
   // Fetch one store's ads data from the edge function
   const fetchOneStore = useCallback(async (
@@ -158,7 +153,6 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
         if (!result) continue;
         if (result.adsAvailable === true) anyAvailable = true;
         if (result.daily?.length) {
-          // Merge daily by date (sum numeric fields)
           for (const row of result.daily as AdsDailyStat[]) {
             const existing = aggregated.daily.find((d) => d.date === row.date);
             if (existing) {
@@ -192,12 +186,21 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
       setLoading(false);
     }
   }, [connected, user, targetStoreIds, cacheKey, fetchOneStore]);
+
+  // Reset when scope changes (seller/store switch)
+  useEffect(() => {
+    setRealData(null);
+    setIsRealData(false);
+    setAdsAvailable(null);
+  }, [scopeKey]);
+
   // Auto-fetch on mount and when params change — skip if cache is still fresh
   useEffect(() => {
+    if (!hasMLConnection) return;
+
     const cached = adsCache.get(cacheKey);
     const cacheValid = !!(cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS);
     if (cacheValid) {
-      // Restore from cache immediately — no loading flash, no background refetch
       setRealData(cached);
       setIsRealData(true);
       return;
@@ -205,7 +208,7 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
     setRealData(null);
     setIsRealData(false);
     fetchRealData();
-  }, [fetchRealData, cacheKey]);
+  }, [fetchRealData, cacheKey, hasMLConnection]);
 
   // Mock data fallback
   const allDaily = useMemo(
@@ -234,7 +237,7 @@ export function useMLAds(opts: UseMLAdsOptions = {}): UseMLAdsResult {
   const sync = useCallback(async () => {
     if (!connected) return;
     setSyncing(true);
-    await fetchRealData(true); // force = true to bypass cache
+    await fetchRealData(true);
     setSyncing(false);
   }, [connected, fetchRealData]);
 

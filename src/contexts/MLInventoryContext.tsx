@@ -33,9 +33,7 @@ export interface ProductItem {
   variations: ProductVariation[];
   logistic_type: string | null;
   free_shipping: boolean;
-  /** Non-null when the listing is linked to the ML product catalog */
   catalog_product_id: string | null;
-  /** Non-empty when the listing is part of at least one active promotion/deal */
   deal_ids: string[];
 }
 
@@ -61,7 +59,7 @@ const REFRESH_INTERVAL = 5 * 60 * 1000;
 
 export function MLInventoryProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const { stores, selectedStore } = useMLStore();
+  const { stores, selectedStore, scopeKey, hasMLConnection } = useMLStore();
   const { toast } = useToast();
 
   const [items, setItems] = useState<ProductItem[]>([]);
@@ -132,29 +130,23 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
     }
   }, [user, getTokensToFetch, toast]);
 
-  // Update hasToken when stores change
+  // Reset all state when scope changes (seller or store switch)
   useEffect(() => {
-    setHasToken(stores.length > 0 ? true : null);
-  }, [stores]);
+    setItems([]);
+    setSummary(null);
+    setLastUpdated(null);
+    setHasToken(hasMLConnection ? true : null);
+  }, [scopeKey, hasMLConnection]);
 
-  // Fetch once when stores are available, then auto-refresh
+  // Fetch once when stores are available after scope change, then auto-refresh
   useEffect(() => {
     if (stores.length === 0) return;
-    if (items.length === 0 && !lastUpdated) {
-      fetchData();
-    }
+    fetchData();
     intervalRef.current = setInterval(fetchData, REFRESH_INTERVAL);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [stores.length, fetchData, items.length, lastUpdated]);
-
-  // Re-fetch when store selection changes
-  useEffect(() => {
-    if (stores.length > 0 && lastUpdated) {
-      fetchData();
-    }
-  }, [selectedStore]);
+  }, [stores.length, fetchData, scopeKey]);
 
   return (
     <MLInventoryContext.Provider value={{ items, summary, loading, hasToken, lastUpdated, refresh: fetchData }}>
