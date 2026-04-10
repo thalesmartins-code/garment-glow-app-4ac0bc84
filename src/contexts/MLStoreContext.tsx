@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSeller } from "@/contexts/SellerContext";
@@ -85,7 +85,7 @@ const MLStoreContext = createContext<MLStoreState | null>(null);
 
 export function MLStoreProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const { selectedSeller } = useSeller();
+  const { selectedSeller, selectedStoreIds } = useSeller();
   const [stores, setStores] = useState<MLStore[]>([]);
   const [selectedStore, setSelectedStore] = useState<string>("all");
   const [loading, setLoading] = useState(true);
@@ -172,6 +172,32 @@ export function MLStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchStores();
   }, [fetchStores]);
+
+  // Sync selectedStore with the store filter in the header (SellerContext.selectedStoreIds).
+  // seller_stores.external_id holds the ml_user_id for ML stores.
+  useEffect(() => {
+    if (stores.length === 0) return;
+
+    if (selectedStoreIds.length === 0) {
+      // "All stores" selected in header → "all" in ML context (or auto-select if only one)
+      setSelectedStore(stores.length === 1 ? stores[0].ml_user_id : "all");
+      return;
+    }
+
+    // Find which of the selected seller stores are ML stores and map to ml_user_id
+    const sellerStores = selectedSeller?.stores ?? [];
+    const mlExternalIds = sellerStores
+      .filter((s) => selectedStoreIds.includes(s.id) && s.marketplace === "ml" && s.external_id)
+      .map((s) => s.external_id as string);
+
+    if (mlExternalIds.length === 1) {
+      setSelectedStore(mlExternalIds[0]);
+    } else {
+      // Non-ML store selected, or multiple ML stores → "all"
+      setSelectedStore("all");
+    }
+    setSalesCacheRaw(defaultSalesCache);
+  }, [selectedStoreIds, selectedSeller, stores]);
 
   return (
     <MLStoreContext.Provider
