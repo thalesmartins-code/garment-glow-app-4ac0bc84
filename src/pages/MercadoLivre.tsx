@@ -248,9 +248,9 @@ export default function MercadoLivre() {
   const mlStores = useMemo(() => effectiveStores.filter((s) => s.marketplace === "ml"), [effectiveStores]);
   const nonMlStores = useMemo(() => effectiveStores.filter((s) => s.marketplace !== "ml"), [effectiveStores]);
 
-  const isML = selectedMarketplace === "mercado-livre" || (selectedStoreIds.length > 0 && mlStores.length > 0 && nonMlStores.length === 0);
-  const isAll = selectedStoreIds.length === 0 && (selectedMarketplace === "all" || selectedMarketplace === "mercado-livre");
-  const useRealData = mlStores.length > 0 || isAll;
+  const isML = selectedStore !== "all" || (mlStores.length > 0 && nonMlStores.length === 0);
+  const isAll = selectedStore === "all" && resolvedMLUserIds.length > 1;
+  const useRealData = mlStores.length > 0 || hasMLConnection;
   const marketplaceName = activeMarketplace ? activeMarketplace.name : "Todos os Marketplaces";
   const [loading, setLoading] = useState(() => salesCache.daily.length === 0);
   const [syncing, setSyncing] = useState(false);
