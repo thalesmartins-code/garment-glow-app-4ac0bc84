@@ -1468,13 +1468,11 @@ export default function MercadoLivre() {
       ) : <div /> /* empty grid cell when no chart */}
 
       <GoalsCard
-        currentRevenue={effectiveMetrics?.total_revenue ?? 0}
-        currentOrders={effectiveMetrics?.units_sold ?? 0}
-        currentTicket={effectiveMetrics?.avg_ticket ?? 0}
-        currentConversion={effectiveMetrics?.conversion_rate ?? 0}
+        currentRevenue={monthlyMetrics?.total_revenue ?? 0}
+        currentOrders={monthlyMetrics?.units_sold ?? 0}
+        currentTicket={monthlyMetrics?.avg_ticket ?? 0}
+        currentConversion={monthlyMetrics?.conversion_rate ?? 0}
         storeId={selectedStore !== "all" ? String(selectedStore) : (stores[0]?.ml_user_id ?? undefined)}
-        year={parseISO(currentTo).getFullYear()}
-        month={parseISO(currentTo).getMonth() + 1}
       />
       </div>
 
