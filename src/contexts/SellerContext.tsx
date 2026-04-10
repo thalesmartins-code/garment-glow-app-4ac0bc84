@@ -25,6 +25,7 @@ interface SellerContextType {
   selectedStoreIds: string[];
   setSelectedStoreIds: (ids: string[]) => void;
   toggleStoreId: (id: string) => void;
+  refreshSellers: () => Promise<void>;
   // Seller CRUD
   addSeller: (name: string) => Promise<Seller | null>;
   updateSeller: (id: string, data: { name?: string; is_active?: boolean; logo_url?: string | null }) => Promise<void>;
@@ -317,6 +318,7 @@ export function SellerProvider({ children }: { children: React.ReactNode }) {
         selectedStoreIds,
         setSelectedStoreIds,
         toggleStoreId,
+        refreshSellers: loadSellers,
         addSeller,
         updateSeller,
         deleteSeller,

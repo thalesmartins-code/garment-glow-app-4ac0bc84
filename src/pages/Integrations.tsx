@@ -147,7 +147,7 @@ const statusConfig = {
 };
 
 export default function Integrations() {
-  const { selectedSeller } = useSeller();
+  const { selectedSeller, refreshSellers } = useSeller();
   const { stores: mlStores, refresh: refreshMLStores } = useMLStore();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -231,6 +231,7 @@ export default function Integrations() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const userId = user?.id || null;
+      const mlUserId = String(tokenData.user_id);
 
       await supabase.from("ml_tokens").upsert(
         {
@@ -238,12 +239,52 @@ export default function Integrations() {
           access_token: tokenData.access_token,
           refresh_token: tokenData.refresh_token,
           expires_at: expiresAt,
-          ml_user_id: String(tokenData.user_id),
+          ml_user_id: mlUserId,
           token_type: "bearer",
           seller_id: selectedSeller?.id || null,
         } as any,
         { onConflict: "user_id,ml_user_id" },
       );
+
+      // Sync seller_stores.external_id so the header store filter works.
+      // Try to claim an existing ML store that has no external_id yet; otherwise insert a new row.
+      if (selectedSeller?.id) {
+        const { data: existing } = await supabase
+          .from("seller_stores" as any)
+          .select("id")
+          .eq("seller_id", selectedSeller.id)
+          .eq("marketplace", "ml")
+          .eq("external_id", mlUserId)
+          .maybeSingle();
+
+        if (!existing) {
+          const { data: unclaimed } = await supabase
+            .from("seller_stores" as any)
+            .select("id")
+            .eq("seller_id", selectedSeller.id)
+            .eq("marketplace", "ml")
+            .is("external_id", null)
+            .limit(1)
+            .maybeSingle();
+
+          if (unclaimed) {
+            await supabase
+              .from("seller_stores" as any)
+              .update({ external_id: mlUserId })
+              .eq("id", (unclaimed as any).id);
+          } else {
+            await supabase.from("seller_stores" as any).insert({
+              seller_id: selectedSeller.id,
+              marketplace: "ml",
+              external_id: mlUserId,
+              store_name: `Loja ML ${mlUserId}`,
+              is_active: true,
+            });
+          }
+          // Refresh SellerContext so header shows updated stores
+          await refreshSellers();
+        }
+      }
     } catch (e) {
       console.error("Failed to save ML tokens to DB:", e);
     }

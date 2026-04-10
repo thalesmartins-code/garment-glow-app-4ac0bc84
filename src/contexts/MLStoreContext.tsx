@@ -180,22 +180,39 @@ export function MLStoreProvider({ children }: { children: ReactNode }) {
 
     if (selectedStoreIds.length === 0) {
       // "All stores" selected in header → "all" in ML context (or auto-select if only one)
-      setSelectedStore(stores.length === 1 ? stores[0].ml_user_id : "all");
+      const next = stores.length === 1 ? stores[0].ml_user_id : "all";
+      setSelectedStore(next);
       return;
     }
 
-    // Find which of the selected seller stores are ML stores and map to ml_user_id
     const sellerStores = selectedSeller?.stores ?? [];
+
+    // Primary: map via seller_stores.external_id (set after OAuth connect)
     const mlExternalIds = sellerStores
       .filter((s) => selectedStoreIds.includes(s.id) && s.marketplace === "ml" && s.external_id)
       .map((s) => s.external_id as string);
 
     if (mlExternalIds.length === 1) {
       setSelectedStore(mlExternalIds[0]);
-    } else {
-      // Non-ML store selected, or multiple ML stores → "all"
-      setSelectedStore("all");
+      setSalesCacheRaw(defaultSalesCache);
+      return;
     }
+
+    // Fallback: if external_id is not set yet, infer by seller_id when there is only one ML store
+    const selectedMlSellerStores = sellerStores.filter(
+      (s) => selectedStoreIds.includes(s.id) && s.marketplace === "ml",
+    );
+    if (selectedMlSellerStores.length === 1 && selectedSeller?.id) {
+      const matchingTokenStores = stores.filter((s) => s.seller_id === selectedSeller.id);
+      if (matchingTokenStores.length === 1) {
+        setSelectedStore(matchingTokenStores[0].ml_user_id);
+        setSalesCacheRaw(defaultSalesCache);
+        return;
+      }
+    }
+
+    // Non-ML store selected, or ambiguous → "all"
+    setSelectedStore("all");
     setSalesCacheRaw(defaultSalesCache);
   }, [selectedStoreIds, selectedSeller, stores]);
 
