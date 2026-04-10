@@ -1,33 +1,29 @@
 
 
-## Filtro de Marca no Ranking + Reformulação "Por Marca" com Gráficos
+## Plan: Fix header store/seller filter reactivity + remove Revenue by Marketplace card
 
-### Alterações
+### Problem
+1. **Seller/store switching doesn't update sales data**: The `MercadoLivre.tsx` page initializes local state from `salesCache` only once. When the seller or store changes in the header, `MLStoreContext` resets the cache, but the page's local state (`allDaily`, `allHourly`, `connected`, etc.) retains stale values. The `cacheLoadedRef` also blocks re-fetching after the initial load.
+2. **Revenue by Marketplace card**: User wants it removed from the sales page.
+3. **Estoque and Anúncios pages**: Already react to `selectedStore` changes via `MLInventoryContext` (which re-fetches on store change). However, we should verify the seller change propagates correctly.
 
-**1. Ranking de Anúncios — Filtro de marca**
-- Adicionar um `Select` de marca acima da tabela de ranking (mesmo componente já usado no catálogo).
-- Criar estado `rankingBrandFilter` e filtrar `rankingAll` por marca selecionada.
-- Recalcular os KPIs com base nos itens filtrados.
+### Changes
 
-**2. Renomear sub-aba "Por Marca" → "Análise por Marca"**
+#### 1. Fix seller/store reactivity in `MercadoLivre.tsx` (Sales page)
+- **Reset local state when salesCache resets**: Add an effect that watches `salesCache` and syncs local state (`allDaily`, `allHourly`, `allProductSales`, `connected`, `mlUser`, `cachedAccessToken`, `productStockMap`) back from it when the cache is reset (e.g., all arrays empty after a seller/store change).
+- **Reset `cacheLoadedRef` on seller change**: Add `selectedSeller?.id` to the dependency that resets `cacheLoadedRef.current = false`, so data is re-fetched when the seller changes.
+- **Reset `autoSyncTriggeredRef` on seller/store change**: So auto-sync triggers again for the new seller/store.
 
-**3. Análise por Marca — Adicionar gráficos**
-Acima da tabela existente, inserir dois gráficos lado a lado usando Recharts (já instalado via `chart.tsx`):
+#### 2. Remove RevenueByMarketplace card from sales page
+- Remove the `RevenueByMarketplace` render block (lines ~1382-1385).
+- Remove the `revenueByMarketplace` useMemo (lines ~1074-1129).
+- Remove the import of `RevenueByMarketplace` (line 23).
 
-- **Gráfico de barras horizontal**: Receita por marca (top 10), usando `BarChart` com layout vertical.
-- **Gráfico de pizza/donut**: Distribuição de unidades vendidas por marca (top 8 + "Outros").
+#### 3. Ensure Estoque/Anúncios react to seller changes
+- `MLInventoryContext` already uses `useMLStore().selectedStore` and re-fetches on change.
+- `MLStoreContext` already re-fetches stores when `selectedSeller?.id` changes and resets the cache.
+- This chain should work: seller change → MLStoreContext refetches → selectedStore resets → MLInventoryContext refetches. No additional changes needed for these pages.
 
-Manter a tabela completa abaixo dos gráficos.
-
-### Arquivo modificado
-
-`src/pages/mercadolivre/MLProdutos.tsx`
-
-### Detalhes técnicos
-
-- Importar `BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell` de `recharts`.
-- Usar paleta de cores derivada do tema (hsl vars ou array fixo harmonizado).
-- Estado `rankingBrandFilter` (string, default `"all"`).
-- `rankingFiltered = rankingAll.filter(...)` com memo derivado.
-- Gráficos em `grid grid-cols-2 gap-4` com altura de 280px, dentro de Cards com título.
+### Files to modify
+- `src/pages/MercadoLivre.tsx` — fix reactivity + remove RevenueByMarketplace
 
