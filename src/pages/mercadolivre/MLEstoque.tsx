@@ -910,7 +910,7 @@ export default function MLEstoque() {
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
-        (i) => i.title.toLowerCase().includes(q) || i.id.includes(q) || (i.seller_custom_field ?? "").toLowerCase().includes(q)
+        (i) => i.title.toLowerCase().includes(q) || i.id.toLowerCase().includes(q) || (i.seller_custom_field ?? "").toLowerCase().includes(q)
       );
     }
     if (brandFilter !== "all") result = result.filter((i) => (i.brand || "") === brandFilter);
