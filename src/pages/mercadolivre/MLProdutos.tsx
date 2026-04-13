@@ -368,13 +368,17 @@ export default function MLProdutos() {
   }, [rankingFiltered]);
 
   const brandData = useMemo(() => {
+    const getSold = (id: string) =>
+      rankingSoldMap.size > 0 ? (rankingSoldMap.get(id) ?? 0) : items.find(i => i.id === id)?.sold_quantity ?? 0;
+
     const map = new Map<string, { revenue: number; qty: number; ads: number; stock: number }>();
     items.forEach((i) => {
       const brand = i.brand || "Sem marca";
+      const sold = getSold(i.id);
       const prev = map.get(brand) ?? { revenue: 0, qty: 0, ads: 0, stock: 0 };
       map.set(brand, {
-        revenue: prev.revenue + i.sold_quantity * i.price,
-        qty: prev.qty + i.sold_quantity,
+        revenue: prev.revenue + sold * i.price,
+        qty: prev.qty + sold,
         ads: prev.ads + 1,
         stock: prev.stock + i.available_quantity,
       });
@@ -382,7 +386,7 @@ export default function MLProdutos() {
     return Array.from(map.entries())
       .map(([brand, d]) => ({ brand, ...d, avgTicket: d.qty > 0 ? d.revenue / d.qty : 0 }))
       .sort((a, b) => b.revenue - a.revenue);
-  }, [items]);
+  }, [items, rankingSoldMap]);
 
   const maxBrandRevenue = brandData.length > 0 ? brandData[0].revenue : 1;
 
@@ -809,7 +813,7 @@ export default function MLProdutos() {
               <TabsTrigger value="marca" className="text-xs px-3 h-7">Análise por Marca</TabsTrigger>
               <TabsTrigger value="abc" className="text-xs px-3 h-7">Curva ABC</TabsTrigger>
             </TabsList>
-            {reportTab === "ranking" && (
+            {(reportTab === "ranking" || reportTab === "marca") && (
               <div className="flex items-center gap-2">
                 {/* Date / period selector */}
                 <Popover
@@ -891,18 +895,22 @@ export default function MLProdutos() {
                     </div>
                   </PopoverContent>
                 </Popover>
-                <div className="w-px h-4 bg-border" />
-                <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
-                  <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as marcas</SelectItem>
-                    {brands.map((b) => (
-                      <SelectItem key={b} value={b}>{b}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {rankingBrandFilter !== "all" && (
-                  <Button variant="ghost" size="sm" className="h-8 text-xs px-2" onClick={() => setRankingBrandFilter("all")}>✕</Button>
+                {reportTab === "ranking" && (
+                  <>
+                    <div className="w-px h-4 bg-border" />
+                    <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
+                      <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as marcas</SelectItem>
+                        {brands.map((b) => (
+                          <SelectItem key={b} value={b}>{b}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {rankingBrandFilter !== "all" && (
+                      <Button variant="ghost" size="sm" className="h-8 text-xs px-2" onClick={() => setRankingBrandFilter("all")}>✕</Button>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -1113,7 +1121,7 @@ export default function MLProdutos() {
                 )}
                 {brandData.length > 0 && (
                   <div className="px-4 py-3 border-t text-xs text-muted-foreground">
-                    {brandData.length} marcas encontradas
+                    {brandData.length} marcas encontradas · {rankingLabel}
                   </div>
                 )}
               </CardContent>
