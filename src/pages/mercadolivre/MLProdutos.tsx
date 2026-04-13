@@ -1121,7 +1121,7 @@ export default function MLProdutos() {
                 )}
                 {brandData.length > 0 && (
                   <div className="px-4 py-3 border-t text-xs text-muted-foreground">
-                    {brandData.length} marcas encontradas
+                    {brandData.length} marcas encontradas · {rankingLabel}
                   </div>
                 )}
               </CardContent>
