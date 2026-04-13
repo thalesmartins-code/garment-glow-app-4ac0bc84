@@ -906,12 +906,14 @@ export default function MLEstoque() {
 
   const filteredItems = useMemo(() => {
     let result = [...items];
-    if (hideOutOfStock) result = result.filter((i) => i.available_quantity > 0);
-    if (search.trim()) {
-      const q = search.toLowerCase();
+    const trimmedSearch = search.trim();
+    if (trimmedSearch) {
+      const q = trimmedSearch.toLowerCase();
       result = result.filter(
         (i) => i.title.toLowerCase().includes(q) || i.id.toLowerCase().includes(q) || (i.seller_custom_field ?? "").toLowerCase().includes(q)
       );
+    } else if (hideOutOfStock) {
+      result = result.filter((i) => i.available_quantity > 0);
     }
     if (brandFilter !== "all") result = result.filter((i) => (i.brand || "") === brandFilter);
     if (coverageFilter !== "all") {
