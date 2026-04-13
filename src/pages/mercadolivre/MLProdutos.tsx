@@ -813,7 +813,7 @@ export default function MLProdutos() {
               <TabsTrigger value="marca" className="text-xs px-3 h-7">Análise por Marca</TabsTrigger>
               <TabsTrigger value="abc" className="text-xs px-3 h-7">Curva ABC</TabsTrigger>
             </TabsList>
-            {reportTab === "ranking" && (
+            {(reportTab === "ranking" || reportTab === "marca") && (
               <div className="flex items-center gap-2">
                 {/* Date / period selector */}
                 <Popover
@@ -895,18 +895,22 @@ export default function MLProdutos() {
                     </div>
                   </PopoverContent>
                 </Popover>
-                <div className="w-px h-4 bg-border" />
-                <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
-                  <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as marcas</SelectItem>
-                    {brands.map((b) => (
-                      <SelectItem key={b} value={b}>{b}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {rankingBrandFilter !== "all" && (
-                  <Button variant="ghost" size="sm" className="h-8 text-xs px-2" onClick={() => setRankingBrandFilter("all")}>✕</Button>
+                {reportTab === "ranking" && (
+                  <>
+                    <div className="w-px h-4 bg-border" />
+                    <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
+                      <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as marcas</SelectItem>
+                        {brands.map((b) => (
+                          <SelectItem key={b} value={b}>{b}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {rankingBrandFilter !== "all" && (
+                      <Button variant="ghost" size="sm" className="h-8 text-xs px-2" onClick={() => setRankingBrandFilter("all")}>✕</Button>
+                    )}
+                  </>
                 )}
               </div>
             )}
