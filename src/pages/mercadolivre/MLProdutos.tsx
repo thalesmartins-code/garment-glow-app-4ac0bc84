@@ -340,9 +340,14 @@ export default function MLProdutos() {
   }, [items, rankingSoldMap]);
 
   const rankingFiltered = useMemo(() => {
-    const base = rankingBrandFilter === "all"
+    let base = rankingBrandFilter === "all"
       ? rankingAll
       : rankingAll.filter((r) => r.brand === rankingBrandFilter);
+
+    if (rankingSearch.trim()) {
+      const q = rankingSearch.trim().toLowerCase();
+      base = base.filter((r) => r.title.toLowerCase().includes(q) || r.id.toLowerCase().includes(q));
+    }
 
     const [field, dir] = rankingSort.split("_");
     return [...base].sort((a, b) => {
@@ -360,7 +365,7 @@ export default function MLProdutos() {
         : b.sold;
       return dir === "asc" ? aVal - bVal : bVal - aVal;
     });
-  }, [rankingAll, rankingBrandFilter, rankingSort]);
+  }, [rankingAll, rankingBrandFilter, rankingSearch, rankingSort]);
 
   const rankingKPIs = useMemo(() => {
     const totalUnits = rankingFiltered.reduce((s, r) => s + r.sold, 0);
