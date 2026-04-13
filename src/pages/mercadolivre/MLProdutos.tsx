@@ -205,7 +205,7 @@ export default function MLProdutos() {
     }
     let query = supabase
       .from("ml_product_daily_cache")
-      .select("item_id, qty_sold")
+      .select("item_id, qty_sold, revenue")
       .eq("user_id", user.id)
       .gte("date", fromDate)
       .lte("date", toDate);
@@ -222,6 +222,14 @@ export default function MLProdutos() {
     const map = new Map<string, number>();
     for (const row of rankingRawData) {
       map.set(row.item_id, (map.get(row.item_id) ?? 0) + row.qty_sold);
+    }
+    return map;
+  }, [rankingRawData]);
+
+  const rankingRevenueMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const row of rankingRawData) {
+      map.set(row.item_id, (map.get(row.item_id) ?? 0) + (row.revenue ?? 0));
     }
     return map;
   }, [rankingRawData]);
@@ -317,13 +325,18 @@ export default function MLProdutos() {
   const rankingAll = useMemo(() => {
     const getSold = (id: string) =>
       rankingSoldMap.size > 0 ? (rankingSoldMap.get(id) ?? 0) : items.find(i => i.id === id)?.sold_quantity ?? 0;
+    const getRev = (id: string, sold: number, price: number) =>
+      rankingRevenueMap.size > 0 ? (rankingRevenueMap.get(id) ?? 0) : sold * price;
 
-    const totalRev = items.reduce((s, i) => s + getSold(i.id) * i.price, 0);
+    const totalRev = items.reduce((s, i) => {
+      const sold = getSold(i.id);
+      return s + getRev(i.id, sold, i.price);
+    }, 0);
 
     return [...items]
       .map((i) => {
         const sold = getSold(i.id);
-        const rev = sold * i.price;
+        const rev = getRev(i.id, sold, i.price);
         return {
           id: i.id,
           title: i.title,
@@ -337,7 +350,7 @@ export default function MLProdutos() {
         };
       })
       .sort((a, b) => b.sold - a.sold);
-  }, [items, rankingSoldMap]);
+  }, [items, rankingSoldMap, rankingRevenueMap]);
 
   const rankingFiltered = useMemo(() => {
     let base = rankingBrandFilter === "all"
@@ -377,13 +390,15 @@ export default function MLProdutos() {
     const getSold = (id: string) =>
       rankingSoldMap.size > 0 ? (rankingSoldMap.get(id) ?? 0) : items.find(i => i.id === id)?.sold_quantity ?? 0;
 
+    const getRev = (id: string, sold: number, price: number) =>
+      rankingRevenueMap.size > 0 ? (rankingRevenueMap.get(id) ?? 0) : sold * price;
     const map = new Map<string, { revenue: number; qty: number; ads: number; stock: number }>();
     items.forEach((i) => {
       const brand = i.brand || "Sem marca";
       const sold = getSold(i.id);
       const prev = map.get(brand) ?? { revenue: 0, qty: 0, ads: 0, stock: 0 };
       map.set(brand, {
-        revenue: prev.revenue + sold * i.price,
+        revenue: prev.revenue + getRev(i.id, sold, i.price),
         qty: prev.qty + sold,
         ads: prev.ads + 1,
         stock: prev.stock + i.available_quantity,
