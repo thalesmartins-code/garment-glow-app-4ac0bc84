@@ -904,6 +904,15 @@ export default function MLProdutos() {
                 {reportTab === "ranking" && (
                   <>
                     <div className="w-px h-4 bg-border" />
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar..."
+                        value={rankingSearch}
+                        onChange={(e) => setRankingSearch(e.target.value)}
+                        className="w-48 h-8 text-xs pl-8 bg-secondary/50 border-0 focus-visible:ring-accent"
+                      />
+                    </div>
                     <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
                       <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
                       <SelectContent>
