@@ -407,7 +407,7 @@ export default function MLProdutos() {
     return Array.from(map.entries())
       .map(([brand, d]) => ({ brand, ...d, avgTicket: d.qty > 0 ? d.revenue / d.qty : 0 }))
       .sort((a, b) => b.revenue - a.revenue);
-  }, [items, rankingSoldMap]);
+  }, [items, rankingSoldMap, rankingRevenueMap]);
 
   const maxBrandRevenue = brandData.length > 0 ? brandData[0].revenue : 1;
 
