@@ -165,6 +165,7 @@ export default function MLProdutos() {
   const [logisticFilter, setLogisticFilter] = useState<LogisticFilter>("all");
   const [rankingBrandFilter, setRankingBrandFilter] = useState("all");
   const [rankingSort, setRankingSort] = useState("sold_desc");
+  const [rankingSearch, setRankingSearch] = useState("");
   const [reportTab, setReportTab] = useState("ranking");
 
   const toggleRankingSort = (field: string) => {
@@ -339,9 +340,14 @@ export default function MLProdutos() {
   }, [items, rankingSoldMap]);
 
   const rankingFiltered = useMemo(() => {
-    const base = rankingBrandFilter === "all"
+    let base = rankingBrandFilter === "all"
       ? rankingAll
       : rankingAll.filter((r) => r.brand === rankingBrandFilter);
+
+    if (rankingSearch.trim()) {
+      const q = rankingSearch.trim().toLowerCase();
+      base = base.filter((r) => r.title.toLowerCase().includes(q) || r.id.toLowerCase().includes(q));
+    }
 
     const [field, dir] = rankingSort.split("_");
     return [...base].sort((a, b) => {
@@ -359,7 +365,7 @@ export default function MLProdutos() {
         : b.sold;
       return dir === "asc" ? aVal - bVal : bVal - aVal;
     });
-  }, [rankingAll, rankingBrandFilter, rankingSort]);
+  }, [rankingAll, rankingBrandFilter, rankingSearch, rankingSort]);
 
   const rankingKPIs = useMemo(() => {
     const totalUnits = rankingFiltered.reduce((s, r) => s + r.sold, 0);
@@ -898,6 +904,15 @@ export default function MLProdutos() {
                 {reportTab === "ranking" && (
                   <>
                     <div className="w-px h-4 bg-border" />
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar..."
+                        value={rankingSearch}
+                        onChange={(e) => setRankingSearch(e.target.value)}
+                        className="w-48 h-8 text-xs pl-8 bg-secondary/50 border-0 focus-visible:ring-accent"
+                      />
+                    </div>
                     <Select value={rankingBrandFilter} onValueChange={setRankingBrandFilter}>
                       <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Filtrar por marca" /></SelectTrigger>
                       <SelectContent>
