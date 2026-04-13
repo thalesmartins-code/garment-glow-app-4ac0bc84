@@ -1,62 +1,44 @@
 
 
-## Plano: Corrigir filtro de lojas — mapear external_id e ajustar reatividade
+## Problem
 
-### Causa Raiz
+The **Ranking de Anúncios** page calculates revenue incorrectly by multiplying `qty_sold × current_price`. This ignores price changes, discounts, and promotions over the period. The **Top Anúncios** card correctly sums the actual `revenue` field from `ml_product_daily_cache`.
 
-A tabela `seller_stores` tem `external_id = NULL` em todas as linhas. O `HeaderScopeContext` tenta cruzar `seller_stores.external_id` com `ml_tokens.ml_user_id` para resolver qual conta ML corresponde a qual loja — mas como `external_id` é sempre NULL, o filtro nunca funciona:
+## Root Cause
 
-- Loja específica selecionada → `resolvedMLUserIds = []` → "não conectado"
-- "Todas" selecionada → retorna todos os tokens do seller → sempre soma tudo
-- BuyClock → sem tokens → correto (mas Vendas mostra mensagem errada por timing)
+In `src/pages/mercadolivre/MLProdutos.tsx`, line 326:
+```tsx
+const rev = sold * i.price;  // WRONG — uses current catalog price
+```
 
-### Dados atuais no banco
+Meanwhile `src/pages/MercadoLivre.tsx` line 391 correctly sums:
+```tsx
+agg[p.item_id].revenue += p.revenue;  // CORRECT — uses recorded daily revenue
+```
 
-| seller_stores.id | store_name | seller (via seller_id) | external_id |
-|---|---|---|---|
-| d450e03b... | Mercado Livre SP | Sandrini | NULL |
-| 9eee89c9... | Mercado Livre MG | Sandrini | NULL |
-| 78ba32c6... | Mercado Livre SP | BuyClock | NULL |
-| 16ec4983... | Mercado Livre MG | BuyClock | NULL |
+## Plan
 
-| ml_tokens.ml_user_id | seller (via seller_id) |
-|---|---|
-| 427063369 | Sandrini |
-| 1421067331 | Sandrini |
+### 1. Fetch revenue alongside qty_sold in ranking query
 
-### Solução em 2 partes
+In `MLProdutos.tsx`, the `fetchRankingSales` function (line 206) currently selects only `item_id, qty_sold`. Change it to also select `revenue`:
 
-#### Parte 1: Migration — Preencher external_id
+```sql
+.select("item_id, qty_sold, revenue")
+```
 
-Criar uma migration SQL para atualizar os `external_id` das lojas da Sandrini vinculando cada loja a uma conta ML. O usuário precisará confirmar qual `ml_user_id` corresponde a qual loja (SP ou MG).
+### 2. Build a revenue map alongside the sold map
 
-Proposta (assumindo ordem):
-- Sandrini "Mercado Livre SP" (`d450e03b`) → `external_id = '427063369'`
-- Sandrini "Mercado Livre MG" (`9eee89c9`) → `external_id = '1421067331'`
+Update `rankingSoldMap` (or add a parallel `rankingRevenueMap`) to also aggregate `revenue` per `item_id` from the raw data.
 
-As lojas do BuyClock ficam sem `external_id` (não possuem integração ML).
+### 3. Use real revenue in rankingAll
 
-#### Parte 2: Código — Corrigir timing e reatividade
+Replace `const rev = sold * i.price` with the aggregated revenue from the map. Fall back to `sold * price` only when no period data exists (the "Todo o periodo" / lifetime case using `sold_quantity`).
 
-1. **`HeaderScopeContext.tsx`**: Nenhuma mudança necessária — a lógica de resolução já está correta, só faltavam os dados no banco.
+### 4. Propagate to brandData
 
-2. **`MLStoreContext.tsx`**: Ajustar para que o `loading` inicial não cause flash de "não conectado". Garantir que `stores` esteja populado antes que `MercadoLivre.tsx` execute o efeito de init.
+The `brandData` memo also uses `getSold(i.id) * i.price` for revenue. Apply the same fix there.
 
-3. **`MercadoLivre.tsx`**: O efeito de init (linha 776) roda quando `cacheLoadedRef` é false. Após reset por `scopeKey` (linha 762), ele roda novamente — mas pode rodar antes de `stores` estar populado. Ajustar para aguardar `loading === false` antes de decidir se está conectado ou não.
+---
 
-4. **`MLInventoryContext.tsx`**: O `getTokensToFetch` já usa `selectedStore` derivado do scope. Como `selectedStore` agora será corretamente resolvido (porque `external_id` estará preenchido), a filtragem individual passará a funcionar.
-
-5. **`useMLAds.ts`**: Mesmo caso — usa `selectedStore` e `stores` do MLStoreContext. Funcionará automaticamente.
-
-### Arquivos a modificar
-- Nova migration SQL (preencher `external_id`)
-- `src/pages/MercadoLivre.tsx` — aguardar loading antes de decidir conexão
-- `src/contexts/MLStoreContext.tsx` — pequeno ajuste de timing
-
-### Pergunta ao usuário
-Preciso confirmar: qual `ml_user_id` corresponde a qual loja?
-- `427063369` = Mercado Livre SP ou MG?
-- `1421067331` = Mercado Livre SP ou MG?
-
-Isso pode ser verificado acessando a página de integrações ou checando o nickname de cada conta no Mercado Livre.
+**Technical details**: Only `src/pages/mercadolivre/MLProdutos.tsx` needs changes. No database or edge function modifications required.
 
