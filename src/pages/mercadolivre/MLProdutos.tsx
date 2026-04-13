@@ -181,7 +181,7 @@ export default function MLProdutos() {
   const [rankingPopoverOpen, setRankingPopoverOpen] = useState(false);
   const [pendingPeriod, setPendingPeriod] = useState<number | null>(TOTAL_PERIOD);
   const [pendingRange, setPendingRange] = useState<DateRange | null>(null);
-  const [rankingRawData, setRankingRawData] = useState<{ item_id: string; qty_sold: number }[]>([]);
+  const [rankingRawData, setRankingRawData] = useState<{ item_id: string; qty_sold: number; revenue: number }[]>([]);
 
   const fetchRankingSales = useCallback(async () => {
     if (!user) return;
