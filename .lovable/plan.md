@@ -1,50 +1,33 @@
 
 
-## Modo TV para Vendas (API/Mercado Livre)
+## Melhorias visuais no Modo TV de Vendas
 
-### Overview
-Create a new TV Mode page specifically for the Mercado Livre (API) sales dashboard. It will cycle between Sandrini (all stores) and Buy Clock (all stores), showing KPI cards, hourly revenue chart, and top products ranking -- all fetched from real Supabase data.
+### Objetivo
+Alinhar visualmente o Modo TV (`/api/tv`) com o dashboard de vendas principal (`/api`), melhorando os cards de "Receita por Hora" e "Top Anúncios".
 
-### Route
-- New route: `/api/tv` inside the API layout group (or standalone like `/tv` is today)
-- Since it needs `HeaderScopeContext` + `MLStoreProvider` + `MLInventoryProvider`, it will be placed as a standalone route wrapping those providers directly (similar to how `/tv` works today -- no sidebar/header chrome).
+### Alterações em `src/pages/TVModeVendas.tsx`
 
-### Page: `src/pages/TVModeVendas.tsx`
+**1. KPI Cards — usar variante `minimal` (como no dashboard de vendas)**
+- Trocar `variant` de `purple`/`info`/`orange`/`neutral` para `minimal` em todos os 5 cards, mantendo `size="compact"`.
 
-**Seller Cycling Logic:**
-- Hardcoded seller list from DB: Sandrini (`8c57110c-...`) and Buy Clock (`52a7ed04-...`)
-- Each seller shows "total" (all stores aggregated)
-- Cycle interval configurable (default 15s), stored in localStorage
-- No sub-views (diario/mensal) -- just current day data (Hoje)
+**2. Card "Receita por Hora" — usar Card component + gradient fill**
+- Envolver com `<Card>` + `<CardContent>` em vez de `div` com classes manuais.
+- Título com `text-sm font-medium text-foreground` (sem `text-muted-foreground`).
+- Adicionar `linearGradient` no fill da Area (como o dashboard usa `url(#mlTotal)`).
+- Bars com `radius={[6,6,0,0]}` e `maxBarSize={24}` (consistente com vendas).
+- Tooltip com `borderRadius: 12` e `boxShadow`.
+- XAxis interval de 2 (a cada 3h).
 
-**Data Fetching (per seller cycle):**
-- On seller change, query Supabase directly (no context dependency):
-  1. `ml_daily_cache` filtered by `seller_id` + today's date → KPI metrics
-  2. `ml_hourly_cache` filtered by `seller_id` + today's date → hourly chart
-  3. `ml_product_daily_cache` filtered by `seller_id` + today's date → top 5 products
-- Auto-refresh every N minutes (default 5min)
+**3. Card "Top Anúncios" — tabela estruturada com 8 produtos**
+- Envolver com `<Card>` + `<CardContent>`.
+- Aumentar slice de 5 para 8 produtos.
+- Substituir o layout atual (inline com progress bar) pelo formato tabular do dashboard de vendas:
+  - Header row com colunas: #, thumb, Produto, Vendidos, Receita, % Part.
+  - Medalhas (🥇🥈🥉) nos top 3.
+  - Valores de "Vendidos" e "Receita" com `font-semibold` para destaque.
+  - Linhas separadas por `border-b border-border/30`.
+- Remover mini progress bars (não existem no dashboard principal).
 
-**Layout (fullscreen, no sidebar):**
-1. **Top bar**: Seller logo + name, period label, seller pills, clock, settings gear, fullscreen button
-2. **Progress bar**: cycle progress (same as existing TV mode)
-3. **KPI row**: Receita Total, Pedidos, Ticket Médio, Visitas, Conversão (5 cards, compact)
-4. **Main content grid**:
-   - Left (2/3): Hourly revenue chart (ComposedChart with bars for orders + area for revenue)
-   - Right (1/3): Top 5 products table (rank, thumbnail, title, qty, revenue, % share)
-5. **Footer**: refresh/cycle info
-
-### Changes Summary
-
-| File | Action |
-|------|--------|
-| `src/pages/TVModeVendas.tsx` | Create -- standalone TV page for API sales |
-| `src/App.tsx` | Add route `/api/tv` (protected, standalone -- no ApiLayout wrapper) |
-
-### Technical Details
-
-- The page will use `useAuth()` for `user.id` and query Supabase directly with `seller_id` filters, avoiding the complexity of context providers.
-- Seller definitions (id, name, logo) are hardcoded in the component using the existing logo assets.
-- The hourly chart reuses the same Recharts `ComposedChart` pattern from `MercadoLivre.tsx`.
-- The top products table reuses the inline rendering pattern from `MercadoLivre.tsx` lines 1588-1646.
-- KPICard component is reused as-is with `variant="minimal"` and `size="compact"`.
+### Arquivo afetado
+- `src/pages/TVModeVendas.tsx` — único arquivo editado.
 
