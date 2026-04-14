@@ -53,8 +53,8 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
             <Menu className="h-5 w-5" />
           </Button>
         )}
-        {showSellerMarketplaceBar ? (
-          <SellerMarketplaceBar showStores={!hideStores} />
+        {showSellerMarketplaceBar && !hideStores ? (
+          <SellerMarketplaceBar showStores />
         ) : (
           <div className="min-w-0">
             <h1 className="text-lg md:text-xl font-semibold tracking-tight text-foreground truncate">{title}</h1>
