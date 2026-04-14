@@ -157,6 +157,10 @@ const App = () => (
                           path="/api/integracoes"
                           element={<RoleRoute><Integrations /></RoleRoute>}
                         />
+                        <Route
+                          path="/api/usuarios"
+                          element={<RoleRoute><UserManagement /></RoleRoute>}
+                        />
                       </Route>
                     </Route>
                     <Route path="*" element={<NotFound />} />

@@ -1,4 +1,4 @@
-import { Bell, Check, ChevronDown, DatabaseZap, LogOut, Menu, SlidersHorizontal, Store, Upload, User } from "lucide-react";
+import { Bell, Check, ChevronDown, DatabaseZap, LogOut, Menu, Settings, Store, Upload, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +33,7 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
   const isApi = location.pathname.startsWith("/api");
   
   const profilePath = isApi ? "/api/perfil" : "/perfil";
-  const settingsPath = isApi ? "/api/integracoes" : "/sheets/configuracoes";
+  const settingsPath = isApi ? "/api/usuarios" : "/sheets/usuarios";
   const displayName = profile?.full_name || "Usuário";
   const initials = displayName
     .split(" ")
@@ -153,8 +153,8 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
               Perfil
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate(settingsPath)} className="rounded-lg px-2 py-2 text-sm hover:bg-muted focus:bg-muted">
-              <SlidersHorizontal className="mr-2 h-4 w-4 text-muted-foreground" />
-              Configurações
+              <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
+              Gestão de Usuários
             </DropdownMenuItem>
             {isApi && (
               <>
