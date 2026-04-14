@@ -42,7 +42,7 @@ export function SellerMarketplaceBar({ className, showStores = true }: Props) {
             size="sm"
             className="h-7 gap-2 px-2 text-sm font-medium hover:bg-transparent hover:text-inherit"
           >
-            <div className="relative flex items-center gap-2 min-w-[130px]">
+            <div className="relative flex items-center gap-2 min-w-[80px] sm:min-w-[130px]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={selectedSeller?.id ?? "empty"}
@@ -63,7 +63,7 @@ export function SellerMarketplaceBar({ className, showStores = true }: Props) {
                       {selectedSeller?.initials ?? "?"}
                     </span>
                   )}
-                  <span className="max-w-[110px] truncate">{selectedSeller?.name ?? "Seller"}</span>
+                  <span className="max-w-[70px] sm:max-w-[110px] truncate">{selectedSeller?.name ?? "Seller"}</span>
                 </motion.div>
               </AnimatePresence>
             </div>

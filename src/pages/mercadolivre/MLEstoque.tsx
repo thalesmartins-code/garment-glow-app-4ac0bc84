@@ -164,7 +164,7 @@ function SubTabCobertura({ items, coverageMap, coveragePeriod }: Pick<Relatorios
     <div className="space-y-4">
 
       {/* ── KPI row ── */}
-      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <KPICard title="SKUs analisados" value={String(kpis.total)} variant="minimal" size="compact" icon={<Boxes className="w-4 h-4" />} iconClassName="bg-primary/10 text-primary" />
         <KPICard title="Cobertos (OK)" value={`${kpis.okPct}%`} variant="minimal" size="compact" icon={<CheckCircle2 className="w-4 h-4" />} iconClassName="bg-success/10 text-success" />
         <KPICard title="Média cobertura" value={kpis.avgDays != null ? `${kpis.avgDays}d` : "—"} variant="minimal" size="compact" icon={<Clock className="w-4 h-4" />} iconClassName="bg-accent/10 text-accent" />
@@ -993,7 +993,7 @@ export default function MLEstoque() {
   return (
     <Tabs defaultValue="estoque" className="space-y-5">
       {/* ── Sticky header ── */}
-      <div className="sticky -top-8 z-20 -mx-8 -mt-8 px-8 pb-4 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
+      <div className="sticky -top-4 md:-top-6 lg:-top-8 z-20 -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pb-4 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
         <div className="flex items-center justify-between gap-4">
           <MLPageHeader title="Estoque" lastUpdated={lastUpdated} />
           <div className="flex items-center gap-3">

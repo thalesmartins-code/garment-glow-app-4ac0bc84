@@ -1,4 +1,4 @@
-import { Bell, Check, ChevronDown, DatabaseZap, History, LogOut, SlidersHorizontal, Store, Upload, User } from "lucide-react";
+import { Bell, Check, ChevronDown, DatabaseZap, History, LogOut, Menu, SlidersHorizontal, Store, Upload, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,9 +23,10 @@ interface HeaderProps {
   showSellerSwitcher?: boolean;
   showMarketplaceSwitcher?: boolean;
   showSellerMarketplaceBar?: boolean;
+  onMenuClick?: () => void;
 }
 
-export function Header({ title, subtitle, showSellerSwitcher = true, showMarketplaceSwitcher = false, showSellerMarketplaceBar = false }: HeaderProps) {
+export function Header({ title, subtitle, showSellerSwitcher = true, showMarketplaceSwitcher = false, showSellerMarketplaceBar = false, onMenuClick }: HeaderProps) {
   const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
   const { profile, role, signOut } = useAuth();
   const navigate = useNavigate();
@@ -44,43 +45,47 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
   const roleLabel = role === "admin" ? "Admin" : role === "editor" ? "Editor" : "Viewer";
 
   return (
-    <header className="flex items-center justify-between border-b border-border bg-card px-8 py-4">
-      <div className="flex items-center gap-4">
+    <header className="flex items-center justify-between border-b border-border bg-card px-4 md:px-8 py-3 md:py-4 gap-2">
+      <div className="flex items-center gap-2 md:gap-4 min-w-0">
+        {onMenuClick && (
+          <Button variant="ghost" size="icon" className="shrink-0 rounded-xl hover:bg-secondary/50 md:hidden" onClick={onMenuClick}>
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
         {showSellerMarketplaceBar ? (
           <SellerMarketplaceBar />
         ) : (
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight text-foreground">{title}</h1>
-            {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+          <div className="min-w-0">
+            <h1 className="text-lg md:text-xl font-semibold tracking-tight text-foreground truncate">{title}</h1>
+            {subtitle && <p className="mt-0.5 md:mt-1 text-xs md:text-sm text-muted-foreground truncate">{subtitle}</p>}
           </div>
         )}
       </div>
 
-      <div className="flex items-center gap-3">
-        {/* Store selection is now handled by SellerMarketplaceBar */}
+      <div className="flex items-center gap-2 md:gap-3 shrink-0">
         {showMarketplaceSwitcher && !showSellerMarketplaceBar && <MarketplaceSwitcher />}
         {showSellerSwitcher && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="h-10 gap-2.5 rounded-xl border-0 bg-secondary/50 px-3 hover:bg-secondary"
+                className="h-9 md:h-10 gap-2 md:gap-2.5 rounded-xl border-0 bg-secondary/50 px-2 md:px-3 hover:bg-secondary"
               >
                 {selectedSeller?.logo_url ? (
                   <img
                     src={selectedSeller.logo_url}
                     alt={selectedSeller.name}
-                    className="h-7 w-7 rounded-lg object-cover"
+                    className="h-6 w-6 md:h-7 md:w-7 rounded-lg object-cover"
                   />
                 ) : (
                   <div
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-accent-foreground"
+                    className="flex h-6 w-6 md:h-7 md:w-7 items-center justify-center rounded-lg text-[10px] md:text-[11px] font-bold text-accent-foreground"
                     style={{ background: "var(--gradient-primary)" }}
                   >
                     {selectedSeller?.initials ?? "?"}
                   </div>
                 )}
-                <span className="hidden text-sm font-medium text-foreground sm:inline">{selectedSeller?.name ?? "Seller"}</span>
+                <span className="hidden sm:inline text-sm font-medium text-foreground">{selectedSeller?.name ?? "Seller"}</span>
                 <ChevronDown className="ml-0.5 h-3.5 w-3.5 text-muted-foreground mx-0" />
               </Button>
             </DropdownMenuTrigger>
@@ -129,13 +134,13 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-3 rounded-xl pl-2 pr-4 hover:bg-secondary/50 hover:text-foreground">
+            <Button variant="ghost" className="gap-2 md:gap-3 rounded-xl pl-2 pr-2 md:pr-4 hover:bg-secondary/50 hover:text-foreground">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-accent text-sm font-medium text-accent-foreground">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="hidden text-left sm:block">
+              <div className="hidden sm:block text-left">
                 <p className="text-sm font-medium">{displayName}</p>
                 <p className="text-xs text-muted-foreground">{roleLabel}</p>
               </div>

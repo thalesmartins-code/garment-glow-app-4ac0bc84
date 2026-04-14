@@ -1,10 +1,13 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Header } from "./Header";
 import { getRouteMeta } from "./routeMeta";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 interface LayoutShellProps {
   sidebar: ReactNode;
+  mobileSidebar?: ReactNode;
   showSellerSwitcher?: boolean;
   showMarketplaceSwitcher?: boolean;
   showSellerMarketplaceBar?: boolean;
@@ -12,17 +15,39 @@ interface LayoutShellProps {
 
 const HIDE_SELLER_SWITCHER_ROUTES = ["/sheets/integracoes", "/sheets/sellers", "/sheets/importacao", "/api/integracoes", "/api/sellers", "/api/importacao"];
 
-export function LayoutShell({ sidebar, showSellerSwitcher = true, showMarketplaceSwitcher = false, showSellerMarketplaceBar = false }: LayoutShellProps) {
+export function LayoutShell({ sidebar, mobileSidebar, showSellerSwitcher = true, showMarketplaceSwitcher = false, showSellerMarketplaceBar = false }: LayoutShellProps) {
   const location = useLocation();
   const { title, subtitle } = getRouteMeta(location.pathname);
   const hideSwitcher = HIDE_SELLER_SWITCHER_ROUTES.includes(location.pathname);
+  const isMobile = useIsMobile();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="flex h-screen bg-background">
-      {sidebar}
+      {/* Desktop sidebar */}
+      {!isMobile && sidebar}
+
+      {/* Mobile sidebar drawer */}
+      {isMobile && (
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent side="left" className="p-0 w-64 [&>button]:hidden">
+            <div onClick={() => setMobileOpen(false)} className="h-full">
+              {mobileSidebar ?? sidebar}
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
+
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header title={title} subtitle={subtitle} showSellerSwitcher={!hideSwitcher && showSellerSwitcher} showMarketplaceSwitcher={showMarketplaceSwitcher} showSellerMarketplaceBar={!hideSwitcher && showSellerMarketplaceBar} />
-        <main className="flex-1 overflow-auto p-8">
+        <Header
+          title={title}
+          subtitle={subtitle}
+          showSellerSwitcher={!hideSwitcher && showSellerSwitcher}
+          showMarketplaceSwitcher={showMarketplaceSwitcher}
+          showSellerMarketplaceBar={!hideSwitcher && showSellerMarketplaceBar}
+          onMenuClick={isMobile ? () => setMobileOpen(true) : undefined}
+        />
+        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

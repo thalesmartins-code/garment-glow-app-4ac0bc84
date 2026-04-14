@@ -137,7 +137,7 @@ export default function MLAnuncios() {
   return (
     <div className="space-y-6">
 
-      <div className="sticky -top-8 z-20 -mx-8 -mt-8 px-8 pb-4 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
+      <div className="sticky -top-4 md:-top-6 lg:-top-8 z-20 -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pb-4 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
         <MLPageHeader title="Publicidade" lastUpdated={null}>
           <div className="flex items-center gap-2">
             {!isRealData && (

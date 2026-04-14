@@ -230,7 +230,7 @@ export default function MLReputacao() {
       </div>
 
       {/* Rates breakdown */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: "Cancelamentos", value: reputation.cancellation_rate, max: 2 },
           { label: "Entrega atrasada", value: reputation.delayed_handling_rate, max: 5 },
