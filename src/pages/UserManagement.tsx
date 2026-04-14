@@ -44,6 +44,8 @@ import { Plus, Loader2, Shield, UserCheck, Eye, Ban, CheckCircle } from "lucide-
 import { useToast } from "@/hooks/use-toast";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import { validatePassword } from "@/utils/passwordValidation";
+import { MenuVisibilityCard } from "@/components/admin/MenuVisibilityCard";
+import { AuditLogCard } from "@/components/admin/AuditLogCard";
 
 type AppRole = "admin" | "editor" | "viewer";
 
@@ -416,6 +418,9 @@ export default function UserManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <MenuVisibilityCard />
+      <AuditLogCard />
     </div>
   );
 }
