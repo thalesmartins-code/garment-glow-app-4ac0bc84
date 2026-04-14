@@ -16,7 +16,7 @@ import { useMLAds } from "@/hooks/useMLAds";
 import { computeAdsSummary } from "@/data/adsMockData";
 import { useMLReputation } from "@/hooks/useMLReputation";
 import { useMLFilters, getFilterDates, todayUTC, getComparisonRanges } from "@/hooks/useMLFilters";
-import { useMLDataLoader, type DailyBreakdown, type HourlyBreakdown } from "@/hooks/useMLDataLoader";
+import { useMLDailyQuery, useMLHourlyQuery, useMLProductsQuery, useMLUserQuery, type DailyBreakdown, type HourlyBreakdown } from "@/hooks/useMLQueries";
 import { useMLSync } from "@/hooks/useMLSync";
 import { MLKPIGrid } from "@/components/mercadolivre/MLKPIGrid";
 import { MLPeriodPicker } from "@/components/mercadolivre/MLPeriodPicker";
@@ -71,7 +71,7 @@ function aggregateDailyRows(rows: DailyBreakdown[]): DailyBreakdown[] {
 
 export default function MercadoLivre() {
   const { user } = useAuth();
-  const { stores, selectedStore, salesCache, setSalesCache, scopeKey, sellerId, resolvedMLUserIds, hasMLConnection, loading: storeLoading } = useMLStore();
+  const { stores, selectedStore, setSalesCache, scopeKey, sellerId, resolvedMLUserIds, hasMLConnection, loading: storeLoading } = useMLStore();
   const { selectedMarketplace, activeMarketplace } = useMarketplace();
   const { selectedSeller, selectedStoreIds } = useSeller();
 
@@ -93,20 +93,22 @@ export default function MercadoLivre() {
   const isAll = selectedStore === "all" && resolvedMLUserIds.length > 1;
   const useRealData = mlStores.length > 0 || hasMLConnection;
 
-  // ── Data loader ──
-  const dataLoader = useMLDataLoader(customRange, period, isHourlyAvailable, hourlyTargetDate);
-  const { allDaily, allHourly, allProductSales, mlUser, productStockMap, loadFromCache, loadHourlyCache, loadProductCache, setMlUser, setProductStockMap, resetState } = dataLoader;
+  // ── React Query data ──
+  const { data: allDaily = [], isLoading: dailyLoading } = useMLDailyQuery(fetchFrom, fetchTo);
+  const { data: allHourly = [], isLoading: hourlyLoading } = useMLHourlyQuery(isHourlyAvailable, hourlyTargetDate);
+  const { data: allProductSales = [], isLoading: productsLoading } = useMLProductsQuery(currentFrom, currentTo);
+  const { data: mlUser = null } = useMLUserQuery();
 
-  const [loading, setLoading] = useState(() => salesCache.daily.length === 0);
-  const [connected, setConnected] = useState(() => salesCache.connected);
+  const [productStockMap, setProductStockMap] = useState<Record<string, number>>({});
   const [sellerReputation, setSellerReputation] = useState<any>(null);
-  const cacheLoadedRef = useRef(salesCache.daily.length > 0);
+
+  const connected = hasMLConnection && resolvedMLUserIds.length > 0;
+  const loading = useRealData && (storeLoading || dailyLoading);
 
   // ── Sync ──
   const sync = useMLSync({
     customRange, period,
-    loadFromCache, loadHourlyCache, loadProductCache,
-    setMlUser, setSellerReputation,
+    setSellerReputation,
   });
   const { syncing, lastSyncedAt, syncProgress, syncFromAPI, shouldAutoSync, resetSync } = sync;
 
@@ -117,7 +119,7 @@ export default function MercadoLivre() {
     [adsDaily, currentFrom, currentTo],
   );
 
-  // ── Sync state to context (debounced to avoid re-render cascade) ──
+  // ── Sync state to context (debounced) ──
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
     clearTimeout(syncTimerRef.current);
@@ -136,39 +138,14 @@ export default function MercadoLivre() {
     return () => clearTimeout(syncTimerRef.current);
   }, [allDaily, allHourly, allProductSales, mlUser, connected, lastSyncedAt, productStockMap, setSalesCache]);
 
-  // ── Reset on scope change ──
+  // ── Auto sync & inventory on initial load ──
+  const autoSyncDoneRef = useRef(false);
   useEffect(() => {
-    cacheLoadedRef.current = false;
-    resetSync();
-    setLoading(true);
-    setConnected(false);
-    resetState();
-  }, [scopeKey, resetSync, resetState]);
-
-  // ── Initial load ──
-  useEffect(() => {
-    if (!user || cacheLoadedRef.current || storeLoading) return;
-    cacheLoadedRef.current = true;
-
-    if (!hasMLConnection || resolvedMLUserIds.length === 0) {
-      setConnected(false);
-      setLoading(false);
-      return;
-    }
+    if (!user || storeLoading || autoSyncDoneRef.current || !connected) return;
+    autoSyncDoneRef.current = true;
 
     const firstStore = stores.find((s) => resolvedMLUserIds.includes(s.ml_user_id));
-    if (!firstStore) {
-      setConnected(false);
-      setLoading(false);
-      return;
-    }
-
-    setConnected(true);
-    const { fromDate, toDate } = getFilterDates(customRange, period);
-
-    (async () => {
-      await Promise.all([loadFromCache(), loadHourlyCache(), loadProductCache(fromDate, toDate)]);
-
+    if (firstStore) {
       supabase.functions
         .invoke("ml-inventory", { body: { ml_user_id: firstStore.ml_user_id } })
         .then(({ data: invData }) => {
@@ -179,22 +156,19 @@ export default function MercadoLivre() {
           }
         })
         .catch(() => {});
+    }
 
-      setLoading(false);
+    if (shouldAutoSync()) {
+      syncFromAPI();
+    }
+  }, [user, storeLoading, connected, stores, resolvedMLUserIds, shouldAutoSync, syncFromAPI]);
 
-      if (shouldAutoSync()) {
-        syncFromAPI();
-      }
-    })();
-  }, [user, storeLoading, loadFromCache, loadHourlyCache, loadProductCache, syncFromAPI, scopeKey, hasMLConnection, resolvedMLUserIds, stores, customRange, period, shouldAutoSync, setProductStockMap]);
-
-  // ── Reload on filter change ──
+  // Reset on scope change
   useEffect(() => {
-    if (!user) return;
-    void loadFromCache(fetchFrom, fetchTo);
-    void loadHourlyCache();
-    void loadProductCache(currentFrom, currentTo);
-  }, [user, loadFromCache, loadHourlyCache, loadProductCache, activeFilterKey, fetchFrom, fetchTo, currentFrom, currentTo]);
+    autoSyncDoneRef.current = false;
+    resetSync();
+    setProductStockMap({});
+  }, [scopeKey, resetSync]);
 
   // ── Period confirmation ──
   const handleConfirm = useCallback(() => {
@@ -235,15 +209,10 @@ export default function MercadoLivre() {
   });
 
   const filteredTopProducts = useMemo(() => {
-    const agg: Record<string, ProductSalesRow> = {};
-    for (const p of allProductSales) {
-      if (!agg[p.item_id]) agg[p.item_id] = { item_id: p.item_id, title: p.title, thumbnail: p.thumbnail, qty_sold: 0, revenue: 0 };
-      agg[p.item_id].qty_sold += p.qty_sold;
-      agg[p.item_id].revenue += p.revenue;
-    }
-    return Object.values(agg)
+    // Products already come aggregated from the Edge Function
+    return allProductSales
       .map((p) => ({ ...p, available_quantity: productStockMap[p.item_id] }))
-      .sort((a, b) => b.revenue - a.revenue)
+      .sort((a, b) => (b.revenue ?? 0) - (a.revenue ?? 0))
       .slice(0, 10);
   }, [allProductSales, productStockMap]);
 
