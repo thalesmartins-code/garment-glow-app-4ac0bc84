@@ -38,6 +38,19 @@ const formatDate = (d: Date) =>
 
 interface StoreInfo { ml_user_id: string; name: string; }
 interface ProductRow { item_id: string; title: string; thumbnail: string | null; qty_sold: number; revenue: number; }
+interface BrandRow { name: string; revenue: number; }
+
+const BRAND_COLORS = [
+  "hsl(var(--primary))", "hsl(var(--accent))", "hsl(25,95%,53%)", "hsl(270,70%,50%)",
+  "hsl(160,60%,45%)", "hsl(340,75%,55%)", "hsl(200,70%,50%)", "hsl(45,93%,47%)",
+  "hsl(290,50%,55%)", "hsl(15,80%,50%)",
+];
+
+function extractBrand(title: string): string {
+  const clean = title.replace(/^(Kit|Par|Jogo|Conj\.?)\s+\d*\s*/i, "").trim();
+  const first = clean.split(/\s+/).slice(0, 1).join(" ");
+  return first || "Outros";
+}
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
