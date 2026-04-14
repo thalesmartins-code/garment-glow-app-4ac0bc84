@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useSeller } from "@/contexts/SellerContext";
-
+import { SellerMarketplaceBar } from "@/components/layout/SellerMarketplaceBar";
 import { Seller } from "@/types/seller";
 import { supabase } from "@/integrations/supabase/client";
 import { getMarketplaceBrand, SELLER_TO_MP_ID } from "@/config/marketplaceConfig";
@@ -793,7 +793,8 @@ export default function Integrations() {
           <span className="text-muted-foreground">— As integrações abaixo serão vinculadas a este seller.</span>
         </div>
       )}
-
+      {/* Seller selector */}
+      <SellerMarketplaceBar showStores={false} />
 
       {/* Magalu Metrics */}
       {magaluMetrics && integrations.find((i) => i.id === "magalu")?.status === "connected" && (
