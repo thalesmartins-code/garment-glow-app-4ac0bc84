@@ -13,12 +13,14 @@ interface LayoutShellProps {
   showSellerMarketplaceBar?: boolean;
 }
 
-const HIDE_SELLER_SWITCHER_ROUTES = ["/sheets/integracoes", "/sheets/sellers", "/sheets/importacao", "/api/integracoes", "/api/sellers", "/api/importacao"];
+const HIDE_SELLER_SWITCHER_ROUTES = ["/sheets/integracoes", "/sheets/sellers", "/sheets/importacao", "/api/sellers", "/api/importacao"];
+const HIDE_STORES_ROUTES = ["/api/integracoes"];
 
 export function LayoutShell({ sidebar, mobileSidebar, showSellerSwitcher = true, showMarketplaceSwitcher = false, showSellerMarketplaceBar = false }: LayoutShellProps) {
   const location = useLocation();
   const { title, subtitle } = getRouteMeta(location.pathname);
   const hideSwitcher = HIDE_SELLER_SWITCHER_ROUTES.includes(location.pathname);
+  const hideStores = HIDE_STORES_ROUTES.includes(location.pathname);
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -44,7 +46,8 @@ export function LayoutShell({ sidebar, mobileSidebar, showSellerSwitcher = true,
           subtitle={subtitle}
           showSellerSwitcher={!hideSwitcher && showSellerSwitcher}
           showMarketplaceSwitcher={showMarketplaceSwitcher}
-          showSellerMarketplaceBar={!hideSwitcher && showSellerMarketplaceBar}
+          showSellerMarketplaceBar={(!hideSwitcher || hideStores) && showSellerMarketplaceBar}
+          hideStores={hideStores}
           onMenuClick={isMobile ? () => setMobileOpen(true) : undefined}
         />
         <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">

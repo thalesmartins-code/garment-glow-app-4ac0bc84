@@ -23,10 +23,11 @@ interface HeaderProps {
   showSellerSwitcher?: boolean;
   showMarketplaceSwitcher?: boolean;
   showSellerMarketplaceBar?: boolean;
+  hideStores?: boolean;
   onMenuClick?: () => void;
 }
 
-export function Header({ title, subtitle, showSellerSwitcher = true, showMarketplaceSwitcher = false, showSellerMarketplaceBar = false, onMenuClick }: HeaderProps) {
+export function Header({ title, subtitle, showSellerSwitcher = true, showMarketplaceSwitcher = false, showSellerMarketplaceBar = false, hideStores = false, onMenuClick }: HeaderProps) {
   const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
   const { profile, role, signOut } = useAuth();
   const navigate = useNavigate();
@@ -53,7 +54,7 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
           </Button>
         )}
         {showSellerMarketplaceBar ? (
-          <SellerMarketplaceBar />
+          <SellerMarketplaceBar showStores={!hideStores} />
         ) : (
           <div className="min-w-0">
             <h1 className="text-lg md:text-xl font-semibold tracking-tight text-foreground truncate">{title}</h1>
