@@ -5,8 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMLStore } from "@/contexts/MLStoreContext";
 import { useToast } from "@/hooks/use-toast";
 import { getComparisonRanges, todayUTC } from "./useMLFilters";
+import { useInvalidateMLQueries } from "./useMLQueries";
 import type { DateRange } from "./useMLFilters";
-import type { MLUser } from "@/types/mlCache";
 
 const LAST_ML_SYNC_KEY = "ml_last_synced_at";
 const LAST_ML_SYNC_TS_KEY = "ml_last_synced_ts";
@@ -17,10 +17,6 @@ const SYNC_COOLDOWN_MS = 30_000; // 30s min between syncs
 interface UseMLSyncOptions {
   customRange: DateRange;
   period: number;
-  loadFromCache: (from?: string, to?: string) => Promise<boolean>;
-  loadHourlyCache: (date?: string | null) => Promise<any>;
-  loadProductCache: (from: string, to: string) => Promise<void>;
-  setMlUser: (u: MLUser | null) => void;
   setSellerReputation: (r: any) => void;
 }
 
