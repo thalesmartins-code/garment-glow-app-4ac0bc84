@@ -89,12 +89,14 @@ const TVModeVendas = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const [dailyRes, hourlyRes, productsRes] = await Promise.all([
+      const [dailyRes, hourlyRes, productsRes, storesRes] = await Promise.all([
         supabase.from("ml_daily_cache").select("total_revenue, qty_orders, unique_visits, units_sold").eq("seller_id", seller.id).eq("date", today),
-        supabase.from("ml_hourly_cache").select("hour, total_revenue, qty_orders").eq("seller_id", seller.id).eq("date", today).order("hour", { ascending: true }).limit(200),
+        supabase.from("ml_hourly_cache").select("hour, total_revenue, qty_orders, ml_user_id").eq("seller_id", seller.id).eq("date", today).order("hour", { ascending: true }).limit(200),
         supabase.from("ml_product_daily_cache").select("item_id, title, thumbnail, qty_sold, revenue").eq("seller_id", seller.id).eq("date", today).order("revenue", { ascending: false }).limit(50),
+        supabase.from("ml_user_cache").select("ml_user_id, custom_name, nickname").eq("seller_id", seller.id),
       ]);
 
+      // KPIs
       const daily = dailyRes.data || [];
       const revenue = daily.reduce((s, r) => s + Number(r.total_revenue), 0);
       const orders = daily.reduce((s, r) => s + Number(r.qty_orders), 0);
@@ -103,16 +105,32 @@ const TVModeVendas = () => {
       const conversion = visits > 0 ? (orders / visits) * 100 : 0;
       setKpi({ revenue, orders, ticket, visits, conversion });
 
-      const hourlyMap: Record<number, HourlyRow> = {};
-      (hourlyRes.data || []).forEach((r) => {
-        if (!hourlyMap[r.hour]) hourlyMap[r.hour] = { hour: r.hour, revenue: 0, orders: 0 };
-        hourlyMap[r.hour].revenue += Number(r.total_revenue);
-        hourlyMap[r.hour].orders += Number(r.qty_orders);
-      });
-      const fullHourly: HourlyRow[] = [];
-      for (let h = 0; h <= 23; h++) fullHourly.push(hourlyMap[h] || { hour: h, revenue: 0, orders: 0 });
-      setHourly(fullHourly);
+      // Store names
+      const stores: StoreInfo[] = (storesRes.data || []).map((s) => ({
+        ml_user_id: String(s.ml_user_id),
+        name: s.custom_name || s.nickname || String(s.ml_user_id),
+      }));
+      setStoreNames(stores);
 
+      // Build overlaid hourly data per store (like "Todas as Lojas" chart)
+      const hourlyRows = hourlyRes.data || [];
+      const uniqueIds = [...new Set(hourlyRows.map((r) => String(r.ml_user_id)))];
+      const storeNameMap: Record<string, string> = {};
+      for (const st of stores) storeNameMap[st.ml_user_id] = st.name;
+      for (const id of uniqueIds) if (!storeNameMap[id]) storeNameMap[id] = id;
+
+      const buckets = Array.from({ length: 24 }, (_, hour) => {
+        const row: Record<string, any> = { label: `${String(hour).padStart(2, "0")}h`, hour };
+        for (const id of uniqueIds) {
+          const name = storeNameMap[id];
+          const matching = hourlyRows.filter((r) => r.hour === hour && String(r.ml_user_id) === id);
+          row[name] = matching.reduce((s, r) => s + Number(r.total_revenue), 0);
+        }
+        return row;
+      });
+      setOverlaidData(buckets);
+
+      // Products
       const prodMap: Record<string, ProductRow> = {};
       (productsRes.data || []).forEach((r) => {
         if (!prodMap[r.item_id]) prodMap[r.item_id] = { item_id: r.item_id, title: r.title, thumbnail: r.thumbnail, qty_sold: 0, revenue: 0 };
