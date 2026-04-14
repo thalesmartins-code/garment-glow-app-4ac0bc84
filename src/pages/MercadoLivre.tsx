@@ -50,7 +50,7 @@ import {
   ChevronDown,
   Megaphone,
   Truck,
-  Package,
+  Monitor,
 } from "lucide-react";
 import {
   ComposedChart,
