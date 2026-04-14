@@ -183,6 +183,7 @@ const TVModeVendas = () => {
 
     return {
       kpi: { revenue, orders, ticket, visits, conversion },
+      kpiYesterday: { revenue: yRevenue, orders: yOrders, ticket: yTicket, visits: yVisits, conversion: yConversion },
       hourlyToday, hourlyYesterday, storeNames: stores, topProducts, brandData,
     };
   }, [today, yesterday]);
