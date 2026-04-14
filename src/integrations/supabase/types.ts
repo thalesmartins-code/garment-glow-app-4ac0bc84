@@ -819,6 +819,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_cache_table_stats: {
+        Args: never
+        Returns: {
+          row_count: number
+          table_name: string
+          total_size: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -829,6 +837,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      insert_audit_log: {
+        Args: {
+          _action: string
+          _actor_id: string
+          _details?: Json
+          _target_user_id?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
