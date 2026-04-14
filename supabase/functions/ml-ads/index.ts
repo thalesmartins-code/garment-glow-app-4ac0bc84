@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -342,13 +343,27 @@ serve(async (req) => {
     const supabase   = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
 
     const url       = new URL(req.url);
-    const mlUserId  = url.searchParams.get("ml_user_id");
-    const dateFrom  = url.searchParams.get("date_from");
-    const dateTo    = url.searchParams.get("date_to");
-    const forceSync = url.searchParams.get("force") === "true";
 
-    if (!mlUserId)            return jsonResponse({ error: "ml_user_id required" }, 400);
-    if (!dateFrom || !dateTo) return jsonResponse({ error: "date_from and date_to required" }, 400);
+    const QuerySchema = z.object({
+      ml_user_id: z.string().min(1, "ml_user_id required"),
+      date_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date_from format"),
+      date_to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date_to format"),
+      force: z.string().optional(),
+    });
+
+    const parsed = QuerySchema.safeParse({
+      ml_user_id: url.searchParams.get("ml_user_id"),
+      date_from: url.searchParams.get("date_from"),
+      date_to: url.searchParams.get("date_to"),
+      force: url.searchParams.get("force") ?? undefined,
+    });
+
+    if (!parsed.success) {
+      return jsonResponse({ error: "Invalid input", details: parsed.error.flatten().fieldErrors }, 400);
+    }
+
+    const { ml_user_id: mlUserId, date_from: dateFrom, date_to: dateTo, force } = parsed.data;
+    const forceSync = force === "true";
 
     console.log(`[ml-ads] store=${mlUserId} from=${dateFrom} to=${dateTo}`);
 

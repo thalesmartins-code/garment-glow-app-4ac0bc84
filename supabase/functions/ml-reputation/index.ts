@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,8 +36,10 @@ serve(async (req) => {
     const userId = claimsData.user.id;
 
     const url = new URL(req.url);
-    const mlUserId = url.searchParams.get("ml_user_id");
-    if (!mlUserId) return jsonResponse({ error: "ml_user_id required" }, 400);
+    const mlUserIdRaw = url.searchParams.get("ml_user_id");
+    const mlUserIdParsed = z.string().min(1, "ml_user_id required").safeParse(mlUserIdRaw);
+    if (!mlUserIdParsed.success) return jsonResponse({ error: "ml_user_id required" }, 400);
+    const mlUserId = mlUserIdParsed.data;
 
     // Get access token
     const { data: tokenRow, error: tokenErr } = await supabase

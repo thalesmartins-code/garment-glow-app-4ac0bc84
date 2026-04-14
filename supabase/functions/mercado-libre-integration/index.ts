@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -164,14 +165,23 @@ serve(async (req) => {
     }
     const user_id = authData.user.id;
 
-    const { ml_user_id: reqMLUserId, days = 1, date_from, date_to, seller_id } = await req.json();
+    const BodySchema = z.object({
+      ml_user_id: z.string().min(1, "ml_user_id is required"),
+      days: z.number().optional().default(1),
+      date_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format").optional(),
+      date_to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format").optional(),
+      seller_id: z.string().nullable().optional(),
+    });
 
-    if (!reqMLUserId) {
-      return new Response(JSON.stringify({ error: "Missing ml_user_id" }), {
+    const parsed = BodySchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: "Invalid input", details: parsed.error.flatten().fieldErrors }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const { ml_user_id: reqMLUserId, days, date_from, date_to, seller_id } = parsed.data;
 
     // Look up ML access_token from DB (server-side only — never sent from frontend)
     const { data: tokenRow, error: tokenErr } = await supabaseAdmin
