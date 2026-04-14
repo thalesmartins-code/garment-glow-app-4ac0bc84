@@ -351,33 +351,7 @@ export default function Profile() {
                 <TabsContent key={roleKey} value={roleKey} className="space-y-5 mt-0">
                   <p className="text-xs text-muted-foreground">{description}</p>
 
-                  {roleKey === "admin" ? (
-                    /* Admin: all checked, read-only */
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                      {MENU_SECTIONS.map((section) => (
-                        <div key={section.label} className="space-y-2">
-                          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
-                            {section.label}
-                          </p>
-                          <div className="space-y-1.5">
-                            {section.items.map((item) => (
-                              <div key={item.path} className="flex items-center gap-2">
-                                <Checkbox id={`admin-${item.path}`} checked disabled />
-                                <label
-                                  htmlFor={`admin-${item.path}`}
-                                  className="text-sm text-muted-foreground cursor-not-allowed"
-                                >
-                                  {item.label}
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    /* Editor / Viewer: configurable */
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                       {MENU_SECTIONS.map((section) => (
                         <div key={section.label} className="space-y-2">
                           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
@@ -408,7 +382,6 @@ export default function Profile() {
                         </div>
                       ))}
                     </div>
-                  )}
                 </TabsContent>
               ))}
             </Tabs>
