@@ -62,6 +62,9 @@ const App = () => (
                     <Route path="/tv" element={<ProtectedRoute />}>
                       <Route index element={<TVMode />} />
                     </Route>
+                    <Route path="/api/tv" element={<ProtectedRoute />}>
+                      <Route index element={<TVModeVendas />} />
+                    </Route>
                     <Route element={<ProtectedRoute />}>
                       {/* Hub - Environment selector */}
                       <Route path="/" element={<AppSelector />} />
