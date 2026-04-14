@@ -29,3 +29,9 @@ verify_jwt = false
 
 [functions.ml-reputation]
 verify_jwt = false
+
+[functions.admin-toggle-user]
+verify_jwt = false
+
+[functions.admin-update-role]
+verify_jwt = false

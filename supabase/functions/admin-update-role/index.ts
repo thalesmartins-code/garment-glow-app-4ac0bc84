@@ -17,7 +17,6 @@ serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify the calling user is authenticated
     const anonClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -29,10 +28,7 @@ serve(async (req) => {
       });
     }
 
-    // Use service role client (bypasses RLS)
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
-
-    // Check that the caller is an admin
     const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
@@ -63,6 +59,14 @@ serve(async (req) => {
       });
     }
 
+    // Prevent admin from removing their own admin role
+    if (user_id === caller.id && role !== "admin") {
+      return new Response(JSON.stringify({ error: "Você não pode remover seu próprio cargo de admin" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { error: updateError } = await adminClient
       .from("user_roles")
       .update({ role })
@@ -74,6 +78,14 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Audit log
+    await adminClient.from("audit_log").insert({
+      actor_id: caller.id,
+      action: "role_changed",
+      target_user_id: user_id,
+      details: { new_role: role },
+    });
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -41,6 +41,7 @@ import MLMetas from "./pages/mercadolivre/MLMetas";
 import TVModeVendas from "./pages/TVModeVendas";
 
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
                 <OAuthCodeRedirect>
                   <Routes>
                     <Route path="/login" element={<Login />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/tv" element={<ProtectedRoute />}>
                       <Route index element={<TVMode />} />
                     </Route>

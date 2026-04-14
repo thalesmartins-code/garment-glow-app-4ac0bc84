@@ -1,10 +1,19 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { AreaChart, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -14,6 +23,11 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Forgot password state
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   if (loading) {
     return (
@@ -37,6 +51,29 @@ export default function Login() {
       });
     }
     setSubmitting(false);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotEmail) {
+      toast({ title: "Digite seu email", variant: "destructive" });
+      return;
+    }
+    setForgotLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      toast({
+        title: "Erro ao enviar email",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: "Email enviado!", description: "Verifique sua caixa de entrada." });
+      setForgotOpen(false);
+      setForgotEmail("");
+    }
+    setForgotLoading(false);
   };
 
   return (
@@ -78,8 +115,48 @@ export default function Login() {
               Entrar
             </Button>
           </form>
+          <div className="mt-3 text-center">
+            <button
+              type="button"
+              className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline transition-colors"
+              onClick={() => setForgotOpen(true)}
+            >
+              Esqueci minha senha
+            </button>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Recuperar Senha</DialogTitle>
+            <DialogDescription>
+              Digite seu email para receber um link de redefinição de senha.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="forgot-email">Email</Label>
+            <Input
+              id="forgot-email"
+              type="email"
+              placeholder="seu@email.com"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setForgotOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleForgotPassword} disabled={forgotLoading}>
+              {forgotLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
