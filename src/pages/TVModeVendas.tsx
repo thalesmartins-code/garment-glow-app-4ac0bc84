@@ -267,7 +267,7 @@ const TVModeVendas = () => {
                 {storeNames.map((st, idx) => (
                   <div key={st.ml_user_id} className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STORE_STROKE_COLORS[idx % STORE_STROKE_COLORS.length] }} />
-                    <span className="text-xs text-muted-foreground">{st.name}</span>
+                    <span className="text-sm text-muted-foreground">{st.name}</span>
                   </div>
                 ))}
               </div>
@@ -276,8 +276,8 @@ const TVModeVendas = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={overlaidData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" interval={2} />
-                  <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                  <XAxis dataKey="label" tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" interval={2} />
+                  <YAxis tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
                   <RechartsTooltip
                     formatter={(value: number, name: string) => [formatCurrency(Number(value)), name]}
                     contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
@@ -310,7 +310,7 @@ const TVModeVendas = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart layout="vertical" data={brandData} margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>
                     <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" width={90} fontSize={12} tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                    <YAxis dataKey="name" type="category" width={120} fontSize={15} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                     <RechartsTooltip
                       formatter={(value: number) => [formatCurrency(value), "Receita"]}
                       contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: 12 }}
