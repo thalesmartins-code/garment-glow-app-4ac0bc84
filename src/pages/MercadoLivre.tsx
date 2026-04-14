@@ -403,7 +403,7 @@ export default function MercadoLivre() {
   const effectiveLoading = useRealData ? loading : false;
   const effectiveSyncing = useRealData ? syncing : false;
 
-  const dailyChartData = [...effectiveDaily].reverse().map((d) => ({
+  const dailyChartData = [...effectiveDaily].map((d) => ({
     label: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
     "Receita Total": d.total,
     "Venda Aprovada": d.approved,
