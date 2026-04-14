@@ -22,6 +22,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -30,8 +40,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Loader2, Shield, UserCheck, Eye } from "lucide-react";
+import { Plus, Loader2, Shield, UserCheck, Eye, Ban, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
+import { validatePassword } from "@/utils/passwordValidation";
 
 type AppRole = "admin" | "editor" | "viewer";
 
@@ -40,6 +52,7 @@ interface UserRow {
   role: AppRole;
   email: string;
   full_name: string | null;
+  banned: boolean;
 }
 
 const roleBadge: Record<AppRole, { label: string; variant: "default" | "secondary" | "outline" }> = {
@@ -55,7 +68,7 @@ const roleIcon: Record<AppRole, typeof Shield> = {
 };
 
 export default function UserManagement() {
-  const { role } = useAuth();
+  const { role, user: currentUser } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,9 +79,12 @@ export default function UserManagement() {
   const [newRole, setNewRole] = useState<AppRole>("viewer");
   const [creating, setCreating] = useState(false);
 
+  // Confirmation states
+  const [roleConfirm, setRoleConfirm] = useState<{ userId: string; newRole: AppRole } | null>(null);
+  const [toggleConfirm, setToggleConfirm] = useState<{ userId: string; email: string; banned: boolean } | null>(null);
+
   const fetchUsers = async () => {
     setLoading(true);
-    // Fetch roles + profiles (admin can see all)
     const { data: roles } = await supabase
       .from("user_roles")
       .select("user_id, role");
@@ -86,13 +102,14 @@ export default function UserManagement() {
 
     const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
 
-    // We don't have access to auth.users emails from client, so we'll use the edge function
     const { data: usersData } = await supabase.functions.invoke("admin-list-users");
 
     const emailMap = new Map<string, string>();
+    const bannedMap = new Map<string, boolean>();
     if (usersData?.users) {
       for (const u of usersData.users) {
         emailMap.set(u.id, u.email);
+        bannedMap.set(u.id, !!u.banned_until && new Date(u.banned_until) > new Date());
       }
     }
 
@@ -101,6 +118,7 @@ export default function UserManagement() {
       role: r.role as AppRole,
       email: emailMap.get(r.user_id) ?? "—",
       full_name: profileMap.get(r.user_id)?.full_name ?? null,
+      banned: bannedMap.get(r.user_id) ?? false,
     }));
 
     setUsers(merged);
@@ -116,6 +134,17 @@ export default function UserManagement() {
       toast({ title: "Preencha email e senha", variant: "destructive" });
       return;
     }
+
+    const validation = validatePassword(newPassword);
+    if (!validation.isValid) {
+      toast({
+        title: "Senha inválida",
+        description: validation.errors.join(", "),
+        variant: "destructive",
+      });
+      return;
+    }
+
     setCreating(true);
     const { data, error } = await supabase.functions.invoke("admin-create-user", {
       body: { email: newEmail, password: newPassword, full_name: newName, role: newRole },
@@ -139,6 +168,24 @@ export default function UserManagement() {
   };
 
   const handleRoleChange = async (userId: string, newRole: AppRole) => {
+    // Prevent admin from removing their own admin role
+    if (userId === currentUser?.id && newRole !== "admin") {
+      toast({
+        title: "Ação bloqueada",
+        description: "Você não pode remover seu próprio cargo de admin.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setRoleConfirm({ userId, newRole });
+  };
+
+  const confirmRoleChange = async () => {
+    if (!roleConfirm) return;
+    const { userId, newRole } = roleConfirm;
+    setRoleConfirm(null);
+
     const { data, error } = await supabase.functions.invoke("admin-update-role", {
       body: { user_id: userId, role: newRole },
     });
@@ -153,6 +200,33 @@ export default function UserManagement() {
       toast({ title: "Perfil atualizado" });
       setUsers((prev) =>
         prev.map((u) => (u.user_id === userId ? { ...u, role: newRole } : u))
+      );
+    }
+  };
+
+  const handleToggleUser = (userId: string, email: string, currentlyBanned: boolean) => {
+    setToggleConfirm({ userId, email, banned: currentlyBanned });
+  };
+
+  const confirmToggleUser = async () => {
+    if (!toggleConfirm) return;
+    const { userId, banned } = toggleConfirm;
+    setToggleConfirm(null);
+
+    const { data, error } = await supabase.functions.invoke("admin-toggle-user", {
+      body: { user_id: userId, banned: !banned },
+    });
+
+    if (error || data?.error) {
+      toast({
+        title: "Erro",
+        description: data?.error ?? error?.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: !banned ? "Usuário desativado" : "Usuário reativado" });
+      setUsers((prev) =>
+        prev.map((u) => (u.user_id === userId ? { ...u, banned: !banned } : u))
       );
     }
   };
@@ -193,7 +267,8 @@ export default function UserManagement() {
               </div>
               <div className="space-y-2">
                 <Label>Senha</Label>
-                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required />
+                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 8 caracteres" required />
+                <PasswordStrengthIndicator password={newPassword} />
               </div>
               <div className="space-y-2">
                 <Label>Permissão</Label>
@@ -235,17 +310,35 @@ export default function UserManagement() {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Permissão</TableHead>
                   <TableHead className="w-[180px]">Alterar Permissão</TableHead>
+                  <TableHead className="w-[100px]">Ação</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.map((u) => {
                   const Icon = roleIcon[u.role];
+                  const isSelf = u.user_id === currentUser?.id;
                   return (
-                    <TableRow key={u.user_id}>
+                    <TableRow key={u.user_id} className={u.banned ? "opacity-60" : ""}>
                       <TableCell>{u.full_name || "—"}</TableCell>
                       <TableCell>{u.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={u.banned ? "destructive" : "outline"} className="gap-1">
+                          {u.banned ? (
+                            <>
+                              <Ban className="w-3 h-3" />
+                              Inativo
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-3 h-3" />
+                              Ativo
+                            </>
+                          )}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <Badge variant={roleBadge[u.role].variant} className="gap-1">
                           <Icon className="w-3 h-3" />
@@ -264,6 +357,18 @@ export default function UserManagement() {
                           </SelectContent>
                         </Select>
                       </TableCell>
+                      <TableCell>
+                        {!isSelf && (
+                          <Button
+                            variant={u.banned ? "outline" : "destructive"}
+                            size="sm"
+                            className="h-8 text-xs"
+                            onClick={() => handleToggleUser(u.user_id, u.email, u.banned)}
+                          >
+                            {u.banned ? "Ativar" : "Desativar"}
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -272,6 +377,45 @@ export default function UserManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Role change confirmation */}
+      <AlertDialog open={!!roleConfirm} onOpenChange={(open) => !open && setRoleConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar alteração de permissão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja alterar a permissão deste usuário para{" "}
+              <strong>{roleConfirm?.newRole}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRoleChange}>Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Toggle user confirmation */}
+      <AlertDialog open={!!toggleConfirm} onOpenChange={(open) => !open && setToggleConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {toggleConfirm?.banned ? "Reativar usuário" : "Desativar usuário"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {toggleConfirm?.banned
+                ? `Tem certeza que deseja reativar o acesso de ${toggleConfirm?.email}?`
+                : `Tem certeza que deseja desativar o acesso de ${toggleConfirm?.email}? O usuário não conseguirá fazer login.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmToggleUser}>
+              {toggleConfirm?.banned ? "Reativar" : "Desativar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

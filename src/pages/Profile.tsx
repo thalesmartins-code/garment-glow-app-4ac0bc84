@@ -18,6 +18,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -25,14 +35,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Camera, Loader2, Save, LayoutDashboard, ShieldCheck, Eye, Pencil, Users } from "lucide-react";
+import { Camera, Loader2, Save, LayoutDashboard, ShieldCheck, Eye, Pencil, Users, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface UserRow {
   user_id: string;
   role: AppRole;
   email: string;
   full_name: string | null;
+}
+
+interface AuditLogEntry {
+  id: string;
+  actor_id: string;
+  action: string;
+  target_user_id: string | null;
+  details: Record<string, unknown> | null;
+  created_at: string;
 }
 
 const roleBadgeVariant: Record<AppRole, "default" | "secondary" | "outline"> = {
@@ -47,6 +68,13 @@ const ROLE_TABS: { value: AppRole; label: string; icon: React.ElementType; descr
   { value: "viewer", label: "Viewer", icon: Eye,         description: "Configuração de visibilidade para visualizadores." },
 ];
 
+const ACTION_LABELS: Record<string, string> = {
+  user_created: "Usuário criado",
+  role_changed: "Permissão alterada",
+  user_deactivated: "Usuário desativado",
+  user_activated: "Usuário reativado",
+};
+
 export default function Profile() {
   const { user, profile, role } = useAuth();
   const { config, saveConfig } = useMenuVisibility();
@@ -58,7 +86,6 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Deep copy of menu config for editing — avoids shared array references
   const deepCopy = (c: MenuVisibilityConfig): MenuVisibilityConfig => ({
     admin:  [...c.admin],
     editor: [...c.editor],
@@ -67,7 +94,6 @@ export default function Profile() {
   const [localConfig, setLocalConfig] = useState<MenuVisibilityConfig>(() => deepCopy(config));
   const [savingMenu, setSavingMenu] = useState(false);
 
-  // Sync localConfig whenever the persisted context config changes (e.g. after save or reload)
   useEffect(() => {
     setLocalConfig(deepCopy(config));
   }, [config]);
@@ -75,6 +101,12 @@ export default function Profile() {
   // ── User role assignment ──
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [roleConfirm, setRoleConfirm] = useState<{ userId: string; newRole: AppRole } | null>(null);
+
+  // ── Audit log ──
+  const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
+  const [loadingAudit, setLoadingAudit] = useState(false);
+  const [emailMap, setEmailMap] = useState<Map<string, string>>(new Map());
 
   const fetchUsers = useCallback(async () => {
     setLoadingUsers(true);
@@ -90,16 +122,17 @@ export default function Profile() {
       const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
 
       const { data: usersData } = await supabase.functions.invoke("admin-list-users");
-      const emailMap = new Map<string, string>();
+      const eMap = new Map<string, string>();
       if (usersData?.users) {
-        for (const u of usersData.users) emailMap.set(u.id, u.email);
+        for (const u of usersData.users) eMap.set(u.id, u.email);
       }
+      setEmailMap(eMap);
 
       setUsers(
         roles.map((r) => ({
           user_id: r.user_id,
           role: r.role as AppRole,
-          email: emailMap.get(r.user_id) ?? "—",
+          email: eMap.get(r.user_id) ?? "—",
           full_name: profileMap.get(r.user_id)?.full_name ?? null,
         }))
       );
@@ -108,11 +141,44 @@ export default function Profile() {
     }
   }, []);
 
+  const fetchAuditLog = useCallback(async () => {
+    setLoadingAudit(true);
+    try {
+      const { data } = await supabase
+        .from("audit_log")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      setAuditLog((data as AuditLogEntry[]) ?? []);
+    } finally {
+      setLoadingAudit(false);
+    }
+  }, []);
+
   useEffect(() => {
-    if (role === "admin") fetchUsers();
-  }, [role, fetchUsers]);
+    if (role === "admin") {
+      fetchUsers();
+      fetchAuditLog();
+    }
+  }, [role, fetchUsers, fetchAuditLog]);
 
   const handleRoleChange = async (userId: string, newRole: AppRole) => {
+    if (userId === user?.id && newRole !== "admin") {
+      toast({
+        title: "Ação bloqueada",
+        description: "Você não pode remover seu próprio cargo de admin.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setRoleConfirm({ userId, newRole });
+  };
+
+  const confirmRoleChange = async () => {
+    if (!roleConfirm) return;
+    const { userId, newRole } = roleConfirm;
+    setRoleConfirm(null);
+
     const { data, error } = await supabase.functions.invoke("admin-update-role", {
       body: { user_id: userId, role: newRole },
     });
@@ -126,6 +192,7 @@ export default function Profile() {
     } else {
       toast({ title: "Perfil atualizado" });
       setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, role: newRole } : u)));
+      fetchAuditLog();
     }
   };
 
@@ -207,7 +274,6 @@ export default function Profile() {
           <CardDescription>Atualize suas informações pessoais.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Avatar */}
           <div className="flex flex-col items-center gap-3">
             <div className="relative group">
               <Avatar className="w-24 h-24">
@@ -238,7 +304,6 @@ export default function Profile() {
             <p className="text-xs text-muted-foreground">Clique na foto para alterar</p>
           </div>
 
-          {/* Name */}
           <div className="space-y-2">
             <Label htmlFor="full-name">Nome completo</Label>
             <Input
@@ -249,7 +314,6 @@ export default function Profile() {
             />
           </div>
 
-          {/* Email (read-only) */}
           <div className="space-y-2">
             <Label>Email</Label>
             <Input value={user?.email ?? ""} disabled className="bg-muted" />
@@ -313,6 +377,71 @@ export default function Profile() {
                             <SelectItem value="viewer">Viewer</SelectItem>
                           </SelectContent>
                         </Select>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Audit Log Card (admin only) ── */}
+      {role === "admin" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="w-5 h-5" />
+              Histórico de Alterações
+            </CardTitle>
+            <CardDescription>
+              Últimas ações administrativas realizadas no sistema.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingAudit ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : auditLog.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhuma ação registrada.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Ação</TableHead>
+                    <TableHead>Executado por</TableHead>
+                    <TableHead>Usuário alvo</TableHead>
+                    <TableHead>Detalhes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {auditLog.map((entry) => (
+                    <TableRow key={entry.id}>
+                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                        {format(new Date(entry.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {ACTION_LABELS[entry.action] ?? entry.action}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {emailMap.get(entry.actor_id) ?? entry.actor_id.slice(0, 8)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {entry.target_user_id
+                          ? emailMap.get(entry.target_user_id) ?? entry.target_user_id.slice(0, 8)
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {entry.details
+                          ? Object.entries(entry.details)
+                              .map(([k, v]) => `${k}: ${v}`)
+                              .join(", ")
+                          : "—"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -402,6 +531,23 @@ export default function Profile() {
           </CardContent>
         </Card>
       )}
+
+      {/* Role change confirmation dialog */}
+      <AlertDialog open={!!roleConfirm} onOpenChange={(open) => !open && setRoleConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar alteração de permissão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja alterar a permissão deste usuário para{" "}
+              <strong>{roleConfirm?.newRole}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRoleChange}>Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
