@@ -364,7 +364,7 @@ const TVModeVendas = () => {
         {/* Top 5 products */}
         <Card className="flex flex-col min-h-0">
           <div className="px-5 pt-4 pb-3">
-            <span className="text-sm font-medium text-foreground">Top 5 Anúncios</span>
+            <span className="text-sm font-medium text-foreground">Top Anúncios</span>
           </div>
           <CardContent className="flex-1 flex flex-col px-5 pb-2 pt-0 overflow-hidden">
             <div className="flex-1 overflow-auto">
@@ -378,6 +378,7 @@ const TVModeVendas = () => {
                     <col className="w-14" />
                     <col />
                     <col className="w-20" />
+                    <col className="w-20" />
                     <col className="w-24" />
                     <col className="w-16" />
                   </colgroup>
@@ -385,6 +386,7 @@ const TVModeVendas = () => {
                     <tr className="text-muted-foreground border-b border-border/50 text-xs">
                       <th className="text-left py-2.5">#</th>
                       <th className="text-left py-2.5" colSpan={2}>Produto</th>
+                      <th className="text-right py-2.5">Estoque</th>
                       <th className="text-right py-2.5">Vendidos</th>
                       <th className="text-right py-2.5">Receita</th>
                       <th className="text-right py-2.5">% Part.</th>
@@ -407,6 +409,15 @@ const TVModeVendas = () => {
                           </td>
                           <td className="py-2 pl-2 overflow-hidden">
                             <p className="truncate text-foreground text-[15px]">{p.title}</p>
+                          </td>
+                          <td className="text-right text-[15px] whitespace-nowrap">
+                            {p.stock !== null ? (
+                              <span className={p.stock === 0 ? "text-destructive font-semibold" : p.stock <= 5 ? "text-warning font-semibold" : "text-muted-foreground"}>
+                                {p.stock}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground/50">—</span>
+                            )}
                           </td>
                           <td className="text-right font-semibold text-foreground text-[15px] whitespace-nowrap">{p.qty_sold} un</td>
                           <td className="text-right font-semibold text-foreground text-[15px] whitespace-nowrap">{formatCurrency(p.revenue)}</td>
