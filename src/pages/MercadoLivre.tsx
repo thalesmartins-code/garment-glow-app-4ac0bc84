@@ -127,7 +127,7 @@ export default function MercadoLivre() {
       setSalesCache(() => ({
         daily: allDaily,
         hourly: allHourly,
-        products: allProductSales,
+        products: allProductSales.map(p => ({ ...p, date: (p as any).date ?? "" })),
         mlUser,
         connected,
         lastSyncedAt,
