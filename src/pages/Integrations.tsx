@@ -721,14 +721,26 @@ export default function Integrations() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      const newName = editingStoreName.trim();
+      // Update custom_name in ml_user_cache
       await supabase
         .from("ml_user_cache")
-        .update({ custom_name: editingStoreName.trim() } as any)
+        .update({ custom_name: newName } as any)
         .eq("user_id", user.id)
         .eq("ml_user_id", Number(mlUserId));
+      // Also update store_name in seller_stores so the header selector reflects the change
+      if (selectedSeller?.id) {
+        await supabase
+          .from("seller_stores" as any)
+          .update({ store_name: newName })
+          .eq("seller_id", selectedSeller.id)
+          .eq("marketplace", "ml")
+          .eq("external_id", mlUserId);
+      }
       setEditingStoreId(null);
       setEditingStoreName("");
       await refreshMLStores();
+      await refreshSellers();
       toast({ title: "Nome atualizado!", description: "O nome da loja foi alterado com sucesso." });
     } catch (e) {
       toast({ title: "Erro", description: "Não foi possível renomear a loja.", variant: "destructive" });
