@@ -74,6 +74,7 @@ const TVModeVendas = () => {
   const seller = SELLERS[sellerIdx];
   const emptyData: SellerData = {
     kpi: { revenue: 0, orders: 0, ticket: 0, visits: 0, conversion: 0 },
+    kpiYesterday: { revenue: 0, orders: 0, ticket: 0, visits: 0, conversion: 0 },
     hourlyToday: {}, hourlyYesterday: {}, storeNames: [], topProducts: [], brandData: [],
   };
   const current = sellerCache[seller.id] || emptyData;
