@@ -164,11 +164,11 @@ const TVModeVendas = () => {
       {/* Top bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-5">
-          <div className="flex items-center gap-3">
-            <img src={seller.logo} alt={seller.name} className="h-10 w-10 rounded-lg object-cover" />
+          <div className="flex items-center gap-4">
+            <img src={seller.logo} alt={seller.name} className="h-14 w-14 rounded-xl object-cover" />
             <div>
-              <h1 className="text-2xl font-bold leading-tight">{seller.name}</h1>
-              <p className="text-xs text-muted-foreground">Hoje · Todas as lojas</p>
+              <h1 className="text-4xl font-bold leading-tight">{seller.name}</h1>
+              <p className="text-sm text-muted-foreground">Hoje · Todas as lojas</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
