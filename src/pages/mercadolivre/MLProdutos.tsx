@@ -67,9 +67,9 @@ const currencyFmt = (v: number) =>
 const listingBadge = (listingTypeId: string | null, commRate: number) => {
   const label = getListingLabel(listingTypeId);
   const pct = (commRate * 100).toFixed(1);
-  if (label === "Premium") return <Badge className="text-[10px] px-1.5 py-0 bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">{label} · {pct}%</Badge>;
-  if (label === "Grátis") return <Badge className="text-[10px] px-1.5 py-0 bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-100">{label} · {pct}%</Badge>;
-  return <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{label} · {pct}%</Badge>;
+  if (label === "Premium") return <Badge className="text-[10px] bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100 px-[4px] py-px">{label} · {pct}%</Badge>;
+  if (label === "Grátis") return <Badge className="text-[10px] bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-100 px-[4px] py-px">{label} · {pct}%</Badge>;
+  return <Badge variant="secondary" className="text-[10px] px-[4px] py-px">{label} · {pct}%</Badge>;
 };
 
 type StatusFilter = "all" | "active" | "paused";
@@ -668,7 +668,7 @@ export default function MLProdutos() {
                               <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                 <p className="text-xs text-muted-foreground">{item.id}</p>
                                 {sku && (
-                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">
+                                  <Badge variant="outline" className="text-[10px] font-mono px-[4px] py-px">
                                     {sku}
                                   </Badge>
                                 )}
@@ -710,7 +710,7 @@ export default function MLProdutos() {
                                 </TableCell>
                                 <TableCell className="text-center">
                                   {item.free_shipping ? (
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-500 text-emerald-600 bg-emerald-50">
+                                    <Badge variant="outline" className="text-[10px] border-emerald-500 text-emerald-600 bg-emerald-50 px-[4px] py-px">
                                       <Truck className="w-3 h-3 mr-0.5" /> Sim
                                     </Badge>
                                   ) : <span className="text-xs text-muted-foreground">Não</span>}
