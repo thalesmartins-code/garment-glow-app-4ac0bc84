@@ -347,6 +347,7 @@ export default function MLProdutos() {
           stock: i.available_quantity,
           share: totalRev > 0 ? (rev / totalRev) * 100 : 0,
           brand: i.brand || "Sem marca",
+          _ml_user_id: i._ml_user_id,
         };
       })
       .sort((a, b) => b.sold - a.sold);
