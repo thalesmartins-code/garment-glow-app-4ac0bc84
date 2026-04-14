@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { STORE_BADGE_COLORS } from "@/config/storeColors";
 import { useMLInventory } from "@/contexts/MLInventoryContext";
 import { useMLStore } from "@/contexts/MLStoreContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -1005,17 +1006,9 @@ export default function MLProdutos() {
                                 {selectedStore === "all" && r._ml_user_id && (() => {
                                   const storeIdx = stores.findIndex((s) => s.ml_user_id === r._ml_user_id);
                                   const store = storeIdx >= 0 ? stores[storeIdx] : null;
-                                  const STORE_COLORS = [
-                                    "border-[hsl(45,80%,45%)] text-[hsl(45,80%,40%)] bg-[hsl(45,80%,45%)]/10",
-                                    "border-[hsl(210,60%,50%)] text-[hsl(210,60%,45%)] bg-[hsl(210,60%,50%)]/10",
-                                    "border-[hsl(150,50%,40%)] text-[hsl(150,50%,35%)] bg-[hsl(150,50%,40%)]/10",
-                                    "border-[hsl(280,50%,50%)] text-[hsl(280,50%,45%)] bg-[hsl(280,50%,50%)]/10",
-                                    "border-[hsl(15,70%,50%)] text-[hsl(15,70%,45%)] bg-[hsl(15,70%,50%)]/10",
-                                    "border-[hsl(340,60%,50%)] text-[hsl(340,60%,45%)] bg-[hsl(340,60%,50%)]/10",
-                                  ];
-                                  const colorCls = STORE_COLORS[storeIdx % STORE_COLORS.length];
+                                  const colorCls = STORE_BADGE_COLORS[storeIdx % STORE_BADGE_COLORS.length];
                                   return store ? (
-                                    <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${colorCls}`}>
+                                    <Badge variant="outline" className={`text-[9px] leading-none px-1 py-0 ${colorCls}`}>
                                       {store.custom_name || store.nickname || store.ml_user_id}
                                     </Badge>
                                   ) : null;
