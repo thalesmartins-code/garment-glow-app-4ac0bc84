@@ -40,6 +40,14 @@ interface StoreInfo { ml_user_id: string; name: string; }
 interface ProductRow { item_id: string; title: string; thumbnail: string | null; qty_sold: number; revenue: number; stock: number | null; }
 interface BrandRow { name: string; revenue: number; }
 
+interface SellerData {
+  kpi: { revenue: number; orders: number; ticket: number; visits: number; conversion: number };
+  overlaidData: Record<string, any>[];
+  storeNames: StoreInfo[];
+  topProducts: ProductRow[];
+  brandData: BrandRow[];
+}
+
 const BRAND_COLORS = [
   "hsl(var(--primary))", "hsl(var(--accent))", "hsl(25,95%,53%)", "hsl(270,70%,50%)",
   "hsl(160,60%,45%)", "hsl(340,75%,55%)", "hsl(200,70%,50%)", "hsl(45,93%,47%)",
@@ -59,15 +67,16 @@ const TVModeVendas = () => {
   const [clock, setClock] = useState(new Date());
   const [cycleProgress, setCycleProgress] = useState(0);
 
-  const [kpi, setKpi] = useState({ revenue: 0, orders: 0, ticket: 0, visits: 0, conversion: 0 });
-  const [overlaidData, setOverlaidData] = useState<Record<string, any>[]>([]);
-  const [storeNames, setStoreNames] = useState<StoreInfo[]>([]);
-  const [topProducts, setTopProducts] = useState<ProductRow[]>([]);
-  const [brandData, setBrandData] = useState<BrandRow[]>([]);
-  const [loading, setLoading] = useState(false);
+  // Cache all sellers' data in a map — only re-fetch on refresh interval
+  const [sellerCache, setSellerCache] = useState<Record<string, SellerData>>({});
+  const [loading, setLoading] = useState(true);
 
   const seller = SELLERS[sellerIdx];
-  
+  const emptyData: SellerData = {
+    kpi: { revenue: 0, orders: 0, ticket: 0, visits: 0, conversion: 0 },
+    overlaidData: [], storeNames: [], topProducts: [], brandData: [],
+  };
+  const current = sellerCache[seller.id] || emptyData;
 
   useEffect(() => { localStorage.setItem(STORAGE_KEY_CYCLE, String(cycleSec)); }, [cycleSec]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_REFRESH, String(refreshMin)); }, [refreshMin]);
@@ -94,120 +103,121 @@ const TVModeVendas = () => {
     return () => clearInterval(i);
   }, [sellerIdx, cycleSec]);
 
-  const fetchData = useCallback(async () => {
+  // Fetch data for a single seller and return the processed result
+  const fetchSellerData = useCallback(async (sellerId: string): Promise<SellerData> => {
+    const [dailyRes, hourlyRes, productsRes, storesRes, tokensRes] = await Promise.all([
+      supabase.from("ml_daily_cache").select("total_revenue, qty_orders, unique_visits, units_sold").eq("seller_id", sellerId).eq("date", today),
+      supabase.from("ml_hourly_cache").select("hour, total_revenue, qty_orders, ml_user_id").eq("seller_id", sellerId).eq("date", today).order("hour", { ascending: true }).limit(200),
+      supabase.from("ml_product_daily_cache").select("item_id, title, thumbnail, qty_sold, revenue").eq("seller_id", sellerId).eq("date", today).order("revenue", { ascending: false }).limit(50),
+      supabase.from("ml_user_cache").select("ml_user_id, custom_name, nickname").eq("seller_id", sellerId),
+      supabase.from("ml_tokens").select("access_token").eq("seller_id", sellerId),
+    ]);
+
+    // KPIs
+    const daily = dailyRes.data || [];
+    const revenue = daily.reduce((s, r) => s + Number(r.total_revenue), 0);
+    const orders = daily.reduce((s, r) => s + Number(r.qty_orders), 0);
+    const visits = daily.reduce((s, r) => s + Number(r.unique_visits), 0);
+    const ticket = orders > 0 ? revenue / orders : 0;
+    const conversion = visits > 0 ? (orders / visits) * 100 : 0;
+
+    // Store names
+    const stores: StoreInfo[] = (storesRes.data || []).map((s) => ({
+      ml_user_id: String(s.ml_user_id),
+      name: s.custom_name || s.nickname || String(s.ml_user_id),
+    }));
+
+    // Hourly data
+    const hourlyRows = hourlyRes.data || [];
+    const uniqueIds = [...new Set(hourlyRows.map((r) => String(r.ml_user_id)))];
+    const storeNameMap: Record<string, string> = {};
+    for (const st of stores) storeNameMap[st.ml_user_id] = st.name;
+    for (const id of uniqueIds) if (!storeNameMap[id]) storeNameMap[id] = id;
+    const overlaidData = Array.from({ length: 24 }, (_, hour) => {
+      const row: Record<string, any> = { label: `${String(hour).padStart(2, "0")}h`, hour };
+      for (const id of uniqueIds) {
+        const name = storeNameMap[id];
+        const matching = hourlyRows.filter((r) => r.hour === hour && String(r.ml_user_id) === id);
+        row[name] = matching.reduce((s, r) => s + Number(r.total_revenue), 0);
+      }
+      return row;
+    });
+
+    // Inventory (stock + brand)
+    const stockMap: Record<string, number> = {};
+    const brandByItemId: Record<string, string> = {};
+    const tokens = (tokensRes.data || []).map((t) => t.access_token).filter(Boolean);
+    try {
+      for (const token of tokens) {
+        const { data: invData } = await supabase.functions.invoke("ml-inventory", { body: { access_token: token } });
+        if (invData?.items) {
+          for (const item of invData.items) {
+            stockMap[item.id] = (stockMap[item.id] || 0) + (item.available_quantity || 0);
+            if (item.brand) brandByItemId[item.id] = item.brand;
+          }
+        }
+      }
+    } catch { /* optional */ }
+
+    // Products
+    const prodMap: Record<string, ProductRow> = {};
+    (productsRes.data || []).forEach((r) => {
+      if (!prodMap[r.item_id]) prodMap[r.item_id] = { item_id: r.item_id, title: r.title, thumbnail: r.thumbnail, qty_sold: 0, revenue: 0, stock: stockMap[r.item_id] ?? null };
+      prodMap[r.item_id].qty_sold += Number(r.qty_sold);
+      prodMap[r.item_id].revenue += Number(r.revenue);
+    });
+    const allProds = Object.values(prodMap);
+    const topProducts = [...allProds].sort((a, b) => b.revenue - a.revenue).slice(0, 10);
+
+    // Brand aggregation
+    const brandRevMap: Record<string, number> = {};
+    allProds.forEach((p) => {
+      const brand = brandByItemId[p.item_id] || "Sem marca";
+      brandRevMap[brand] = (brandRevMap[brand] || 0) + p.revenue;
+    });
+    const brandData = Object.entries(brandRevMap)
+      .map(([name, rev]) => ({ name, revenue: rev }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+
+    return {
+      kpi: { revenue, orders, ticket, visits, conversion },
+      overlaidData, storeNames: stores, topProducts, brandData,
+    };
+  }, [today]);
+
+  // Fetch ALL sellers in parallel and cache results
+  const fetchAllSellers = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const [dailyRes, hourlyRes, productsRes, storesRes, tokensRes] = await Promise.all([
-        supabase.from("ml_daily_cache").select("total_revenue, qty_orders, unique_visits, units_sold").eq("seller_id", seller.id).eq("date", today),
-        supabase.from("ml_hourly_cache").select("hour, total_revenue, qty_orders, ml_user_id").eq("seller_id", seller.id).eq("date", today).order("hour", { ascending: true }).limit(200),
-        supabase.from("ml_product_daily_cache").select("item_id, title, thumbnail, qty_sold, revenue").eq("seller_id", seller.id).eq("date", today).order("revenue", { ascending: false }).limit(50),
-        supabase.from("ml_user_cache").select("ml_user_id, custom_name, nickname").eq("seller_id", seller.id),
-        supabase.from("ml_tokens").select("access_token").eq("seller_id", seller.id),
-      ]);
-
-      // KPIs
-      const daily = dailyRes.data || [];
-      const revenue = daily.reduce((s, r) => s + Number(r.total_revenue), 0);
-      const orders = daily.reduce((s, r) => s + Number(r.qty_orders), 0);
-      const visits = daily.reduce((s, r) => s + Number(r.unique_visits), 0);
-      const ticket = orders > 0 ? revenue / orders : 0;
-      const conversion = visits > 0 ? (orders / visits) * 100 : 0;
-      setKpi({ revenue, orders, ticket, visits, conversion });
-
-      // Store names
-      const stores: StoreInfo[] = (storesRes.data || []).map((s) => ({
-        ml_user_id: String(s.ml_user_id),
-        name: s.custom_name || s.nickname || String(s.ml_user_id),
-      }));
-      setStoreNames(stores);
-
-      // Build overlaid hourly data per store
-      const hourlyRows = hourlyRes.data || [];
-      const uniqueIds = [...new Set(hourlyRows.map((r) => String(r.ml_user_id)))];
-      const storeNameMap: Record<string, string> = {};
-      for (const st of stores) storeNameMap[st.ml_user_id] = st.name;
-      for (const id of uniqueIds) if (!storeNameMap[id]) storeNameMap[id] = id;
-
-      const buckets = Array.from({ length: 24 }, (_, hour) => {
-        const row: Record<string, any> = { label: `${String(hour).padStart(2, "0")}h`, hour };
-        for (const id of uniqueIds) {
-          const name = storeNameMap[id];
-          const matching = hourlyRows.filter((r) => r.hour === hour && String(r.ml_user_id) === id);
-          row[name] = matching.reduce((s, r) => s + Number(r.total_revenue), 0);
-        }
-        return row;
-      });
-      setOverlaidData(buckets);
-
-      // Fetch inventory for stock + brand data
-      const stockMap: Record<string, number> = {};
-      const brandByItemId: Record<string, string> = {};
-      const tokens = (tokensRes.data || []).map((t) => t.access_token).filter(Boolean);
-      try {
-        for (const token of tokens) {
-          const { data: invData } = await supabase.functions.invoke("ml-inventory", {
-            body: { access_token: token },
-          });
-          if (invData?.items) {
-            for (const item of invData.items) {
-              stockMap[item.id] = (stockMap[item.id] || 0) + (item.available_quantity || 0);
-              if (item.brand) brandByItemId[item.id] = item.brand;
-            }
-          }
-        }
-      } catch { /* inventory is optional */ }
-
-      // Products + Brands
-      const prodMap: Record<string, ProductRow> = {};
-      (productsRes.data || []).forEach((r) => {
-        if (!prodMap[r.item_id]) prodMap[r.item_id] = { item_id: r.item_id, title: r.title, thumbnail: r.thumbnail, qty_sold: 0, revenue: 0, stock: stockMap[r.item_id] ?? null };
-        prodMap[r.item_id].qty_sold += Number(r.qty_sold);
-        prodMap[r.item_id].revenue += Number(r.revenue);
-      });
-      const allProds = Object.values(prodMap);
-      setTopProducts(allProds.sort((a, b) => b.revenue - a.revenue).slice(0, 10));
-
-      // Brand aggregation — use official brand from inventory API, fallback to "Sem marca"
-      const brandRevMap: Record<string, number> = {};
-      allProds.forEach((p) => {
-        const brand = brandByItemId[p.item_id] || "Sem marca";
-        brandRevMap[brand] = (brandRevMap[brand] || 0) + p.revenue;
-      });
-      const sortedBrands = Object.entries(brandRevMap)
-        .map(([name, revenue]) => ({ name, revenue }))
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 10);
-      setBrandData(sortedBrands);
+      const results = await Promise.all(
+        SELLERS.map(async (s) => ({ id: s.id, data: await fetchSellerData(s.id) }))
+      );
+      const cache: Record<string, SellerData> = {};
+      for (const r of results) cache[r.id] = r.data;
+      setSellerCache(cache);
     } catch (err) {
       console.error("TVModeVendas: fetch error", err);
     } finally {
       setLoading(false);
     }
-  }, [user, seller.id, today]);
+  }, [user, fetchSellerData]);
 
-  // Reset all data immediately on seller change so stale data doesn't linger
-  useEffect(() => {
-    setKpi({ revenue: 0, orders: 0, ticket: 0, visits: 0, conversion: 0 });
-    setOverlaidData([]);
-    setStoreNames([]);
-    setTopProducts([]);
-    setBrandData([]);
-  }, [sellerIdx]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
+  // Fetch once on mount, then on refresh interval
+  useEffect(() => { fetchAllSellers(); }, [fetchAllSellers]);
 
   useEffect(() => {
-    const i = setInterval(fetchData, refreshMin * 60_000);
+    const i = setInterval(fetchAllSellers, refreshMin * 60_000);
     return () => clearInterval(i);
-  }, [refreshMin, fetchData]);
+  }, [refreshMin, fetchAllSellers]);
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen();
     else document.exitFullscreen();
   }, []);
 
-  const totalProductRevenue = topProducts.reduce((s, p) => s + p.revenue, 0);
+  const totalProductRevenue = current.topProducts.reduce((s, p) => s + p.revenue, 0);
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 flex flex-col gap-4 select-none">
@@ -257,11 +267,11 @@ const TVModeVendas = () => {
 
       {/* KPI Row */}
       <div className="grid grid-cols-5 gap-4">
-        <KPICard title="Receita Total" value={formatCurrency(kpi.revenue)} rawValue={kpi.revenue} valuePrefix="R$ " icon={<DollarSign className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
-        <KPICard title="Pedidos" value={String(kpi.orders)} rawValue={kpi.orders} icon={<ShoppingCart className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" size="tv" refreshing={loading} />
-        <KPICard title="Ticket Médio" value={formatCurrency(kpi.ticket)} rawValue={kpi.ticket} valuePrefix="R$ " icon={<Receipt className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" size="tv" refreshing={loading} />
-        <KPICard title="Visitas" value={new Intl.NumberFormat("pt-BR").format(kpi.visits)} rawValue={kpi.visits} icon={<Eye className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
-        <KPICard title="Conversão" value={`${kpi.conversion.toFixed(1)}%`} rawValue={kpi.conversion} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-6 h-6" />} variant="minimal" iconClassName="bg-success/10 text-success" size="tv" refreshing={loading} />
+        <KPICard title="Receita Total" value={formatCurrency(current.kpi.revenue)} rawValue={current.kpi.revenue} valuePrefix="R$ " icon={<DollarSign className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
+        <KPICard title="Pedidos" value={String(current.kpi.orders)} rawValue={current.kpi.orders} icon={<ShoppingCart className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" size="tv" refreshing={loading} />
+        <KPICard title="Ticket Médio" value={formatCurrency(current.kpi.ticket)} rawValue={current.kpi.ticket} valuePrefix="R$ " icon={<Receipt className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" size="tv" refreshing={loading} />
+        <KPICard title="Visitas" value={new Intl.NumberFormat("pt-BR").format(kpi.visits)} rawValue={current.kpi.visits} icon={<Eye className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
+        <KPICard title="Conversão" value={`${current.kpi.conversion.toFixed(1)}%`} rawValue={current.kpi.conversion} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-6 h-6" />} variant="minimal" iconClassName="bg-success/10 text-success" size="tv" refreshing={loading} />
       </div>
 
       {/* Main content: Charts left + Top Products right */}
@@ -273,7 +283,7 @@ const TVModeVendas = () => {
             <div className="px-4 pt-4 pb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Receita por Hora — Todas as Lojas</span>
               <div className="flex items-center gap-4">
-                {storeNames.map((st, idx) => (
+                {current.storeNames.map((st, idx) => (
                   <div key={st.ml_user_id} className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STORE_STROKE_COLORS[idx % STORE_STROKE_COLORS.length] }} />
                     <span className="text-sm text-muted-foreground">{st.name}</span>
@@ -283,7 +293,7 @@ const TVModeVendas = () => {
             </div>
             <CardContent className="flex-1 px-4 pb-2 pt-0 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={overlaidData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                <ComposedChart data={current.overlaidData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                   <XAxis dataKey="label" tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" interval={2} />
                   <YAxis tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
@@ -291,7 +301,7 @@ const TVModeVendas = () => {
                     formatter={(value: number, name: string) => [formatCurrency(Number(value)), name]}
                     contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
                   />
-                  {storeNames.map((st, idx) => (
+                  {current.storeNames.map((st, idx) => (
                     <Line
                       key={st.ml_user_id}
                       type="monotone"
@@ -313,11 +323,11 @@ const TVModeVendas = () => {
               <span className="text-sm font-medium text-foreground">Receita por Marca (Top 10)</span>
             </div>
             <CardContent className="flex-1 px-4 pb-3 pt-0 min-h-0">
-              {brandData.length === 0 && !loading ? (
+              {current.brandData.length === 0 && !loading ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Sem dados</p>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart layout="vertical" data={brandData} margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>
+                  <BarChart layout="vertical" data={current.brandData} margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>
                     <XAxis type="number" hide />
                     <YAxis dataKey="name" type="category" width={120} fontSize={15} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                     <RechartsTooltip
@@ -325,7 +335,7 @@ const TVModeVendas = () => {
                       contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: 12 }}
                     />
                     <Bar dataKey="revenue" radius={[0, 6, 6, 0]}>
-                      {brandData.map((_, idx) => (
+                      {current.brandData.map((_, idx) => (
                         <Cell key={idx} fill={BRAND_COLORS[idx % BRAND_COLORS.length]} />
                       ))}
                     </Bar>
@@ -343,10 +353,10 @@ const TVModeVendas = () => {
           </div>
           <CardContent className="flex-1 flex flex-col px-5 pb-2 pt-0 overflow-hidden">
             <div className="flex-1 overflow-auto">
-              {topProducts.length === 0 && !loading && (
+              {current.topProducts.length === 0 && !loading && (
                 <p className="text-sm text-muted-foreground text-center py-8">Sem dados para hoje</p>
               )}
-              {topProducts.length > 0 && (
+              {current.topProducts.length > 0 && (
                 <table className="w-full table-fixed">
                   <colgroup>
                     <col className="w-10" />
@@ -368,7 +378,7 @@ const TVModeVendas = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {topProducts.map((p, idx) => {
+                    {current.topProducts.map((p, idx) => {
                       const share = totalProductRevenue > 0 ? (p.revenue / totalProductRevenue) * 100 : 0;
                       return (
                         <tr key={p.item_id} className="border-b border-border/30">
