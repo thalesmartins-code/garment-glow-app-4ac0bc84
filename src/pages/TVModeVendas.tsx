@@ -214,11 +214,11 @@ const TVModeVendas = () => {
 
       {/* KPI Row */}
       <div className="grid grid-cols-5 gap-4">
-        <KPICard title="Receita Total" value={formatCurrency(kpi.revenue)} rawValue={kpi.revenue} valuePrefix="R$ " icon={<DollarSign className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="default" refreshing={loading} />
-        <KPICard title="Pedidos" value={String(kpi.orders)} rawValue={kpi.orders} icon={<ShoppingCart className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" size="default" refreshing={loading} />
-        <KPICard title="Ticket Médio" value={formatCurrency(kpi.ticket)} rawValue={kpi.ticket} valuePrefix="R$ " icon={<Receipt className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" size="default" refreshing={loading} />
-        <KPICard title="Visitas" value={new Intl.NumberFormat("pt-BR").format(kpi.visits)} rawValue={kpi.visits} icon={<Eye className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="default" refreshing={loading} />
-        <KPICard title="Conversão" value={`${kpi.conversion.toFixed(1)}%`} rawValue={kpi.conversion} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-6 h-6" />} variant="minimal" iconClassName="bg-success/10 text-success" size="default" refreshing={loading} />
+        <KPICard title="Receita Total" value={formatCurrency(kpi.revenue)} rawValue={kpi.revenue} valuePrefix="R$ " icon={<DollarSign className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
+        <KPICard title="Pedidos" value={String(kpi.orders)} rawValue={kpi.orders} icon={<ShoppingCart className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" size="tv" refreshing={loading} />
+        <KPICard title="Ticket Médio" value={formatCurrency(kpi.ticket)} rawValue={kpi.ticket} valuePrefix="R$ " icon={<Receipt className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" size="tv" refreshing={loading} />
+        <KPICard title="Visitas" value={new Intl.NumberFormat("pt-BR").format(kpi.visits)} rawValue={kpi.visits} icon={<Eye className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
+        <KPICard title="Conversão" value={`${kpi.conversion.toFixed(1)}%`} rawValue={kpi.conversion} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-6 h-6" />} variant="minimal" iconClassName="bg-success/10 text-success" size="tv" refreshing={loading} />
       </div>
 
       {/* Main content: Chart + Top Products */}
