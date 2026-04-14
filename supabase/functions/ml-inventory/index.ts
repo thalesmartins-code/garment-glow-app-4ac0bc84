@@ -70,13 +70,19 @@ serve(async (req) => {
       );
     }
 
-    const { ml_user_id } = await req.json();
-    if (!ml_user_id) {
+    const BodySchema = z.object({
+      ml_user_id: z.string().min(1, "ml_user_id is required"),
+    });
+
+    const parsed = BodySchema.safeParse(await req.json());
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: "ml_user_id is required" }),
+        JSON.stringify({ error: "Invalid input", details: parsed.error.flatten().fieldErrors }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+
+    const { ml_user_id } = parsed.data;
 
     // Look up ML access_token from DB (server-side only)
     const { data: tokenRow, error: tokenErr } = await supabaseAdmin
