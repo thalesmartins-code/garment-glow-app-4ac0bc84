@@ -26,25 +26,36 @@ import UserManagement from "./pages/UserManagement";
 import Profile from "./pages/Profile";
 import TVMode from "./pages/TVMode";
 import Integrations from "./pages/Integrations";
-import MercadoLivre from "./pages/MercadoLivre";
-import MLEstoque from "./pages/mercadolivre/MLEstoque";
-import MLProdutos from "./pages/mercadolivre/MLProdutos";
-import MLPedidos from "./pages/mercadolivre/MLPedidos";
-import MLAnuncios from "./pages/mercadolivre/MLAnuncios";
-import MLFinanceiro from "./pages/mercadolivre/MLFinanceiro";
-import MLReputacao from "./pages/mercadolivre/MLReputacao";
-import MLDevolucoes from "./pages/mercadolivre/MLDevolucoes";
-import MLPerguntas from "./pages/mercadolivre/MLPerguntas";
-import MLSincronizacoes from "./pages/mercadolivre/MLSincronizacoes";
-import MLImportacao from "./pages/mercadolivre/MLImportacao";
-import MLMetas from "./pages/mercadolivre/MLMetas";
-import TVModeVendas from "./pages/TVModeVendas";
+import React, { Suspense } from "react";
+
+const MercadoLivre = React.lazy(() => import("./pages/MercadoLivre"));
+const MLEstoque = React.lazy(() => import("./pages/mercadolivre/MLEstoque"));
+const MLProdutos = React.lazy(() => import("./pages/mercadolivre/MLProdutos"));
+const MLPedidos = React.lazy(() => import("./pages/mercadolivre/MLPedidos"));
+const MLAnuncios = React.lazy(() => import("./pages/mercadolivre/MLAnuncios"));
+const MLFinanceiro = React.lazy(() => import("./pages/mercadolivre/MLFinanceiro"));
+const MLReputacao = React.lazy(() => import("./pages/mercadolivre/MLReputacao"));
+const MLDevolucoes = React.lazy(() => import("./pages/mercadolivre/MLDevolucoes"));
+const MLPerguntas = React.lazy(() => import("./pages/mercadolivre/MLPerguntas"));
+const MLSincronizacoes = React.lazy(() => import("./pages/mercadolivre/MLSincronizacoes"));
+const MLImportacao = React.lazy(() => import("./pages/mercadolivre/MLImportacao"));
+const MLMetas = React.lazy(() => import("./pages/mercadolivre/MLMetas"));
+const TVModeVendas = React.lazy(() => import("./pages/TVModeVendas"));
 
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 min
+      gcTime: 30 * 60 * 1000, // 30 min
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -58,6 +69,7 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <OAuthCodeRedirect>
+                <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
                   <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
@@ -165,6 +177,7 @@ const App = () => (
                     </Route>
                     <Route path="*" element={<NotFound />} />
                   </Routes>
+                </Suspense>
                 </OAuthCodeRedirect>
               </BrowserRouter>
             </SalesDataProvider>
