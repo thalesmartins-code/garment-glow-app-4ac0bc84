@@ -45,11 +45,11 @@ async function fetchOrdersChunk(
   maxOrders = 15000,
 ): Promise<any[]> {
   const PAGE_SIZE = 50;
+  const MAX_OFFSET = 1000; // ML API returns inaccurate results beyond 1000
   let allOrders: any[] = [];
   let offset = 0;
 
-  while (offset < 10000 && allOrders.length < maxOrders) {
-    // Usar date_created para consistência: buscamos e classificamos pelo mesmo campo
+  while (offset < MAX_OFFSET && allOrders.length < maxOrders) {
     const url = `/orders/search?seller=${sellerId}&order.date_created.from=${dateFrom}&order.date_created.to=${dateTo}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`;
     const data = await mlFetch(url, accessToken);
     const results = data.results || [];
@@ -57,13 +57,15 @@ async function fetchOrdersChunk(
     const total = data.paging?.total || 0;
     offset += PAGE_SIZE;
     if (results.length < PAGE_SIZE || offset >= total) break;
-  }
 
-  // Log truncation warning if we couldn't fetch all orders
-  if (offset >= 10000 || allOrders.length >= maxOrders) {
-    console.warn(
-      `⚠️ TRUNCATION: fetched ${allOrders.length} orders but paging may have more. offset=${offset}, maxOrders=${maxOrders}`,
-    );
+    // If total > MAX_OFFSET, warn but continue up to MAX_OFFSET
+    if (total > MAX_OFFSET && offset >= MAX_OFFSET) {
+      console.warn(
+        `⚠️ TRUNCATION: ${total} orders exceed offset limit ${MAX_OFFSET}. ` +
+        `Use smaller date ranges (SYNC_CHUNK_DAYS=1) to avoid data loss.`,
+      );
+      break;
+    }
   }
 
   return allOrders;
