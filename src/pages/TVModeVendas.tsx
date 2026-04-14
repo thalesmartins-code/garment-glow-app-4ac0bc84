@@ -171,13 +171,6 @@ const TVModeVendas = () => {
               <p className="text-sm text-muted-foreground">Hoje · Todas as lojas</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {SELLERS.map((s, idx) => (
-              <div key={s.id} className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-500 ${idx === sellerIdx ? "bg-primary text-primary-foreground scale-105" : "bg-muted text-muted-foreground scale-95 opacity-50"}`}>
-                {s.initials}
-              </div>
-            ))}
-          </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
