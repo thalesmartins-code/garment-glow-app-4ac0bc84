@@ -70,19 +70,19 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Determine which tokens to use based on store selection
-  const getTokensToFetch = useCallback(() => {
+  // Determine which ml_user_ids to fetch based on store selection
+  const getMLUserIdsToFetch = useCallback(() => {
     if (selectedStore === "all") {
-      return stores.map((s) => s.access_token);
+      return stores.map((s) => s.ml_user_id);
     }
     const store = stores.find((s) => s.ml_user_id === selectedStore);
-    return store ? [store.access_token] : [];
+    return store ? [store.ml_user_id] : [];
   }, [stores, selectedStore]);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
-    const tokens = getTokensToFetch();
-    if (tokens.length === 0) {
+    const mlUserIds = getMLUserIdsToFetch();
+    if (mlUserIds.length === 0) {
       setHasToken(false);
       return;
     }
@@ -93,13 +93,9 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
       let allItems: ProductItem[] = [];
       let mergedSummary: InventorySummary = { totalItems: 0, totalStock: 0, outOfStock: 0, lowStock: 0 };
 
-      for (const token of tokens) {
-        // Find the store that owns this token to tag items
-        const ownerStore = stores.find((s) => s.access_token === token);
-        const mlUserId = ownerStore?.ml_user_id ?? undefined;
-
+      for (const mlUserId of mlUserIds) {
         const { data, error } = await supabase.functions.invoke("ml-inventory", {
-          body: { access_token: token },
+          body: { ml_user_id: mlUserId },
         });
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
@@ -134,7 +130,7 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [user, getTokensToFetch, toast]);
+  }, [user, getMLUserIdsToFetch, toast]);
 
   // Reset all state when scope changes (seller or store switch)
   useEffect(() => {
