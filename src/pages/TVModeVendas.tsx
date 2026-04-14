@@ -270,7 +270,7 @@ const TVModeVendas = () => {
         <KPICard title="Receita Total" value={formatCurrency(current.kpi.revenue)} rawValue={current.kpi.revenue} valuePrefix="R$ " icon={<DollarSign className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
         <KPICard title="Pedidos" value={String(current.kpi.orders)} rawValue={current.kpi.orders} icon={<ShoppingCart className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" size="tv" refreshing={loading} />
         <KPICard title="Ticket Médio" value={formatCurrency(current.kpi.ticket)} rawValue={current.kpi.ticket} valuePrefix="R$ " icon={<Receipt className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" size="tv" refreshing={loading} />
-        <KPICard title="Visitas" value={new Intl.NumberFormat("pt-BR").format(kpi.visits)} rawValue={current.kpi.visits} icon={<Eye className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
+        <KPICard title="Visitas" value={new Intl.NumberFormat("pt-BR").format(current.kpi.visits)} rawValue={current.kpi.visits} icon={<Eye className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
         <KPICard title="Conversão" value={`${current.kpi.conversion.toFixed(1)}%`} rawValue={current.kpi.conversion} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-6 h-6" />} variant="minimal" iconClassName="bg-success/10 text-success" size="tv" refreshing={loading} />
       </div>
 
