@@ -37,38 +37,75 @@ async function mlFetch(path: string, accessToken: string) {
   return data;
 }
 
+/**
+ * Paginate orders for a given ISO date range.
+ * ML API caps offset at 1000; if total > 950 we recursively split the
+ * time window in half so every sub-window stays under the limit.
+ */
+async function fetchOrdersPage(
+  sellerId: number,
+  dateFrom: string,
+  dateTo: string,
+  accessToken: string,
+): Promise<any[]> {
+  const PAGE_SIZE = 50;
+  const MAX_OFFSET = 1000;
+  let allOrders: any[] = [];
+  let offset = 0;
+  let apiTotal = 0;
+
+  while (offset < MAX_OFFSET) {
+    const url = `/orders/search?seller=${sellerId}&order.date_created.from=${dateFrom}&order.date_created.to=${dateTo}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`;
+    const data = await mlFetch(url, accessToken);
+    const results = data.results || [];
+    allOrders = allOrders.concat(results);
+    apiTotal = data.paging?.total || 0;
+    offset += PAGE_SIZE;
+    if (results.length < PAGE_SIZE || offset >= apiTotal) break;
+  }
+
+  // If we hit the offset ceiling and there are more orders, split into two halves
+  if (apiTotal > MAX_OFFSET - 50) {
+    const fromMs = new Date(dateFrom).getTime();
+    const toMs = new Date(dateTo).getTime();
+    const diffMs = toMs - fromMs;
+
+    // Don't split if the window is already < 1 hour — accept truncation
+    if (diffMs > 60 * 60 * 1000) {
+      const midMs = fromMs + Math.floor(diffMs / 2);
+      const midIso = new Date(midMs).toISOString();
+      // midEnd = 1ms before mid to avoid overlap
+      const midEndIso = new Date(midMs - 1).toISOString();
+
+      console.log(
+        `⚠️ Splitting range: ${apiTotal} orders in ${dateFrom} → ${dateTo}. ` +
+        `Half 1: → ${midEndIso}, Half 2: ${midIso} →`,
+      );
+
+      const [half1, half2] = await Promise.all([
+        fetchOrdersPage(sellerId, dateFrom, midEndIso, accessToken),
+        fetchOrdersPage(sellerId, midIso, dateTo, accessToken),
+      ]);
+      return [...half1, ...half2];
+    } else {
+      console.warn(
+        `⚠️ TRUNCATION: ${apiTotal} orders in <1h window ${dateFrom} → ${dateTo}. ` +
+        `Cannot split further; some orders may be missing.`,
+      );
+    }
+  }
+
+  return allOrders;
+}
+
 async function fetchOrdersChunk(
   sellerId: number,
   dateFrom: string,
   dateTo: string,
   accessToken: string,
-  maxOrders = 15000,
+  _maxOrders = 15000,
 ): Promise<any[]> {
-  const PAGE_SIZE = 50;
-  const MAX_OFFSET = 1000; // ML API returns inaccurate results beyond 1000
-  let allOrders: any[] = [];
-  let offset = 0;
-
-  while (offset < MAX_OFFSET && allOrders.length < maxOrders) {
-    const url = `/orders/search?seller=${sellerId}&order.date_created.from=${dateFrom}&order.date_created.to=${dateTo}&sort=date_desc&limit=${PAGE_SIZE}&offset=${offset}`;
-    const data = await mlFetch(url, accessToken);
-    const results = data.results || [];
-    allOrders = allOrders.concat(results);
-    const total = data.paging?.total || 0;
-    offset += PAGE_SIZE;
-    if (results.length < PAGE_SIZE || offset >= total) break;
-
-    // If total > MAX_OFFSET, warn but continue up to MAX_OFFSET
-    if (total > MAX_OFFSET && offset >= MAX_OFFSET) {
-      console.warn(
-        `⚠️ TRUNCATION: ${total} orders exceed offset limit ${MAX_OFFSET}. ` +
-        `Use smaller date ranges (SYNC_CHUNK_DAYS=1) to avoid data loss.`,
-      );
-      break;
-    }
-  }
-
-  return allOrders;
+  return fetchOrdersPage(sellerId, dateFrom, dateTo, accessToken);
 }
 
 async function fetchActiveListings(sellerId: number, accessToken: string): Promise<number> {
