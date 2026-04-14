@@ -4,61 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMLStore } from "@/contexts/MLStoreContext";
 import { fetchDailyCache, fetchHourlyCache, fetchProductDailyCache, fetchUserCache } from "@/services/mlCacheService";
 import type { DateRange } from "./useMLFilters";
-import { getFilterDates, todayUTC } from "./useMLFilters";
+import { getFilterDates } from "./useMLFilters";
+import type { DailyBreakdown, HourlyBreakdown, MLUser } from "@/types/mlCache";
+import { mapDailyRow, mapHourlyRow } from "@/types/mlCache";
 import type { ProductSalesRow } from "@/components/mercadolivre/TopSellingProducts";
 
-export interface DailyBreakdown {
-  date: string;
-  total: number;
-  approved: number;
-  qty: number;
-  units_sold: number;
-  cancelled: number;
-  shipped: number;
-  unique_visits: number;
-  unique_buyers: number;
-}
-
-export interface HourlyBreakdown {
-  date: string;
-  hour: number;
-  total: number;
-  approved: number;
-  qty: number;
-  ml_user_id?: string;
-}
-
-export interface MLUser {
-  id: number;
-  nickname: string;
-  country: string;
-  permalink: string;
-}
-
-function mapDailyRow(row: any): DailyBreakdown {
-  return {
-    date: row.date,
-    total: Number(row.total_revenue ?? row.total ?? 0),
-    approved: Number(row.approved_revenue ?? row.approved ?? 0),
-    qty: Number(row.qty_orders ?? row.qty ?? 0),
-    units_sold: Number(row.units_sold ?? row.qty_orders ?? row.qty ?? 0),
-    cancelled: Number(row.cancelled_orders ?? row.cancelled ?? 0),
-    shipped: Number(row.shipped_orders ?? row.shipped ?? 0),
-    unique_visits: Number(row.unique_visits ?? 0),
-    unique_buyers: Number(row.unique_buyers ?? 0),
-  };
-}
-
-function mapHourlyRow(row: any): HourlyBreakdown {
-  return {
-    date: row.date,
-    hour: Number(row.hour ?? 0),
-    total: Number(row.total_revenue ?? row.total ?? 0),
-    approved: Number(row.approved_revenue ?? row.approved ?? 0),
-    qty: Number(row.qty_orders ?? row.qty ?? 0),
-    ml_user_id: row.ml_user_id ?? undefined,
-  };
-}
+// Re-export for consumers
+export type { DailyBreakdown, HourlyBreakdown, MLUser };
 
 export function useMLDataLoader(
   customRange: DateRange,

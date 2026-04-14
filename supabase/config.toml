@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.admin-update-role]
 verify_jwt = false
+
+[functions.ml-products-aggregated]
+verify_jwt = false

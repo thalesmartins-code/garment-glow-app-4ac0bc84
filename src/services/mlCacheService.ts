@@ -1,49 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
-
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-export interface DailyRow {
-  date: string;
-  total_revenue: number;
-  approved_revenue: number;
-  qty_orders: number;
-  units_sold: number;
-  cancelled_orders: number;
-  shipped_orders: number;
-  unique_visits: number;
-  unique_buyers: number;
-  ml_user_id?: string;
-}
-
-export interface HourlyRow {
-  date: string;
-  hour: number;
-  total_revenue: number;
-  approved_revenue: number;
-  qty_orders: number;
-  units_sold?: number;
-  ml_user_id?: string;
-}
-
-export interface ProductDailyRow {
-  item_id: string;
-  date: string;
-  title: string;
-  thumbnail: string | null;
-  qty_sold: number;
-  revenue: number;
-  ml_user_id?: string;
-}
-
-export interface MLUserCacheRow {
-  ml_user_id: number;
-  nickname: string | null;
-  country: string | null;
-  permalink: string | null;
-  active_listings: number;
-}
+import type { DailyRow, HourlyRow, ProductDailyRow, MLUserCacheRow } from "@/types/mlCache";
 
 // ── Fetch functions ────────────────────────────────────────────────────────────
+
+export type { DailyRow, HourlyRow, ProductDailyRow, MLUserCacheRow };
 
 export async function fetchDailyCache(
   userId: string,
@@ -77,7 +37,7 @@ export async function fetchHourlyCache(
   selectedStore: string,
   targetDate: string | null,
 ): Promise<HourlyRow[]> {
-  let query = (supabase as any)
+  let query = supabase
     .from("ml_hourly_cache")
     .select("*")
     .eq("user_id", userId);
@@ -109,7 +69,7 @@ export async function fetchProductDailyCache(
   dateTo: string,
   selectedStore: string,
 ): Promise<ProductDailyRow[]> {
-  let query = (supabase as any)
+  let query = supabase
     .from("ml_product_daily_cache")
     .select("*")
     .eq("user_id", userId)
@@ -230,7 +190,7 @@ export async function upsertSyncLog(
   daysCount: number,
 ) {
   const now = new Date().toISOString();
-  await (supabase as any).from("ml_sync_log").upsert(
+  await supabase.from("ml_sync_log").upsert(
     {
       user_id: userId,
       ml_user_id: mlUserId,

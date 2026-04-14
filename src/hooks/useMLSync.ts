@@ -6,7 +6,7 @@ import { useMLStore } from "@/contexts/MLStoreContext";
 import { useToast } from "@/hooks/use-toast";
 import { getComparisonRanges, todayUTC } from "./useMLFilters";
 import type { DateRange } from "./useMLFilters";
-import type { MLUser } from "./useMLDataLoader";
+import type { MLUser } from "@/types/mlCache";
 
 const LAST_ML_SYNC_KEY = "ml_last_synced_at";
 const LAST_ML_SYNC_TS_KEY = "ml_last_synced_ts";
@@ -126,15 +126,15 @@ export function useMLSync(opts: UseMLSyncOptions) {
         ]);
         if (lastUserInfo) opts.setMlUser(lastUserInfo);
 
-        const now = new Date().toISOString();
-        setLastSyncedAt(now);
-        localStorage.setItem(LAST_ML_SYNC_KEY, now);
+        const nowIso = new Date().toISOString();
+        setLastSyncedAt(nowIso);
+        localStorage.setItem(LAST_ML_SYNC_KEY, nowIso);
         localStorage.setItem(LAST_ML_SYNC_TS_KEY, String(Date.now()));
 
         // Log sync
         const daysCount = Math.round((rangeEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
         for (const mlUserId of resolvedMLUserIds) {
-          await (supabase as any).from("ml_sync_log").upsert(
+          await supabase.from("ml_sync_log").upsert(
             {
               user_id: user.id,
               ml_user_id: mlUserId,
@@ -142,7 +142,7 @@ export function useMLSync(opts: UseMLSyncOptions) {
               date_to: toDateStr,
               days_synced: daysCount,
               source: "auto",
-              synced_at: now,
+              synced_at: nowIso,
             },
             { onConflict: "user_id,ml_user_id,date_from,date_to,source" },
           );
