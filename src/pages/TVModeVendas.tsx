@@ -214,11 +214,11 @@ const TVModeVendas = () => {
 
       {/* KPI Row */}
       <div className="grid grid-cols-5 gap-4">
-        <KPICard title="Receita Total" value={formatCurrency(kpi.revenue)} rawValue={kpi.revenue} valuePrefix="R$ " icon={<DollarSign className="w-5 h-5" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="compact" refreshing={loading} />
-        <KPICard title="Pedidos" value={String(kpi.orders)} rawValue={kpi.orders} icon={<ShoppingCart className="w-5 h-5" />} variant="minimal" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" size="compact" refreshing={loading} />
-        <KPICard title="Ticket Médio" value={formatCurrency(kpi.ticket)} rawValue={kpi.ticket} valuePrefix="R$ " icon={<Receipt className="w-5 h-5" />} variant="minimal" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" size="compact" refreshing={loading} />
-        <KPICard title="Visitas" value={new Intl.NumberFormat("pt-BR").format(kpi.visits)} rawValue={kpi.visits} icon={<Eye className="w-5 h-5" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="compact" refreshing={loading} />
-        <KPICard title="Conversão" value={`${kpi.conversion.toFixed(1)}%`} rawValue={kpi.conversion} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-5 h-5" />} variant="minimal" iconClassName="bg-success/10 text-success" size="compact" refreshing={loading} />
+        <KPICard title="Receita Total" value={formatCurrency(kpi.revenue)} rawValue={kpi.revenue} valuePrefix="R$ " icon={<DollarSign className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="default" refreshing={loading} />
+        <KPICard title="Pedidos" value={String(kpi.orders)} rawValue={kpi.orders} icon={<ShoppingCart className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" size="default" refreshing={loading} />
+        <KPICard title="Ticket Médio" value={formatCurrency(kpi.ticket)} rawValue={kpi.ticket} valuePrefix="R$ " icon={<Receipt className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" size="default" refreshing={loading} />
+        <KPICard title="Visitas" value={new Intl.NumberFormat("pt-BR").format(kpi.visits)} rawValue={kpi.visits} icon={<Eye className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="default" refreshing={loading} />
+        <KPICard title="Conversão" value={`${kpi.conversion.toFixed(1)}%`} rawValue={kpi.conversion} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-6 h-6" />} variant="minimal" iconClassName="bg-success/10 text-success" size="default" refreshing={loading} />
       </div>
 
       {/* Main content: Chart + Top Products */}
@@ -258,44 +258,46 @@ const TVModeVendas = () => {
 
         {/* Top products */}
         <Card className="col-span-1 flex flex-col">
-          <CardContent className="flex-1 flex flex-col p-4 pb-3 overflow-hidden">
-            <h2 className="text-sm font-medium text-foreground pb-3">Top 8 Anúncios</h2>
+          <div className="px-4 pt-4 pb-3">
+            <span className="text-sm font-medium text-foreground">Top 8 Anúncios</span>
+          </div>
+          <CardContent className="flex-1 flex flex-col px-4 pb-2 pt-0 overflow-hidden">
             <div className="flex-1 overflow-auto">
               {topProducts.length === 0 && !loading && (
-                <p className="text-xs text-muted-foreground text-center py-8">Sem dados para hoje</p>
+                <p className="text-sm text-muted-foreground text-center py-8">Sem dados para hoje</p>
               )}
               {topProducts.length > 0 && (
-                <table className="w-full text-xs">
+                <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-muted-foreground border-b border-border/50">
-                      <th className="text-left py-1.5 w-6">#</th>
-                      <th className="text-left py-1.5 pl-1" colSpan={2}>Produto</th>
-                      <th className="text-right py-1.5">Vendidos</th>
-                      <th className="text-right py-1.5">Receita</th>
-                      <th className="text-right py-1.5">% Part.</th>
+                    <tr className="text-muted-foreground border-b border-border/50 text-xs">
+                      <th className="text-left py-2 w-7">#</th>
+                      <th className="text-left py-2 pl-1" colSpan={2}>Produto</th>
+                      <th className="text-right py-2">Vendidos</th>
+                      <th className="text-right py-2">Receita</th>
+                      <th className="text-right py-2">% Part.</th>
                     </tr>
                   </thead>
                   <tbody>
                     {topProducts.map((p, idx) => {
                       const share = totalProductRevenue > 0 ? (p.revenue / totalProductRevenue) * 100 : 0;
                       return (
-                        <tr key={p.item_id} className="border-b border-border/30 h-10">
-                          <td className="text-center font-bold text-muted-foreground">
+                        <tr key={p.item_id} className="border-b border-border/30 h-12">
+                          <td className="text-center font-bold text-muted-foreground text-base">
                             {idx < 3 ? MEDALS[idx] : idx + 1}
                           </td>
-                          <td className="py-1 pl-1 w-8">
+                          <td className="py-1.5 pl-1 w-10">
                             {p.thumbnail ? (
-                              <img src={p.thumbnail} alt="" className="w-7 h-7 rounded object-cover" />
+                              <img src={p.thumbnail} alt="" className="w-9 h-9 rounded-lg object-cover" />
                             ) : (
-                              <div className="w-7 h-7 rounded bg-muted" />
+                              <div className="w-9 h-9 rounded-lg bg-muted" />
                             )}
                           </td>
-                          <td className="py-1 pl-1.5 max-w-[120px]">
-                            <p className="truncate text-foreground">{p.title}</p>
+                          <td className="py-1.5 pl-2 max-w-[140px]">
+                            <p className="truncate text-foreground text-[13px]">{p.title}</p>
                           </td>
-                          <td className="text-right font-semibold text-foreground">{p.qty_sold} un</td>
-                          <td className="text-right font-semibold text-foreground">{formatCurrency(p.revenue)}</td>
-                          <td className="text-right text-muted-foreground">{share.toFixed(1)}%</td>
+                          <td className="text-right font-semibold text-foreground text-[13px]">{p.qty_sold} un</td>
+                          <td className="text-right font-semibold text-foreground text-[13px]">{formatCurrency(p.revenue)}</td>
+                          <td className="text-right text-muted-foreground text-[13px]">{share.toFixed(1)}%</td>
                         </tr>
                       );
                     })}
