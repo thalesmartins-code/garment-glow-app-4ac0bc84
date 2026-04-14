@@ -418,6 +418,9 @@ export default function UserManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <MenuVisibilityCard />
+      <AuditLogCard />
     </div>
   );
 }
