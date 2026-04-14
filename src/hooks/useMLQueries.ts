@@ -1,0 +1,138 @@
+/**
+ * React Query wrappers for ML cache data.
+ * Replaces manual useState/useCallback in useMLDataLoader.
+ */
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMLStore } from "@/contexts/MLStoreContext";
+import { supabase } from "@/integrations/supabase/client";
+import { fetchDailyCache, fetchHourlyCache, fetchUserCache } from "@/services/mlCacheService";
+import { mapDailyRow, mapHourlyRow } from "@/types/mlCache";
+import type { DailyBreakdown, HourlyBreakdown, MLUser } from "@/types/mlCache";
+import type { ProductSalesRow } from "@/components/mercadolivre/TopSellingProducts";
+
+export type { DailyBreakdown, HourlyBreakdown, MLUser };
+
+// ── Query key factories ─────────────────────────────────────────────────────
+
+export const mlKeys = {
+  daily: (userId: string, mlIds: string[], from: string, to: string, store: string) =>
+    ["ml", "daily", userId, mlIds, from, to, store] as const,
+  hourly: (userId: string, mlIds: string[], store: string, targetDate: string | null) =>
+    ["ml", "hourly", userId, mlIds, store, targetDate] as const,
+  products: (userId: string, mlIds: string[], from: string, to: string, store: string) =>
+    ["ml", "products", userId, mlIds, from, to, store] as const,
+  userInfo: (userId: string, mlIds: string[], store: string) =>
+    ["ml", "userInfo", userId, mlIds, store] as const,
+};
+
+// ── useMLDailyQuery ─────────────────────────────────────────────────────────
+
+export function useMLDailyQuery(fetchFrom: string, fetchTo: string) {
+  const { user } = useAuth();
+  const { selectedStore, resolvedMLUserIds } = useMLStore();
+  const userId = user?.id ?? "";
+
+  return useQuery({
+    queryKey: mlKeys.daily(userId, resolvedMLUserIds, fetchFrom, fetchTo, selectedStore),
+    queryFn: async () => {
+      const rows = await fetchDailyCache(userId, resolvedMLUserIds, fetchFrom, fetchTo, selectedStore);
+      return rows.map(mapDailyRow);
+    },
+    enabled: !!userId && resolvedMLUserIds.length > 0 && !!fetchFrom,
+    staleTime: 2 * 60 * 1000, // 2 min
+  });
+}
+
+// ── useMLHourlyQuery ────────────────────────────────────────────────────────
+
+export function useMLHourlyQuery(
+  isHourlyAvailable: boolean,
+  hourlyTargetDate: string | null,
+) {
+  const { user } = useAuth();
+  const { selectedStore, resolvedMLUserIds } = useMLStore();
+  const userId = user?.id ?? "";
+  const targetDate = isHourlyAvailable && hourlyTargetDate ? hourlyTargetDate : null;
+
+  return useQuery({
+    queryKey: mlKeys.hourly(userId, resolvedMLUserIds, selectedStore, targetDate),
+    queryFn: async () => {
+      const rows = await fetchHourlyCache(userId, resolvedMLUserIds, selectedStore, targetDate);
+      return rows.map(mapHourlyRow);
+    },
+    enabled: !!userId && resolvedMLUserIds.length > 0,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+// ── useMLProductsQuery (via Edge Function) ──────────────────────────────────
+
+export function useMLProductsQuery(dateFrom: string, dateTo: string) {
+  const { user } = useAuth();
+  const { selectedStore, resolvedMLUserIds } = useMLStore();
+  const userId = user?.id ?? "";
+
+  const mlUserIds =
+    selectedStore !== "all" ? [selectedStore] : resolvedMLUserIds;
+
+  return useQuery({
+    queryKey: mlKeys.products(userId, mlUserIds, dateFrom, dateTo, selectedStore),
+    queryFn: async (): Promise<(ProductSalesRow & { date?: string })[]> => {
+      const { data, error } = await supabase.functions.invoke(
+        "ml-products-aggregated",
+        {
+          body: {
+            date_from: dateFrom,
+            date_to: dateTo,
+            ml_user_ids: mlUserIds,
+            limit: 50,
+            offset: 0,
+          },
+        },
+      );
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Products query failed");
+      return data.products as ProductSalesRow[];
+    },
+    enabled: !!userId && mlUserIds.length > 0 && !!dateFrom && !!dateTo,
+    staleTime: 3 * 60 * 1000, // 3 min
+  });
+}
+
+// ── useMLUserQuery ──────────────────────────────────────────────────────────
+
+export function useMLUserQuery() {
+  const { user } = useAuth();
+  const { selectedStore, resolvedMLUserIds } = useMLStore();
+  const userId = user?.id ?? "";
+
+  return useQuery({
+    queryKey: mlKeys.userInfo(userId, resolvedMLUserIds, selectedStore),
+    queryFn: async (): Promise<MLUser | null> => {
+      const data = await fetchUserCache(userId, resolvedMLUserIds, selectedStore);
+      if (!data) return null;
+      return {
+        id: data.ml_user_id,
+        nickname: data.nickname ?? "",
+        country: data.country ?? "",
+        permalink: data.permalink ?? "",
+      };
+    },
+    enabled: !!userId && resolvedMLUserIds.length > 0,
+    staleTime: 10 * 60 * 1000, // 10 min
+  });
+}
+
+// ── Invalidation helper ─────────────────────────────────────────────────────
+
+export function useInvalidateMLQueries() {
+  const queryClient = useQueryClient();
+  return {
+    invalidateAll: () => queryClient.invalidateQueries({ queryKey: ["ml"] }),
+    invalidateDaily: () => queryClient.invalidateQueries({ queryKey: ["ml", "daily"] }),
+    invalidateHourly: () => queryClient.invalidateQueries({ queryKey: ["ml", "hourly"] }),
+    invalidateProducts: () => queryClient.invalidateQueries({ queryKey: ["ml", "products"] }),
+    invalidateUser: () => queryClient.invalidateQueries({ queryKey: ["ml", "userInfo"] }),
+  };
+}
