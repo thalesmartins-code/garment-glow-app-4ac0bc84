@@ -50,7 +50,7 @@ function lastDayOfMonth(year: number, month: number): Date {
   return new Date(year, month + 1, 0);
 }
 
-export function HistoricalSyncModal({ accessToken, mlUserId, onSyncComplete, sellerId }: Props) {
+export function HistoricalSyncModal({ mlUserId, onSyncComplete, sellerId }: Props) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
