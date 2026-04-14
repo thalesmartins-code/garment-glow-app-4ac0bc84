@@ -242,14 +242,14 @@ export default function Integrations() {
           ml_user_id: mlUserId,
           token_type: "bearer",
           seller_id: sellerId,
-        } as any,
+        },
         { onConflict: "user_id,ml_user_id" },
       );
 
       // Sync seller_stores.external_id so the header store filter works.
       if (sellerId) {
         const { data: existing } = await supabase
-          .from("seller_stores" as any)
+          .from("seller_stores")
           .select("id")
           .eq("seller_id", sellerId)
           .eq("marketplace", "ml")
@@ -258,7 +258,7 @@ export default function Integrations() {
 
         if (!existing) {
           const { data: unclaimed } = await supabase
-            .from("seller_stores" as any)
+            .from("seller_stores")
             .select("id")
             .eq("seller_id", sellerId)
             .eq("marketplace", "ml")
@@ -268,11 +268,11 @@ export default function Integrations() {
 
           if (unclaimed) {
             await supabase
-              .from("seller_stores" as any)
+              .from("seller_stores")
               .update({ external_id: mlUserId })
-              .eq("id", (unclaimed as any).id);
+              .eq("id", unclaimed.id);
           } else {
-            await supabase.from("seller_stores" as any).insert({
+            await supabase.from("seller_stores").insert({
               seller_id: sellerId,
               marketplace: "ml",
               external_id: mlUserId,
@@ -412,19 +412,19 @@ export default function Integrations() {
           redirect_uri: "https://analytics.alcavie.com/integracoes",
         });
 
-        const response = await magaluClient.loginWithPopup() as any;
+        const response = await magaluClient.loginWithPopup() as Record<string, unknown>;
 
         if (response?.access_token) {
           localStorage.setItem("magalu_tokens", JSON.stringify({
             access_token: response.access_token,
             refresh_token: response.refresh_token,
-            expires_at: Date.now() + (response.expires_in || 1800) * 1000,
+            expires_at: Date.now() + (Number(response.expires_in) || 1800) * 1000,
             id_token: response.id_token,
           }));
 
           // Test connection with the obtained token
           const { data, error } = await supabase.functions.invoke("magalu-integration", {
-            body: { action: "test_connection", access_token: (response as any).access_token },
+            body: { action: "test_connection", access_token: response.access_token },
           });
 
           if (error || !data?.success) {
@@ -675,13 +675,13 @@ export default function Integrations() {
       // Update custom_name in ml_user_cache
       await supabase
         .from("ml_user_cache")
-        .update({ custom_name: newName } as any)
+        .update({ custom_name: newName })
         .eq("user_id", user.id)
         .eq("ml_user_id", Number(mlUserId));
       // Also update store_name in seller_stores so the header selector reflects the change
       if (selectedSeller?.id) {
         await supabase
-          .from("seller_stores" as any)
+          .from("seller_stores")
           .update({ store_name: newName })
           .eq("seller_id", selectedSeller.id)
           .eq("marketplace", "ml")
@@ -704,7 +704,7 @@ export default function Integrations() {
       // Reset custom_name in ml_user_cache
       await supabase
         .from("ml_user_cache")
-        .update({ custom_name: null } as any)
+        .update({ custom_name: null })
         .eq("user_id", user.id)
         .eq("ml_user_id", Number(mlUserId));
       // Also reset store_name in seller_stores to the nickname
@@ -715,9 +715,9 @@ export default function Integrations() {
           .eq("user_id", user.id)
           .eq("ml_user_id", Number(mlUserId))
           .maybeSingle();
-        const fallbackName = (cacheRow as any)?.nickname || `Loja ML ${mlUserId}`;
+        const fallbackName = cacheRow?.nickname || `Loja ML ${mlUserId}`;
         await supabase
-          .from("seller_stores" as any)
+          .from("seller_stores")
           .update({ store_name: fallbackName })
           .eq("seller_id", selectedSeller.id)
           .eq("marketplace", "ml")
