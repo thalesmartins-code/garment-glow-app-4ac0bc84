@@ -35,6 +35,7 @@ export interface ProductItem {
   free_shipping: boolean;
   catalog_product_id: string | null;
   deal_ids: string[];
+  _ml_user_id?: string;
 }
 
 interface InventorySummary {
@@ -93,6 +94,10 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
       let mergedSummary: InventorySummary = { totalItems: 0, totalStock: 0, outOfStock: 0, lowStock: 0 };
 
       for (const token of tokens) {
+        // Find the store that owns this token to tag items
+        const ownerStore = stores.find((s) => s.access_token === token);
+        const mlUserId = ownerStore?.ml_user_id ?? undefined;
+
         const { data, error } = await supabase.functions.invoke("ml-inventory", {
           body: { access_token: token },
         });
@@ -107,6 +112,7 @@ export function MLInventoryProvider({ children }: { children: ReactNode }) {
           free_shipping: item.free_shipping ?? false,
           catalog_product_id: item.catalog_product_id ?? null,
           deal_ids: Array.isArray(item.deal_ids) ? item.deal_ids : [],
+          _ml_user_id: mlUserId,
         }));
 
         allItems = [...allItems, ...rawItems];

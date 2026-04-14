@@ -153,7 +153,7 @@ import { Progress } from "@/components/ui/progress";
 
 export default function MLProdutos() {
   const { items, loading, hasToken, lastUpdated, refresh } = useMLInventory();
-  const { selectedStore } = useMLStore();
+  const { selectedStore, stores } = useMLStore();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [stockFilter, setStockFilter] = useState<StockFilter>("all");
@@ -347,6 +347,7 @@ export default function MLProdutos() {
           stock: i.available_quantity,
           share: totalRev > 0 ? (rev / totalRev) * 100 : 0,
           brand: i.brand || "Sem marca",
+          _ml_user_id: i._ml_user_id,
         };
       })
       .sort((a, b) => b.sold - a.sold);
@@ -999,7 +1000,17 @@ export default function MLProdutos() {
                               <a href={`https://produto.mercadolivre.com.br/${r.id.replace(/^(MLB)(\d+)$/, "$1-$2")}`} target="_blank" rel="noopener noreferrer" className="text-sm font-medium line-clamp-2 leading-tight hover:underline hover:text-primary transition-colors">
                                 {r.title} <ExternalLink className="w-3 h-3 inline mb-0.5 ml-0.5" />
                               </a>
-                              <p className="text-xs text-muted-foreground mt-0.5">{r.id}</p>
+                              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <p className="text-xs text-muted-foreground">{r.id}</p>
+                                {selectedStore === "all" && r._ml_user_id && (() => {
+                                  const store = stores.find((s) => s.ml_user_id === r._ml_user_id);
+                                  return store ? (
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-accent/50 text-accent">
+                                      {store.custom_name || store.nickname || store.ml_user_id}
+                                    </Badge>
+                                  ) : null;
+                                })()}
+                              </div>
                             </TableCell>
                             <TableCell className="text-right text-sm">{currencyFmt(r.price)}</TableCell>
                             <TableCell className="text-right text-sm font-semibold">{r.sold}</TableCell>
