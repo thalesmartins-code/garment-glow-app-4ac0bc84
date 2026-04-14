@@ -1008,7 +1008,7 @@ export default function MLProdutos() {
                                   const store = storeIdx >= 0 ? stores[storeIdx] : null;
                                   const colorCls = STORE_BADGE_COLORS[storeIdx % STORE_BADGE_COLORS.length];
                                   return store ? (
-                                    <Badge variant="outline" className={`text-[9px] leading-none px-1.5 py-0 ${colorCls}`}>
+                                    <Badge variant="outline" className={`text-[9px] leading-none ${colorCls} px-[4px] py-px`}>
                                       {store.custom_name || store.nickname || store.ml_user_id}
                                     </Badge>
                                   ) : null;
