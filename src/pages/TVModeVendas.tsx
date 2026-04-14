@@ -186,6 +186,15 @@ const TVModeVendas = () => {
     }
   }, [user, seller.id, today]);
 
+  // Reset all data immediately on seller change so stale data doesn't linger
+  useEffect(() => {
+    setKpi({ revenue: 0, orders: 0, ticket: 0, visits: 0, conversion: 0 });
+    setOverlaidData([]);
+    setStoreNames([]);
+    setTopProducts([]);
+    setBrandData([]);
+  }, [sellerIdx]);
+
   useEffect(() => { fetchData(); }, [fetchData]);
 
   useEffect(() => {
