@@ -241,48 +241,79 @@ const TVModeVendas = () => {
         <KPICard title="Conversão" value={`${kpi.conversion.toFixed(1)}%`} rawValue={kpi.conversion} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-6 h-6" />} variant="minimal" iconClassName="bg-success/10 text-success" size="tv" refreshing={loading} />
       </div>
 
-      {/* Main content: Chart + Top Products */}
+      {/* Main content: Charts left + Top Products right */}
       <div className="flex-1 grid grid-cols-5 gap-4 min-h-0">
-        {/* Hourly chart */}
-        <Card className="col-span-3 flex flex-col">
-          <div className="px-4 pt-4 pb-3 flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground">Receita por Hora — Todas as Lojas</span>
-            <div className="flex items-center gap-4">
-              {storeNames.map((st, idx) => (
-                <div key={st.ml_user_id} className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STORE_STROKE_COLORS[idx % STORE_STROKE_COLORS.length] }} />
-                  <span className="text-xs text-muted-foreground">{st.name}</span>
-                </div>
-              ))}
+        {/* Left column: stacked charts */}
+        <div className="col-span-3 flex flex-col gap-4 min-h-0">
+          {/* Hourly chart */}
+          <Card className="flex-1 flex flex-col min-h-0">
+            <div className="px-4 pt-4 pb-3 flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">Receita por Hora — Todas as Lojas</span>
+              <div className="flex items-center gap-4">
+                {storeNames.map((st, idx) => (
+                  <div key={st.ml_user_id} className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STORE_STROKE_COLORS[idx % STORE_STROKE_COLORS.length] }} />
+                    <span className="text-xs text-muted-foreground">{st.name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-          <CardContent className="flex-1 flex flex-col px-4 pb-2 pt-0 min-h-0">
-            <div className="flex-1 min-h-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={overlaidData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" interval={2} />
-                  <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                  <RechartsTooltip
-                    formatter={(value: number, name: string) => [formatCurrency(Number(value)), name]}
-                    contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-                  />
-                  {storeNames.map((st, idx) => (
-                    <Line
-                      key={st.ml_user_id}
-                      type="monotone"
-                      dataKey={st.name}
-                      stroke={STORE_STROKE_COLORS[idx % STORE_STROKE_COLORS.length]}
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 4 }}
+            <CardContent className="flex-1 flex flex-col px-4 pb-2 pt-0 min-h-0">
+              <div className="flex-1 min-h-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={overlaidData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                    <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" interval={2} />
+                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                    <RechartsTooltip
+                      formatter={(value: number, name: string) => [formatCurrency(Number(value)), name]}
+                      contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
                     />
-                  ))}
-                </ComposedChart>
-              </ResponsiveContainer>
+                    {storeNames.map((st, idx) => (
+                      <Line
+                        key={st.ml_user_id}
+                        type="monotone"
+                        dataKey={st.name}
+                        stroke={STORE_STROKE_COLORS[idx % STORE_STROKE_COLORS.length]}
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                      />
+                    ))}
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Brand chart */}
+          <Card className="flex-none">
+            <div className="px-4 pt-4 pb-3">
+              <span className="text-sm font-medium text-foreground">Receita por Marca (Top 10)</span>
             </div>
-          </CardContent>
-        </Card>
+            <CardContent className="px-4 pb-3 pt-0">
+              {brandData.length === 0 && !loading ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Sem dados</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart layout="vertical" data={brandData} margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="name" type="category" width={90} fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                    <RechartsTooltip
+                      formatter={(value: number) => [formatCurrency(value), "Receita"]}
+                      contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: 12 }}
+                    />
+                    <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
+                      {brandData.map((_, idx) => (
+                        <Cell key={idx} fill={BRAND_COLORS[idx % BRAND_COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Top products */}
         <Card className="col-span-2 flex flex-col">
@@ -295,10 +326,10 @@ const TVModeVendas = () => {
                 <p className="text-sm text-muted-foreground text-center py-8">Sem dados para hoje</p>
               )}
               {topProducts.length > 0 && (
-                <table className="w-full text-sm table-fixed">
+                <table className="w-full table-fixed">
                   <colgroup>
                     <col className="w-10" />
-                    <col className="w-12" />
+                    <col className="w-14" />
                     <col />
                     <col className="w-20" />
                     <col className="w-24" />
@@ -318,22 +349,22 @@ const TVModeVendas = () => {
                       const share = totalProductRevenue > 0 ? (p.revenue / totalProductRevenue) * 100 : 0;
                       return (
                         <tr key={p.item_id} className="border-b border-border/30">
-                          <td className="text-center font-bold text-muted-foreground text-lg py-2">
+                          <td className="text-center font-bold text-muted-foreground text-lg py-2.5">
                             {idx < 3 ? MEDALS[idx] : idx + 1}
                           </td>
                           <td className="py-2 pl-1">
                             {p.thumbnail ? (
-                              <img src={p.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                              <img src={p.thumbnail} alt="" className="w-11 h-11 rounded-lg object-cover shrink-0" />
                             ) : (
-                              <div className="w-10 h-10 rounded-lg bg-muted shrink-0" />
+                              <div className="w-11 h-11 rounded-lg bg-muted shrink-0" />
                             )}
                           </td>
                           <td className="py-2 pl-2 overflow-hidden">
-                            <p className="truncate text-foreground text-sm">{p.title}</p>
+                            <p className="truncate text-foreground text-[15px]">{p.title}</p>
                           </td>
-                          <td className="text-right font-semibold text-foreground text-sm whitespace-nowrap">{p.qty_sold} un</td>
-                          <td className="text-right font-semibold text-foreground text-sm whitespace-nowrap">{formatCurrency(p.revenue)}</td>
-                          <td className="text-right text-muted-foreground text-sm whitespace-nowrap">{share.toFixed(1)}%</td>
+                          <td className="text-right font-semibold text-foreground text-[15px] whitespace-nowrap">{p.qty_sold} un</td>
+                          <td className="text-right font-semibold text-foreground text-[15px] whitespace-nowrap">{formatCurrency(p.revenue)}</td>
+                          <td className="text-right text-muted-foreground text-[15px] whitespace-nowrap">{share.toFixed(1)}%</td>
                         </tr>
                       );
                     })}
