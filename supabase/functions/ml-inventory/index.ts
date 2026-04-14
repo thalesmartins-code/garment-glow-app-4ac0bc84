@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -44,20 +45,55 @@ serve(async (req) => {
   }
 
   try {
-    const { access_token, seller_id } = await req.json();
-
-    if (!access_token) {
+    // Validate JWT — access_token is now fetched server-side
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: "access_token is required" }),
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    const { data: authData, error: authErr } = await supabaseAdmin.auth.getUser(
+      authHeader.replace("Bearer ", ""),
+    );
+    if (authErr || !authData?.user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const { ml_user_id } = await req.json();
+    if (!ml_user_id) {
+      return new Response(
+        JSON.stringify({ error: "ml_user_id is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    let mlSellerId = seller_id;
-    if (!mlSellerId) {
-      const me = await mlFetch("/users/me", access_token);
-      mlSellerId = me.id;
+    // Look up ML access_token from DB (server-side only)
+    const { data: tokenRow, error: tokenErr } = await supabaseAdmin
+      .from("ml_tokens")
+      .select("access_token")
+      .eq("user_id", authData.user.id)
+      .eq("ml_user_id", ml_user_id)
+      .single();
+
+    if (tokenErr || !tokenRow?.access_token) {
+      return new Response(
+        JSON.stringify({ error: "No ML token found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
+
+    const access_token = tokenRow.access_token as string;
+    const mlSellerId = Number(ml_user_id);
 
     // Fetch active items
     const activeIds = await fetchItemIdsByStatus(mlSellerId, "active", access_token);

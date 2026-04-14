@@ -144,16 +144,50 @@ serve(async (req) => {
   }
 
   try {
-    const { access_token, days = 1, user_id, date_from, date_to, seller_id } = await req.json();
-
-    if (!access_token) {
-      return new Response(JSON.stringify({ error: "Missing access_token" }), {
-        status: 400,
+    // Validate JWT — access_token is now fetched server-side
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+    const { data: authData, error: authErr } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
+    if (authErr || !authData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const user_id = authData.user.id;
+
+    const { ml_user_id: reqMLUserId, days = 1, date_from, date_to, seller_id } = await req.json();
+
+    if (!reqMLUserId) {
+      return new Response(JSON.stringify({ error: "Missing ml_user_id" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Look up ML access_token from DB (server-side only — never sent from frontend)
+    const { data: tokenRow, error: tokenErr } = await supabaseAdmin
+      .from("ml_tokens")
+      .select("access_token")
+      .eq("user_id", user_id)
+      .eq("ml_user_id", reqMLUserId)
+      .single();
+
+    if (tokenErr || !tokenRow?.access_token) {
+      return new Response(JSON.stringify({ error: "No ML token found for this store" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const access_token = tokenRow.access_token as string;
 
     const user = await mlFetch("/users/me", access_token);
     const sellerId = user.id;
