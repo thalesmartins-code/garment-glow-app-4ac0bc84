@@ -38,7 +38,7 @@ import MLPerguntas from "./pages/mercadolivre/MLPerguntas";
 import MLSincronizacoes from "./pages/mercadolivre/MLSincronizacoes";
 import MLImportacao from "./pages/mercadolivre/MLImportacao";
 import MLMetas from "./pages/mercadolivre/MLMetas";
-
+import TVModeVendas from "./pages/TVModeVendas";
 
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
@@ -61,6 +61,9 @@ const App = () => (
                     <Route path="/login" element={<Login />} />
                     <Route path="/tv" element={<ProtectedRoute />}>
                       <Route index element={<TVMode />} />
+                    </Route>
+                    <Route path="/api/tv" element={<ProtectedRoute />}>
+                      <Route index element={<TVModeVendas />} />
                     </Route>
                     <Route element={<ProtectedRoute />}>
                       {/* Hub - Environment selector */}
