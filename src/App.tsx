@@ -27,6 +27,7 @@ import UserManagement from "./pages/UserManagement";
 import Profile from "./pages/Profile";
 import TVMode from "./pages/TVMode";
 import Integrations from "./pages/Integrations";
+import AdminMonitoring from "./pages/AdminMonitoring";
 import React, { Suspense } from "react";
 
 const MercadoLivre = React.lazy(() => import("./pages/MercadoLivre"));
@@ -173,6 +174,10 @@ const App = () => (
                         <Route
                           path="/api/usuarios"
                           element={<RoleRoute><UserManagement /></RoleRoute>}
+                        />
+                        <Route
+                          path="/api/monitoramento"
+                          element={<RoleRoute><ErrorBoundary fallbackTitle="Erro no Monitoramento"><AdminMonitoring /></ErrorBoundary></RoleRoute>}
                         />
                       </Route>
                     </Route>
