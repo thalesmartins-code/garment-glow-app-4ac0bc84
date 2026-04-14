@@ -137,7 +137,7 @@ const TVModeVendas = () => {
         prodMap[r.item_id].qty_sold += Number(r.qty_sold);
         prodMap[r.item_id].revenue += Number(r.revenue);
       });
-      setTopProducts(Object.values(prodMap).sort((a, b) => b.revenue - a.revenue).slice(0, 8));
+      setTopProducts(Object.values(prodMap).sort((a, b) => b.revenue - a.revenue).slice(0, 10));
     } catch (err) {
       console.error("TVModeVendas: fetch error", err);
     } finally {
@@ -173,7 +173,7 @@ const TVModeVendas = () => {
           </div>
           <div className="flex items-center gap-2">
             {SELLERS.map((s, idx) => (
-              <div key={s.id} className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-all duration-500 ${idx === sellerIdx ? "bg-primary text-primary-foreground scale-105" : "bg-muted text-muted-foreground scale-95 opacity-50"}`}>
+              <div key={s.id} className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-500 ${idx === sellerIdx ? "bg-primary text-primary-foreground scale-105" : "bg-muted text-muted-foreground scale-95 opacity-50"}`}>
                 {s.initials}
               </div>
             ))}
@@ -181,8 +181,8 @@ const TVModeVendas = () => {
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <div className="text-2xl font-bold">{formatTime(clock)}</div>
-            <div className="text-xs text-muted-foreground capitalize">{formatDate(clock)}</div>
+            <div className="text-3xl font-bold">{formatTime(clock)}</div>
+            <div className="text-sm text-muted-foreground capitalize">{formatDate(clock)}</div>
           </div>
           <Popover>
             <PopoverTrigger asChild>
@@ -222,9 +222,9 @@ const TVModeVendas = () => {
       </div>
 
       {/* Main content: Chart + Top Products */}
-      <div className="flex-1 grid grid-cols-3 gap-4 min-h-0">
+      <div className="flex-1 grid grid-cols-5 gap-4 min-h-0">
         {/* Hourly chart */}
-        <Card className="col-span-2 flex flex-col">
+        <Card className="col-span-3 flex flex-col">
           <div className="px-4 pt-4 pb-3 flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">Receita por Hora — Todas as Lojas</span>
             <div className="flex items-center gap-4">
@@ -265,11 +265,11 @@ const TVModeVendas = () => {
         </Card>
 
         {/* Top products */}
-        <Card className="col-span-1 flex flex-col">
-          <div className="px-4 pt-4 pb-3">
-            <span className="text-sm font-medium text-foreground">Top 8 Anúncios</span>
+        <Card className="col-span-2 flex flex-col">
+          <div className="px-5 pt-4 pb-3">
+            <span className="text-sm font-medium text-foreground">Top 10 Anúncios</span>
           </div>
-          <CardContent className="flex-1 flex flex-col px-4 pb-2 pt-0 overflow-hidden">
+          <CardContent className="flex-1 flex flex-col px-5 pb-2 pt-0 overflow-hidden">
             <div className="flex-1 overflow-auto">
               {topProducts.length === 0 && !loading && (
                 <p className="text-sm text-muted-foreground text-center py-8">Sem dados para hoje</p>
@@ -278,34 +278,34 @@ const TVModeVendas = () => {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-muted-foreground border-b border-border/50 text-xs">
-                      <th className="text-left py-2 w-7">#</th>
-                      <th className="text-left py-2 pl-1" colSpan={2}>Produto</th>
-                      <th className="text-right py-2">Vendidos</th>
-                      <th className="text-right py-2">Receita</th>
-                      <th className="text-right py-2">% Part.</th>
+                      <th className="text-left py-2.5 w-8">#</th>
+                      <th className="text-left py-2.5 pl-1" colSpan={2}>Produto</th>
+                      <th className="text-right py-2.5">Vendidos</th>
+                      <th className="text-right py-2.5">Receita</th>
+                      <th className="text-right py-2.5">% Part.</th>
                     </tr>
                   </thead>
                   <tbody>
                     {topProducts.map((p, idx) => {
                       const share = totalProductRevenue > 0 ? (p.revenue / totalProductRevenue) * 100 : 0;
                       return (
-                        <tr key={p.item_id} className="border-b border-border/30 h-12">
-                          <td className="text-center font-bold text-muted-foreground text-base">
+                        <tr key={p.item_id} className="border-b border-border/30">
+                          <td className="text-center font-bold text-muted-foreground text-lg py-2">
                             {idx < 3 ? MEDALS[idx] : idx + 1}
                           </td>
-                          <td className="py-1.5 pl-1 w-10">
+                          <td className="py-2 pl-1 w-12">
                             {p.thumbnail ? (
-                              <img src={p.thumbnail} alt="" className="w-9 h-9 rounded-lg object-cover" />
+                              <img src={p.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover" />
                             ) : (
-                              <div className="w-9 h-9 rounded-lg bg-muted" />
+                              <div className="w-10 h-10 rounded-lg bg-muted" />
                             )}
                           </td>
-                          <td className="py-1.5 pl-2 max-w-[140px]">
-                            <p className="truncate text-foreground text-[13px]">{p.title}</p>
+                          <td className="py-2 pl-2">
+                            <p className="truncate text-foreground text-sm">{p.title}</p>
                           </td>
-                          <td className="text-right font-semibold text-foreground text-[13px]">{p.qty_sold} un</td>
-                          <td className="text-right font-semibold text-foreground text-[13px]">{formatCurrency(p.revenue)}</td>
-                          <td className="text-right text-muted-foreground text-[13px]">{share.toFixed(1)}%</td>
+                          <td className="text-right font-semibold text-foreground text-sm">{p.qty_sold} un</td>
+                          <td className="text-right font-semibold text-foreground text-sm">{formatCurrency(p.revenue)}</td>
+                          <td className="text-right text-muted-foreground text-sm">{share.toFixed(1)}%</td>
                         </tr>
                       );
                     })}
