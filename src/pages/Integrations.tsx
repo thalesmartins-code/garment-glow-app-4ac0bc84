@@ -257,7 +257,7 @@ export default function Integrations() {
         const { data: existing } = await supabase
           .from("seller_stores" as any)
           .select("id")
-          .eq("seller_id", selectedSeller.id)
+          .eq("seller_id", sellerId)
           .eq("marketplace", "ml")
           .eq("external_id", mlUserId)
           .maybeSingle();
@@ -266,7 +266,7 @@ export default function Integrations() {
           const { data: unclaimed } = await supabase
             .from("seller_stores" as any)
             .select("id")
-            .eq("seller_id", selectedSeller.id)
+            .eq("seller_id", sellerId)
             .eq("marketplace", "ml")
             .is("external_id", null)
             .limit(1)
@@ -279,7 +279,7 @@ export default function Integrations() {
               .eq("id", (unclaimed as any).id);
           } else {
             await supabase.from("seller_stores" as any).insert({
-              seller_id: selectedSeller.id,
+              seller_id: sellerId,
               marketplace: "ml",
               external_id: mlUserId,
               store_name: `Loja ML ${mlUserId}`,
