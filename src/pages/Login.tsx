@@ -188,6 +188,9 @@ export default function Login() {
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         />
 
+        {/* Floating feature cards (xl+ only) */}
+        <FloatingFeatureCards />
+
         <motion.div
           className="relative z-10 flex flex-col justify-between w-full p-12 xl:p-16"
           variants={containerVariants}
