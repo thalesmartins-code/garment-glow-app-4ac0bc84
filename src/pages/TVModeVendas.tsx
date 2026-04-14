@@ -58,7 +58,7 @@ const TVModeVendas = () => {
   const [loading, setLoading] = useState(false);
 
   const seller = SELLERS[sellerIdx];
-  const sellerColor = STORE_STROKE_COLORS[sellerIdx % STORE_STROKE_COLORS.length];
+  
 
   useEffect(() => { localStorage.setItem(STORAGE_KEY_CYCLE, String(cycleSec)); }, [cycleSec]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_REFRESH, String(refreshMin)); }, [refreshMin]);
