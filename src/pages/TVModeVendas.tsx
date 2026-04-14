@@ -268,11 +268,19 @@ const TVModeVendas = () => {
                 <p className="text-sm text-muted-foreground text-center py-8">Sem dados para hoje</p>
               )}
               {topProducts.length > 0 && (
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-fixed">
+                  <colgroup>
+                    <col className="w-10" />
+                    <col className="w-12" />
+                    <col />
+                    <col className="w-20" />
+                    <col className="w-24" />
+                    <col className="w-16" />
+                  </colgroup>
                   <thead>
                     <tr className="text-muted-foreground border-b border-border/50 text-xs">
-                      <th className="text-left py-2.5 w-8">#</th>
-                      <th className="text-left py-2.5 pl-1" colSpan={2}>Produto</th>
+                      <th className="text-left py-2.5">#</th>
+                      <th className="text-left py-2.5" colSpan={2}>Produto</th>
                       <th className="text-right py-2.5">Vendidos</th>
                       <th className="text-right py-2.5">Receita</th>
                       <th className="text-right py-2.5">% Part.</th>
@@ -286,19 +294,19 @@ const TVModeVendas = () => {
                           <td className="text-center font-bold text-muted-foreground text-lg py-2">
                             {idx < 3 ? MEDALS[idx] : idx + 1}
                           </td>
-                          <td className="py-2 pl-1 w-12">
+                          <td className="py-2 pl-1">
                             {p.thumbnail ? (
-                              <img src={p.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                              <img src={p.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
                             ) : (
-                              <div className="w-10 h-10 rounded-lg bg-muted" />
+                              <div className="w-10 h-10 rounded-lg bg-muted shrink-0" />
                             )}
                           </td>
-                          <td className="py-2 pl-2">
+                          <td className="py-2 pl-2 overflow-hidden">
                             <p className="truncate text-foreground text-sm">{p.title}</p>
                           </td>
-                          <td className="text-right font-semibold text-foreground text-sm">{p.qty_sold} un</td>
-                          <td className="text-right font-semibold text-foreground text-sm">{formatCurrency(p.revenue)}</td>
-                          <td className="text-right text-muted-foreground text-sm">{share.toFixed(1)}%</td>
+                          <td className="text-right font-semibold text-foreground text-sm whitespace-nowrap">{p.qty_sold} un</td>
+                          <td className="text-right font-semibold text-foreground text-sm whitespace-nowrap">{formatCurrency(p.revenue)}</td>
+                          <td className="text-right text-muted-foreground text-sm whitespace-nowrap">{share.toFixed(1)}%</td>
                         </tr>
                       );
                     })}
