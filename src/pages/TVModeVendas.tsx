@@ -52,7 +52,8 @@ const TVModeVendas = () => {
   const [cycleProgress, setCycleProgress] = useState(0);
 
   const [kpi, setKpi] = useState({ revenue: 0, orders: 0, ticket: 0, visits: 0, conversion: 0 });
-  const [hourly, setHourly] = useState<HourlyRow[]>([]);
+  const [overlaidData, setOverlaidData] = useState<Record<string, any>[]>([]);
+  const [storeNames, setStoreNames] = useState<StoreInfo[]>([]);
   const [topProducts, setTopProducts] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(false);
 
