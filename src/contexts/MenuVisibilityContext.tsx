@@ -67,7 +67,6 @@ export function MenuVisibilityProvider({ children }: { children: ReactNode }) {
   const isMenuItemVisible = useCallback(
     (path: string, role: AppRole | null): boolean => {
       if (!role) return true; // no role = show everything (auth guards handle access)
-      if (role === "admin") return true; // admins always see all items
       return !config[role].includes(path);
     },
     [config]
