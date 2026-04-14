@@ -18,7 +18,6 @@ interface ImportSummary {
 }
 
 interface Props {
-  accessToken: string | null;
   onSyncComplete: () => void;
   mlUserId?: string;
   sellerId?: string | null;
@@ -144,8 +143,7 @@ export function HistoricalSyncModal({ accessToken, mlUserId, onSyncComplete, sel
 
         const { data, error } = await supabase.functions.invoke("mercado-libre-integration", {
           body: {
-            access_token: accessToken,
-            user_id: user.id,
+            ml_user_id: mlUserId,
             date_from: chunk.date_from,
             date_to: chunk.date_to,
             seller_id: sellerId || null,
