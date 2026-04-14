@@ -112,7 +112,7 @@ const TVModeVendas = () => {
       supabase.from("ml_hourly_cache").select("hour, total_revenue, ml_user_id").eq("seller_id", sellerId).eq("date", yesterday).order("hour", { ascending: true }).limit(200),
       supabase.from("ml_product_daily_cache").select("item_id, title, thumbnail, qty_sold, revenue").eq("seller_id", sellerId).eq("date", today).order("revenue", { ascending: false }).limit(50),
       supabase.from("ml_user_cache").select("ml_user_id, custom_name, nickname").eq("seller_id", sellerId),
-      supabase.from("ml_tokens").select("ml_user_id").eq("seller_id", sellerId).not("access_token", "is", null),
+      supabase.from("ml_tokens").select("ml_user_id").eq("seller_id", sellerId).not("ml_user_id", "is", null),
     ]);
 
     const daily = dailyRes.data || [];
