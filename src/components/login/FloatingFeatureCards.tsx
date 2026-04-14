@@ -2,19 +2,19 @@ import { motion } from "framer-motion";
 import { Package, Award, Trophy, Star, Target } from "lucide-react";
 
 const floatAnimation = (duration: number, delay: number) => ({
-  y: [0, -8, 0],
+  y: [0, -6, 0],
   transition: { duration, repeat: Infinity, ease: "easeInOut" as const, delay },
 });
 
 const cardBase =
-  "rounded-xl bg-white/[0.07] backdrop-blur-md border border-white/10 shadow-lg";
+  "rounded-xl bg-white/[0.04] backdrop-blur-sm border border-white/[0.06] shadow-sm opacity-60";
 
 const fadeScale = {
-  hidden: { opacity: 0, scale: 0.85 },
+  hidden: { opacity: 0, scale: 0.92 },
   visible: (i: number) => ({
-    opacity: 1,
+    opacity: 0.6,
     scale: 1,
-    transition: { duration: 0.5, delay: 1.2 + i * 0.15 },
+    transition: { duration: 0.8, delay: 1.2 + i * 0.2, ease: "easeOut" as const },
   }),
 };
 
