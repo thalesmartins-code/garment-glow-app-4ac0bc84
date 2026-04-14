@@ -267,11 +267,11 @@ const TVModeVendas = () => {
 
       {/* KPI Row */}
       <div className="grid grid-cols-5 gap-4">
-        <KPICard title="Receita Total" value={formatCurrency(kpi.revenue)} rawValue={kpi.revenue} valuePrefix="R$ " icon={<DollarSign className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
-        <KPICard title="Pedidos" value={String(kpi.orders)} rawValue={kpi.orders} icon={<ShoppingCart className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" size="tv" refreshing={loading} />
-        <KPICard title="Ticket Médio" value={formatCurrency(kpi.ticket)} rawValue={kpi.ticket} valuePrefix="R$ " icon={<Receipt className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" size="tv" refreshing={loading} />
-        <KPICard title="Visitas" value={new Intl.NumberFormat("pt-BR").format(kpi.visits)} rawValue={kpi.visits} icon={<Eye className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
-        <KPICard title="Conversão" value={`${kpi.conversion.toFixed(1)}%`} rawValue={kpi.conversion} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-6 h-6" />} variant="minimal" iconClassName="bg-success/10 text-success" size="tv" refreshing={loading} />
+        <KPICard title="Receita Total" value={formatCurrency(current.kpi.revenue)} rawValue={current.kpi.revenue} valuePrefix="R$ " icon={<DollarSign className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
+        <KPICard title="Pedidos" value={String(current.kpi.orders)} rawValue={current.kpi.orders} icon={<ShoppingCart className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(270,70%,50%)]/10 text-[hsl(270,70%,50%)]" size="tv" refreshing={loading} />
+        <KPICard title="Ticket Médio" value={formatCurrency(current.kpi.ticket)} rawValue={current.kpi.ticket} valuePrefix="R$ " icon={<Receipt className="w-6 h-6" />} variant="minimal" iconClassName="bg-[hsl(25,95%,53%)]/10 text-[hsl(25,95%,53%)]" size="tv" refreshing={loading} />
+        <KPICard title="Visitas" value={new Intl.NumberFormat("pt-BR").format(kpi.visits)} rawValue={current.kpi.visits} icon={<Eye className="w-6 h-6" />} variant="minimal" iconClassName="bg-accent/10 text-accent" size="tv" refreshing={loading} />
+        <KPICard title="Conversão" value={`${current.kpi.conversion.toFixed(1)}%`} rawValue={current.kpi.conversion} valueSuffix="%" valueDecimals={1} icon={<Percent className="w-6 h-6" />} variant="minimal" iconClassName="bg-success/10 text-success" size="tv" refreshing={loading} />
       </div>
 
       {/* Main content: Charts left + Top Products right */}
@@ -283,7 +283,7 @@ const TVModeVendas = () => {
             <div className="px-4 pt-4 pb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Receita por Hora — Todas as Lojas</span>
               <div className="flex items-center gap-4">
-                {storeNames.map((st, idx) => (
+                {current.storeNames.map((st, idx) => (
                   <div key={st.ml_user_id} className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STORE_STROKE_COLORS[idx % STORE_STROKE_COLORS.length] }} />
                     <span className="text-sm text-muted-foreground">{st.name}</span>
@@ -293,7 +293,7 @@ const TVModeVendas = () => {
             </div>
             <CardContent className="flex-1 px-4 pb-2 pt-0 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={overlaidData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                <ComposedChart data={current.overlaidData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                   <XAxis dataKey="label" tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" interval={2} />
                   <YAxis tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
@@ -301,7 +301,7 @@ const TVModeVendas = () => {
                     formatter={(value: number, name: string) => [formatCurrency(Number(value)), name]}
                     contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
                   />
-                  {storeNames.map((st, idx) => (
+                  {current.storeNames.map((st, idx) => (
                     <Line
                       key={st.ml_user_id}
                       type="monotone"
@@ -323,11 +323,11 @@ const TVModeVendas = () => {
               <span className="text-sm font-medium text-foreground">Receita por Marca (Top 10)</span>
             </div>
             <CardContent className="flex-1 px-4 pb-3 pt-0 min-h-0">
-              {brandData.length === 0 && !loading ? (
+              {current.brandData.length === 0 && !loading ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Sem dados</p>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart layout="vertical" data={brandData} margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>
+                  <BarChart layout="vertical" data={current.brandData} margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>
                     <XAxis type="number" hide />
                     <YAxis dataKey="name" type="category" width={120} fontSize={15} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                     <RechartsTooltip
@@ -335,7 +335,7 @@ const TVModeVendas = () => {
                       contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", color: "hsl(var(--card-foreground))", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: 12 }}
                     />
                     <Bar dataKey="revenue" radius={[0, 6, 6, 0]}>
-                      {brandData.map((_, idx) => (
+                      {current.brandData.map((_, idx) => (
                         <Cell key={idx} fill={BRAND_COLORS[idx % BRAND_COLORS.length]} />
                       ))}
                     </Bar>
@@ -353,10 +353,10 @@ const TVModeVendas = () => {
           </div>
           <CardContent className="flex-1 flex flex-col px-5 pb-2 pt-0 overflow-hidden">
             <div className="flex-1 overflow-auto">
-              {topProducts.length === 0 && !loading && (
+              {current.topProducts.length === 0 && !loading && (
                 <p className="text-sm text-muted-foreground text-center py-8">Sem dados para hoje</p>
               )}
-              {topProducts.length > 0 && (
+              {current.topProducts.length > 0 && (
                 <table className="w-full table-fixed">
                   <colgroup>
                     <col className="w-10" />
@@ -378,7 +378,7 @@ const TVModeVendas = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {topProducts.map((p, idx) => {
+                    {current.topProducts.map((p, idx) => {
                       const share = totalProductRevenue > 0 ? (p.revenue / totalProductRevenue) * 100 : 0;
                       return (
                         <tr key={p.item_id} className="border-b border-border/30">
