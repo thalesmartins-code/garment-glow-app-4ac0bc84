@@ -3,7 +3,7 @@ import { Package, Award, Trophy, Star, Target } from "lucide-react";
 
 const floatAnimation = (duration: number, delay: number) => ({
   y: [0, -5, 0],
-  transition: { duration, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95], delay, repeatDelay: 0 },
+  transition: { duration, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] as [number, number, number, number], delay },
 });
 
 const cardBase =
