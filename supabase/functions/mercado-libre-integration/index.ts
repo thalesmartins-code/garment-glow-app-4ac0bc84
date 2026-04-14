@@ -323,23 +323,19 @@ serve(async (req) => {
       const date = brt?.date ?? null;
       const hour = brt?.hour ?? null;
       const status = order.status;
-      const isCancelled = status === "cancelled";
 
       // Count units sold: sum of item quantities (e.g., 3 units of same product = 3)
       const orderUnits = (order.order_items || []).reduce(
         (sum: number, item: any) => sum + (Number(item.quantity) || 1), 0
       ) || 1;
 
-      // Exclude cancelled orders from totals (matches ML panel behavior)
-      if (!isCancelled) {
-        totalRevenue += amount;
-        totalUnitsSold += orderUnits;
-      }
+      totalRevenue += amount;
+      totalUnitsSold += orderUnits;
 
       if (status === "paid" || status === "confirmed") {
         approvedRevenue += amount;
       }
-      if (isCancelled) {
+      if (status === "cancelled") {
         cancelledOrders++;
       }
       if (order.shipping?.status === "shipped" || order.shipping?.status === "delivered") {
@@ -360,16 +356,13 @@ serve(async (req) => {
             unique_buyers: 0,
           };
         }
-        // total_revenue excludes cancelled (matches ML panel)
-        if (!isCancelled) {
-          dailySales[date].total += amount;
-          dailySales[date].qty += 1;
-          dailySales[date].units_sold += orderUnits;
-        }
+        dailySales[date].total += amount;
+        dailySales[date].qty += 1;
+        dailySales[date].units_sold += orderUnits;
         if (status === "paid" || status === "confirmed") {
           dailySales[date].approved += amount;
         }
-        if (isCancelled) {
+        if (status === "cancelled") {
           dailySales[date].cancelled += 1;
         }
         if (order.shipping?.status === "shipped" || order.shipping?.status === "delivered") {
@@ -382,19 +375,16 @@ serve(async (req) => {
         if (!hourlySales[hourlyKey]) {
           hourlySales[hourlyKey] = { date, hour, total: 0, approved: 0, qty: 0, units_sold: 0 };
         }
-        // Exclude cancelled from hourly totals too
-        if (!isCancelled) {
-          hourlySales[hourlyKey].total += amount;
-          hourlySales[hourlyKey].qty += 1;
-          hourlySales[hourlyKey].units_sold += orderUnits;
-        }
+        hourlySales[hourlyKey].total += amount;
+        hourlySales[hourlyKey].qty += 1;
+        hourlySales[hourlyKey].units_sold += orderUnits;
         if (status === "paid" || status === "confirmed") {
           hourlySales[hourlyKey].approved += amount;
         }
       }
 
-      // Aggregate product-level sales per day (exclude cancelled)
-      if (!isCancelled && date && date >= brtDateFrom && date <= brtDateTo && order.order_items) {
+      // Aggregate product-level sales per day
+      if (date && date >= brtDateFrom && date <= brtDateTo && order.order_items) {
         for (const item of order.order_items) {
           const itemId = item.item?.id;
           if (!itemId) continue;
