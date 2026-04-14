@@ -260,7 +260,7 @@ const TVModeVendas = () => {
         {/* Left column: stacked charts */}
         <div className="col-span-3 flex flex-col gap-4 min-h-0">
           {/* Hourly chart — smaller */}
-          <Card className="flex-none flex flex-col">
+          <Card className="flex flex-col" style={{ flex: "0 0 40%" }}>
             <div className="px-4 pt-4 pb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Receita por Hora — Todas as Lojas</span>
               <div className="flex items-center gap-4">
@@ -272,8 +272,8 @@ const TVModeVendas = () => {
                 ))}
               </div>
             </div>
-            <CardContent className="px-4 pb-2 pt-0">
-              <ResponsiveContainer width="100%" height={180}>
+            <CardContent className="flex-1 px-4 pb-2 pt-0 min-h-0">
+              <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={overlaidData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                   <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" interval={2} />
@@ -299,7 +299,7 @@ const TVModeVendas = () => {
           </Card>
 
           {/* Brand chart — taller */}
-          <Card className="flex-1 flex flex-col min-h-0">
+          <Card className="flex flex-col min-h-0" style={{ flex: "0 0 calc(60% - 1rem)" }}>
             <div className="px-4 pt-4 pb-3">
               <span className="text-sm font-medium text-foreground">Receita por Marca (Top 10)</span>
             </div>
