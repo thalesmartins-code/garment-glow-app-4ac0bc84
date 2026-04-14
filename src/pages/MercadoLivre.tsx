@@ -193,8 +193,9 @@ export default function MercadoLivre() {
   }, [filters, setCustomRange, setPeriod, syncFromAPI]);
 
   // ── Filtered data ──
-  const daily = allDaily.filter((d) => d.date >= currentFrom && d.date <= currentTo);
-  const previousDaily = allDaily.filter((d) => d.date >= prevFrom && d.date <= prevTo);
+  const isNonZero = (d: DailyBreakdown) => d.total > 0 || d.qty > 0 || d.units_sold > 0;
+  const daily = allDaily.filter((d) => d.date >= currentFrom && d.date <= currentTo && isNonZero(d));
+  const previousDaily = allDaily.filter((d) => d.date >= prevFrom && d.date <= prevTo && isNonZero(d));
   const hourly = allHourly.filter((d) => {
     if (isHourlyAvailable) {
       if (filters.singleDayRange) return d.date === filters.singleDayRange;
