@@ -12,7 +12,7 @@ const LAST_ML_SYNC_KEY = "ml_last_synced_at";
 const LAST_ML_SYNC_TS_KEY = "ml_last_synced_ts";
 export const AUTO_SYNC_STALE_MS = 10 * 60 * 1000;
 const SYNC_CHUNK_DAYS = 1;
-const SYNC_COOLDOWN_MS = 30_000; // 30s min between syncs
+const SYNC_COOLDOWN_MS = 30_000;
 
 interface UseMLSyncOptions {
   customRange: DateRange;
@@ -23,15 +23,12 @@ interface UseMLSyncOptions {
 export function useMLSync(opts: UseMLSyncOptions) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { stores, selectedStore, resolvedMLUserIds } = useMLStore();
+  const { stores, resolvedMLUserIds } = useMLStore();
   const invalidate = useInvalidateMLQueries();
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const { stores, selectedStore, resolvedMLUserIds } = useMLStore();
 
   const [syncing, setSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(
-    () => localStorage.getItem(LAST_ML_SYNC_KEY)
+    () => localStorage.getItem(LAST_ML_SYNC_KEY),
   );
   const [syncProgress, setSyncProgress] = useState<{ current: number; total: number } | null>(null);
   const autoSyncTriggeredRef = useRef(false);
@@ -69,17 +66,12 @@ export function useMLSync(opts: UseMLSyncOptions) {
 
         const fromDateStr = format(rangeStart, "yyyy-MM-dd");
         const toDateStr = format(rangeEnd, "yyyy-MM-dd");
-        const { fetchFrom, fetchTo, currentFrom, currentTo } = getComparisonRanges(
-          effectiveFrom ? { from: effectiveFrom, to: effectiveTo ?? effectiveFrom } : null,
-          effectiveFrom ? 0 : (syncOpts?.periodDays ?? opts.period),
-        );
 
         const totalDays = Math.round((rangeEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
         const totalChunks = Math.ceil(totalDays / SYNC_CHUNK_DAYS) * resolvedMLUserIds.length;
         let chunksDone = 0;
         setSyncProgress({ current: 0, total: totalChunks });
 
-        let lastUserInfo: MLUser | null = null;
         for (const mlUserId of resolvedMLUserIds) {
           let cursor = new Date(rangeStart);
           while (cursor <= rangeEnd) {
@@ -102,7 +94,6 @@ export function useMLSync(opts: UseMLSyncOptions) {
 
             if (syncError) throw syncError;
             if (!syncData?.success) throw new Error(syncData?.error || "Sync failed");
-            if (syncData.user) lastUserInfo = syncData.user;
             if (syncData.seller_reputation) opts.setSellerReputation(syncData.seller_reputation);
 
             chunksDone++;
@@ -111,20 +102,8 @@ export function useMLSync(opts: UseMLSyncOptions) {
           }
         }
 
-        let hourlyDateOverride: string | null;
-        if (effectiveFrom) {
-          hourlyDateOverride = fromDateStr === toDateStr ? fromDateStr : null;
-        } else {
-          const days = syncOpts?.periodDays ?? (opts.period > 0 ? opts.period : 1);
-          hourlyDateOverride = days <= 1 ? todayUTC() : null;
-        }
-
-        await Promise.all([
-          opts.loadFromCache(fetchFrom, fetchTo),
-          opts.loadHourlyCache(hourlyDateOverride),
-          opts.loadProductCache(currentFrom, currentTo),
-        ]);
-        if (lastUserInfo) opts.setMlUser(lastUserInfo);
+        // Invalidate React Query caches so they refetch fresh data
+        await invalidate.invalidateAll();
 
         const nowIso = new Date().toISOString();
         setLastSyncedAt(nowIso);
@@ -156,7 +135,7 @@ export function useMLSync(opts: UseMLSyncOptions) {
         setSyncProgress(null);
       }
     },
-    [user, toast, opts, stores, resolvedMLUserIds],
+    [user, toast, opts, stores, resolvedMLUserIds, invalidate],
   );
 
   const shouldAutoSync = useCallback(() => {
