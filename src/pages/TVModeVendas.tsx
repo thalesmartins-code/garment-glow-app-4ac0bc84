@@ -292,7 +292,7 @@ const TVModeVendas = () => {
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={hourlyChartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis dataKey="label" tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" interval={2} />
+              <XAxis dataKey="label" tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" interval={1} />
               <YAxis tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
               <RechartsTooltip
                 formatter={(value: number, name: string) => [formatCurrency(Number(value)), name === "hoje" ? "Hoje" : "Ontem"]}
@@ -332,10 +332,10 @@ const TVModeVendas = () => {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="flex flex-col gap-1.5 shrink-0 max-w-[45%]">
+                <div className="flex flex-col gap-2 shrink-0 max-w-[50%]">
                   {current.brandData.slice(0, 8).map((b, idx) => (
-                    <div key={b.name} className="flex items-center gap-2 text-sm">
-                      <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: BRAND_COLORS[idx % BRAND_COLORS.length] }} />
+                    <div key={b.name} className="flex items-center gap-2 text-base">
+                      <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: BRAND_COLORS[idx % BRAND_COLORS.length] }} />
                       <span className="truncate text-muted-foreground">{b.name}</span>
                       <span className="ml-auto font-semibold text-foreground whitespace-nowrap">
                         {totalBrandRevenue > 0 ? `${((b.revenue / totalBrandRevenue) * 100).toFixed(0)}%` : "—"}
