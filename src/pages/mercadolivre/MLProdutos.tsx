@@ -1071,7 +1071,11 @@ export default function MLProdutos() {
                           formatter={(value: number) => [currencyFmt(value), "Receita"]}
                           contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
                         />
-                        <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
+                          {brandBarData.map((_, idx) => (
+                            <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                          ))}
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
