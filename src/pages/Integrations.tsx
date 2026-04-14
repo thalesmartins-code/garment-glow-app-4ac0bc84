@@ -751,12 +751,30 @@ export default function Integrations() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      // Reset custom_name in ml_user_cache
       await supabase
         .from("ml_user_cache")
         .update({ custom_name: null } as any)
         .eq("user_id", user.id)
         .eq("ml_user_id", Number(mlUserId));
+      // Also reset store_name in seller_stores to the nickname
+      if (selectedSeller?.id) {
+        const { data: cacheRow } = await supabase
+          .from("ml_user_cache")
+          .select("nickname")
+          .eq("user_id", user.id)
+          .eq("ml_user_id", Number(mlUserId))
+          .maybeSingle();
+        const fallbackName = (cacheRow as any)?.nickname || `Loja ML ${mlUserId}`;
+        await supabase
+          .from("seller_stores" as any)
+          .update({ store_name: fallbackName })
+          .eq("seller_id", selectedSeller.id)
+          .eq("marketplace", "ml")
+          .eq("external_id", mlUserId);
+      }
       await refreshMLStores();
+      await refreshSellers();
       toast({ title: "Nome resetado!", description: "O nome voltou ao padrão do Mercado Livre." });
     } catch (e) {
       toast({ title: "Erro", description: "Não foi possível resetar o nome.", variant: "destructive" });
