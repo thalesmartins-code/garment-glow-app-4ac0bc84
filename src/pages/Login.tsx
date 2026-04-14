@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +13,62 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AreaChart, Loader2 } from "lucide-react";
+import {
+  AreaChart,
+  Loader2,
+  TrendingUp,
+  ShoppingCart,
+  DollarSign,
+  Users,
+  BarChart3,
+  ArrowUpRight,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+/* ── Mini KPI card for the showcase panel ── */
+function MiniKPI({
+  icon: Icon,
+  label,
+  value,
+  delta,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  delta: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl bg-white/[0.07] backdrop-blur-sm border border-white/10 px-4 py-3">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10">
+        <Icon className="h-4 w-4 text-white/80" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] text-white/50 truncate">{label}</p>
+        <p className="text-sm font-semibold text-white tracking-tight">{value}</p>
+      </div>
+      <span className="text-[11px] font-medium text-emerald-400 flex items-center gap-0.5">
+        <ArrowUpRight className="h-3 w-3" />
+        {delta}
+      </span>
+    </div>
+  );
+}
+
+/* ── Fake mini bar chart ── */
+function MiniChart() {
+  const bars = [35, 55, 42, 68, 52, 75, 60, 82, 70, 90, 65, 78];
+  return (
+    <div className="flex items-end gap-1 h-16">
+      {bars.map((h, i) => (
+        <div
+          key={i}
+          className="flex-1 rounded-t-sm bg-gradient-to-t from-white/20 to-white/40 transition-all"
+          style={{ height: `${h}%` }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function Login() {
   const { user, loading, signIn } = useAuth();
@@ -24,7 +77,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Forgot password state
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -77,19 +129,90 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center space-y-3">
-          <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-primary shadow-glow">
-            <AreaChart className="w-6 h-6 text-white" />
+    <div className="min-h-screen flex">
+      {/* ─── Left: Showcase panel ─── */}
+      <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden" style={{ background: "var(--gradient-dark)" }}>
+        {/* Subtle grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+
+        {/* Glow orbs */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-[hsl(217,70%,45%)]/20 blur-[120px]" />
+        <div className="absolute -bottom-48 -right-48 w-[500px] h-[500px] rounded-full bg-[hsl(217,80%,55%)]/10 blur-[150px]" />
+
+        <div className="relative z-10 flex flex-col justify-between w-full p-12 xl:p-16">
+          {/* Top: Brand */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10">
+              <AreaChart className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-lg font-semibold text-white tracking-tight">Analytics Pro</span>
           </div>
-          <CardTitle className="text-xl">Analytics Pro</CardTitle>
-          <CardDescription>Entre com suas credenciais para acessar o sistema.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* Middle: Dashboard preview */}
+          <div className="space-y-5 max-w-md">
+            <div>
+              <h2 className="text-3xl xl:text-4xl font-bold text-white leading-tight tracking-tight">
+                Seus dados de vendas em um só lugar
+              </h2>
+              <p className="mt-3 text-base text-white/50 leading-relaxed">
+                Acompanhe faturamento, metas, estoque e reputação de todos os seus marketplaces em tempo real.
+              </p>
+            </div>
+
+            {/* Mini KPIs */}
+            <div className="grid grid-cols-2 gap-3">
+              <MiniKPI icon={DollarSign} label="Faturamento" value="R$ 124.850" delta="+12,4%" />
+              <MiniKPI icon={ShoppingCart} label="Pedidos" value="1.283" delta="+8,2%" />
+              <MiniKPI icon={Users} label="Compradores" value="947" delta="+5,7%" />
+              <MiniKPI icon={TrendingUp} label="Conversão" value="3,8%" delta="+0,4%" />
+            </div>
+
+            {/* Mini chart */}
+            <div className="rounded-xl bg-white/[0.05] backdrop-blur-sm border border-white/10 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-white/40" />
+                  <span className="text-xs text-white/40 font-medium">Receita por hora — Hoje</span>
+                </div>
+                <span className="text-xs text-emerald-400 font-medium">+18,3%</span>
+              </div>
+              <MiniChart />
+            </div>
+          </div>
+
+          {/* Bottom: Social proof */}
+          <p className="text-xs text-white/30">
+            Integração com Mercado Livre, Shopee, Magalu e mais.
+          </p>
+        </div>
+      </div>
+
+      {/* ─── Right: Login form ─── */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-background">
+        <div className="w-full max-w-sm space-y-8">
+          {/* Mobile-only brand */}
+          <div className="lg:hidden flex items-center justify-center gap-3 mb-2">
+            <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-primary shadow-glow">
+              <AreaChart className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-semibold text-foreground tracking-tight">Analytics Pro</span>
+          </div>
+
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Bem-vindo de volta</h1>
+            <p className="text-sm text-muted-foreground">Entre com suas credenciais para acessar o sistema.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -97,10 +220,20 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-accent underline-offset-4 hover:underline transition-colors"
+                  onClick={() => setForgotOpen(true)}
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -108,26 +241,22 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="h-11"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button type="submit" className="w-full h-11 text-sm font-medium" disabled={submitting}>
               {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               Entrar
             </Button>
           </form>
-          <div className="mt-3 text-center">
-            <button
-              type="button"
-              className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline transition-colors"
-              onClick={() => setForgotOpen(true)}
-            >
-              Esqueci minha senha
-            </button>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Forgot Password Dialog */}
+          <p className="text-center text-xs text-muted-foreground/60">
+            Acesso restrito a usuários autorizados.
+          </p>
+        </div>
+      </div>
+
+      {/* ─── Forgot Password Dialog ─── */}
       <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
