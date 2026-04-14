@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import FloatingFeatureCards from "@/components/login/FloatingFeatureCards";
 
 /* ── Mini KPI card for the showcase panel ── */
 function MiniKPI({
@@ -186,6 +187,9 @@ export default function Login() {
           animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         />
+
+        {/* Floating feature cards (xl+ only) */}
+        <FloatingFeatureCards />
 
         <motion.div
           className="relative z-10 flex flex-col justify-between w-full p-12 xl:p-16"
