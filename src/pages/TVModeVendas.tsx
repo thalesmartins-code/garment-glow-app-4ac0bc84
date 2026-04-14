@@ -41,6 +41,7 @@ interface BrandRow { name: string; revenue: number; }
 
 interface SellerData {
   kpi: { revenue: number; orders: number; ticket: number; visits: number; conversion: number };
+  kpiYesterday: { revenue: number; orders: number; ticket: number; visits: number; conversion: number };
   hourlyToday: Record<number, number>;
   hourlyYesterday: Record<number, number>;
   storeNames: StoreInfo[];
