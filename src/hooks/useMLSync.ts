@@ -12,6 +12,7 @@ const LAST_ML_SYNC_KEY = "ml_last_synced_at";
 const LAST_ML_SYNC_TS_KEY = "ml_last_synced_ts";
 export const AUTO_SYNC_STALE_MS = 10 * 60 * 1000;
 const SYNC_CHUNK_DAYS = 1;
+const SYNC_COOLDOWN_MS = 30_000; // 30s min between syncs
 
 interface UseMLSyncOptions {
   customRange: DateRange;
@@ -34,10 +35,17 @@ export function useMLSync(opts: UseMLSyncOptions) {
   );
   const [syncProgress, setSyncProgress] = useState<{ current: number; total: number } | null>(null);
   const autoSyncTriggeredRef = useRef(false);
+  const lastSyncStartRef = useRef(0);
 
   const syncFromAPI = useCallback(
     async (syncOpts?: { from?: Date; to?: Date; periodDays?: number }) => {
       if (!user) return;
+      const now = Date.now();
+      if (now - lastSyncStartRef.current < SYNC_COOLDOWN_MS) {
+        toast({ title: "Aguarde", description: "Sincronização em andamento, tente novamente em alguns segundos." });
+        return;
+      }
+      lastSyncStartRef.current = now;
       setSyncing(true);
 
       try {
