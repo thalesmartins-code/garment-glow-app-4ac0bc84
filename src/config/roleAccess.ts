@@ -28,6 +28,7 @@ export const roleAccess: Record<string, AppRole[]> = {
   "/api/integracoes": ["admin", "editor"],
   "/api/perfil": ["admin", "editor", "viewer"],
   "/api/usuarios": ["admin"],
+  "/api/monitoramento": ["admin"],
 };
 
 export function canAccess(role: AppRole | null, path: string): boolean {

@@ -166,7 +166,7 @@ export function HistoricalSyncModal({ mlUserId, onSyncComplete, sellerId }: Prop
 
         // Edge function already upserts cache tables.
         // Only record this sync in ml_sync_log.
-        await supabase.from("ml_sync_log" as any).upsert(
+        await (supabase.from("ml_sync_log") as any).upsert(
           {
             user_id: user.id,
             ml_user_id: resolvedMlUserId,

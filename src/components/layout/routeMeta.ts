@@ -30,6 +30,7 @@ export const routeTitles: Record<string, { title: string; subtitle: string }> = 
   "/api/metas": { title: "Metas", subtitle: "Defina metas mensais por loja e acompanhe no card de Vendas" },
   "/api/vendas-hora": { title: "Venda / Hora", subtitle: "Análise de vendas por hora do dia" },
   "/api/relatorios": { title: "Relatórios", subtitle: "Ferramentas de análise estratégica e comparativos" },
+  "/api/monitoramento": { title: "Monitoramento", subtitle: "Estatísticas de banco de dados e capacidade do sistema" },
 };
 
 export function getRouteMeta(pathname: string) {

@@ -62,7 +62,7 @@ export function HeaderScopeProvider({ children }: { children: ReactNode }) {
         .select("ml_user_id, seller_id")
         .eq("user_id", user.id)
         .eq("seller_id", sellerId)
-        .not("access_token", "is", null);
+        .not("ml_user_id", "is", null);
 
       setTokens(
         (data || [])
