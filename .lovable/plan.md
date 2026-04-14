@@ -1,46 +1,71 @@
 
 
-## Incrementar Login com Cards Flutuantes de Funcionalidades
+## Plano Revisado: Otimizacao, Seguranca e Escalabilidade
 
-### O que muda
+### Mudanca principal vs plano anterior
 
-Adicionar cards flutuantes animados no painel esquerdo da tela de login, posicionados de forma absoluta ao redor do conteudo principal. Cada card representa uma funcionalidade do sistema (estoque, ranking de marcas, ranking de produtos, reputacao, metas) com mini visualizacoes e animacao de flutuacao continua (float up/down).
+A Fase 3 (retencao de cache) foi reformulada: em vez de apagar dados antigos, o foco passa a ser **preservar todo o historico** e otimizar o acesso a ele via particionamento, indices e queries eficientes.
 
-### Cards flutuantes planejados
+---
 
-1. **Analise de Estoque** - Mini lista com barras de progresso coloridas (3 categorias)
-2. **Ranking de Marcas** - Top 3 marcas com medalhas (ouro, prata, bronze)
-3. **Ranking de Produtos** - Top 3 produtos com valores de venda
-4. **Reputacao** - Indicador circular com nota e cor verde
-5. **Metas** - Barra de progresso com percentual atingido
+### Fase 1 — Seguranca (Prioridade Alta)
 
-### Animacao
+1. **Remover access_token do frontend** — Edge Functions buscam token via `service_role` internamente
+2. **Corrigir RLS do audit_log** — substituir `WITH CHECK (true)` por funcao `SECURITY DEFINER`
+3. **Habilitar Leaked Password Protection** no dashboard Supabase
+4. **Validacao de entrada nas Edge Functions** com Zod
 
-Cada card tera:
-- Entrada com `fadeScale` staggered
-- Animacao infinita de flutuacao (`y: [0, -8, 0]`) com duracao e delay diferentes por card para efeito organico
-- Glassmorphism (bg-white/[0.07], backdrop-blur, border-white/10)
-- Posicionamento absoluto em diferentes cantos do painel, sem sobrepor o conteudo central
+### Fase 2 — Arquitetura e Organizacao de Codigo
 
-### Mudancas tecnicas
+5. **Desmembrar MercadoLivre.tsx (1672 linhas)** em hooks e sub-componentes (~8 modulos de 150-250 linhas)
+6. **Camada de servico** `src/services/mlCacheService.ts` para centralizar queries Supabase
+7. **React Query** para substituir `useState`+`useCallback` manuais — com `staleTime` e invalidacao automatica
 
-| Arquivo | Alteracao |
-|---|---|
-| `src/pages/Login.tsx` | Adicionar 5 componentes `FloatingCard` com posicionamento absoluto, animacao de float infinita, e mini visualizacoes de cada funcionalidade. Importar icones adicionais (Package, Award, Trophy, Star, Target). Reorganizar z-index para cards ficarem atras do conteudo principal. |
+### Fase 3 — Performance e Escalabilidade (Historico Preservado)
 
-### Layout dos cards flutuantes
+**Premissa revisada**: todo dado historico e valioso e deve ser mantido indefinidamente. O foco e garantir que o banco suporte crescimento continuo sem degradacao.
 
-```text
-  [Reputacao]                    [Metas]
-       ╲                          ╱
-        ╲    ┌──────────────┐    ╱
-         ╲   │  Conteudo    │   ╱
-              │  Principal   │
-  [Estoque]  │  (KPIs etc)  │  [Ranking Marcas]
-              └──────────────┘
-                     │
-              [Ranking Produtos]
-```
+8. **Indices compostos para queries de range**
+   - `ml_daily_cache(user_id, ml_user_id, date)`
+   - `ml_product_daily_cache(user_id, date)`
+   - `ml_hourly_cache(user_id, ml_user_id, date, hour)`
+   - Estes indices aceleram consultas por periodo sem precisar apagar dados
 
-Os cards serao menores que os KPIs existentes, com opacidade reduzida para nao competir visualmente, e aparecerao apenas em telas `xl:` para evitar sobreposicao.
+9. **Paginacao server-side para ml_product_daily_cache**
+   - Atualmente usa `limit 5000` hardcoded — vai falhar com crescimento
+   - Implementar cursor-based pagination ou agregacao no servidor (Edge Function que retorna dados ja agregados por periodo)
+
+10. **Agregacao de dados historicos antigos (opcional futuro)**
+    - Em vez de deletar, criar uma tabela `ml_product_monthly_summary` com dados agregados por mes
+    - Queries de periodos antigos (>6 meses) consultam a tabela resumida, queries recentes consultam o cache granular
+    - Dados granulares permanecem intactos para drill-down quando necessario
+
+11. **Monitoramento de crescimento**
+    - Dashboard SQL simples (view ou funcao) que retorna contagem de linhas e tamanho por tabela
+    - Alerta quando `ml_product_daily_cache` ultrapassar 100k rows — gatilho para avaliar particionamento por ano
+
+12. **Lazy loading e code splitting** em todas as sub-rotas ML
+
+### Fase 4 — Preparacao Comercial
+
+13. **Multi-tenancy** com `organization_id` para SaaS
+14. **Rate limiting** no frontend para chamadas de sync
+15. **Correcoes de erros nas Edge Functions** (offset > 1000, date format invalido)
+
+---
+
+### Detalhes Tecnicos
+
+**Arquivos afetados:**
+- `src/pages/MercadoLivre.tsx` — refatoracao principal
+- `supabase/functions/mercado-libre-integration/index.ts` — remover token do body
+- `supabase/functions/ml-inventory/index.ts` — fix offset e date
+- Nova migration: indices compostos
+- Novos: `src/hooks/useMLSync.ts`, `src/hooks/useMLDailyCache.ts`, `src/services/mlCacheService.ts`
+
+**Estrategia de historico:**
+- Dados granularios nunca sao apagados
+- Performance mantida via indices e agregacao opcional
+- Crescimento estimado: ~12k rows/mes em `ml_product_daily_cache` — com indices compostos, Postgres suporta milhoes de rows sem problema
+- Particionamento por ano so sera necessario se ultrapassar ~5M rows
 
