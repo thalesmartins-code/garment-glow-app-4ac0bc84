@@ -51,7 +51,7 @@ export function MLKPIGrid({ metrics, previousMetrics, loading, syncing, hasSyncP
         size="compact"
         loading={loading}
         refreshing={refreshing}
-        delta={metrics && previousMetrics ? calcDelta(metrics.units_sold, previousMetrics.units_sold) : undefined}
+        delta={metrics && previousMetrics ? calcDelta(metrics.total_orders, previousMetrics.total_orders) : undefined}
       />
       <KPICard
         title="Ticket Médio"
