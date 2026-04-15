@@ -163,10 +163,10 @@ const App = () => (
                         <Route
                           path="/api/metas"
                           element={<RoleRoute><ErrorBoundary fallbackTitle="Erro na página de Metas"><MLMetas /></ErrorBoundary></RoleRoute>}
-                        <Route
-                          path="/api/precos-custos"
-                          element={<RoleRoute><ErrorBoundary fallbackTitle="Erro na página de Preços e Custos"><MLPrecosCustos /></ErrorBoundary></RoleRoute>}
                         />
+                        <Route
+                           path="/api/precos-custos"
+                           element={<RoleRoute><ErrorBoundary fallbackTitle="Erro na página de Preços e Custos"><MLPrecosCustos /></ErrorBoundary></RoleRoute>}
                         />
                         <Route
                           path="/api/sellers"
