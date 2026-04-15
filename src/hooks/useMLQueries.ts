@@ -2,7 +2,7 @@
  * React Query wrappers for ML cache data.
  * Replaces manual useState/useCallback in useMLDataLoader.
  */
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMLStore } from "@/contexts/MLStoreContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,7 +40,8 @@ export function useMLDailyQuery(fetchFrom: string, fetchTo: string) {
       return rows.map(mapDailyRow);
     },
     enabled: !!userId && resolvedMLUserIds.length > 0 && !!fetchFrom,
-    staleTime: 2 * 60 * 1000, // 2 min
+    staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -63,6 +64,7 @@ export function useMLHourlyQuery(
     },
     enabled: !!userId && resolvedMLUserIds.length > 0,
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -96,7 +98,8 @@ export function useMLProductsQuery(dateFrom: string, dateTo: string) {
       return data.products as ProductSalesRow[];
     },
     enabled: !!userId && mlUserIds.length > 0 && !!dateFrom && !!dateTo,
-    staleTime: 3 * 60 * 1000, // 3 min
+    staleTime: 3 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -120,7 +123,8 @@ export function useMLUserQuery() {
       };
     },
     enabled: !!userId && resolvedMLUserIds.length > 0,
-    staleTime: 10 * 60 * 1000, // 10 min
+    staleTime: 10 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 }
 
