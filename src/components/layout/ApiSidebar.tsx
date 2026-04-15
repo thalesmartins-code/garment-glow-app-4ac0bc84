@@ -16,7 +16,6 @@ import {
   Star,
   TrendingUp,
   Users,
-  Activity,
 } from "lucide-react";
 import {
   EnvironmentSidebar, type SidebarNavSection } from "./EnvironmentSidebar";
@@ -66,7 +65,6 @@ const apiSections: SidebarNavSection[] = [
           { icon: Target,   label: "Metas",          path: "/api/metas"          },
           { icon: Users,    label: "Sellers",        path: "/api/sellers"        },
           { icon: Plug,     label: "Integrações",    path: "/api/integracoes"    },
-          { icon: Activity, label: "Monitoramento",  path: "/api/monitoramento"  },
         ],
       },
     ],
