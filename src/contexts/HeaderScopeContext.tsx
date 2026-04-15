@@ -50,8 +50,12 @@ export function HeaderScopeProvider({ children }: { children: ReactNode }) {
     }
   }, [sellerId]);
 
+  // Use user.id (primitive) instead of the user object so that Supabase auth
+  // token-refresh re-renders don't recreate this callback unnecessarily.
+  const userId = user?.id ?? null;
+
   const fetchTokens = useCallback(async () => {
-    if (!user || !sellerId) {
+    if (!userId || !sellerId) {
       setTokens([]);
       setLoading(false);
       hasLoadedOnce.current = true;
@@ -62,7 +66,7 @@ export function HeaderScopeProvider({ children }: { children: ReactNode }) {
       const { data } = await supabase
         .from("ml_tokens")
         .select("ml_user_id, seller_id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("seller_id", sellerId)
         .not("ml_user_id", "is", null);
 
@@ -75,13 +79,14 @@ export function HeaderScopeProvider({ children }: { children: ReactNode }) {
           }))
       );
     } catch (err) {
-      console.error("HeaderScope: failed to fetch tokens", err);
-      setTokens([]);
+      // Do NOT clear tokens on transient errors — keep showing last known data.
+      // Clearing tokens would zero out all ML data in the UI until next success.
+      console.error("HeaderScope: failed to fetch tokens (keeping previous state)", err);
     } finally {
       setLoading(false);
       hasLoadedOnce.current = true;
     }
-  }, [user, sellerId]);
+  }, [userId, sellerId]);
 
   useEffect(() => {
     fetchTokens();
@@ -104,7 +109,7 @@ export function HeaderScopeProvider({ children }: { children: ReactNode }) {
   }, [tokens, storeId, selectedSeller]);
 
   const hasMLConnection = tokens.length > 0;
-  const scopeKey = `${sellerId ?? "none"}:${storeId}:${resolvedMLUserIds.sort().join(",")}`;
+  const scopeKey = `${sellerId ?? "none"}:${storeId}:${[...resolvedMLUserIds].sort().join(",")}`;
 
   return (
     <HeaderScopeContext.Provider
