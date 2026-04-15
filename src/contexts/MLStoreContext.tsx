@@ -114,8 +114,12 @@ export function MLStoreProvider({ children }: { children: ReactNode }) {
     if (!user || !sellerId || tokens.length === 0) {
       setStores([]);
       setLoading(false);
+      hasLoadedOnce.current = true;
       return;
     }
+
+    // Only show loading skeleton on first load, not on refetches
+    if (!hasLoadedOnce.current) setLoading(true);
 
     try {
       const { data: userCaches } = await supabase
@@ -147,6 +151,7 @@ export function MLStoreProvider({ children }: { children: ReactNode }) {
       console.error("Failed to fetch ML stores:", err);
     } finally {
       setLoading(false);
+      hasLoadedOnce.current = true;
     }
   }, [user, sellerId, tokens]);
 
