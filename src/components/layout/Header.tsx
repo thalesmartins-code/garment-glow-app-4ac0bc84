@@ -1,4 +1,4 @@
-import { Bell, Check, ChevronDown, DatabaseZap, LogOut, Menu, Settings, Store, Upload, User } from "lucide-react";
+import { Activity, Bell, Check, ChevronDown, DatabaseZap, LogOut, Menu, Settings, Store, Upload, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -156,6 +156,12 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
               <DropdownMenuItem onClick={() => navigate(settingsPath)} className="rounded-lg px-2 py-2 text-sm hover:bg-muted focus:bg-muted">
                 <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
                 Gestão de Usuários
+              </DropdownMenuItem>
+            )}
+            {isApi && role === "admin" && (
+              <DropdownMenuItem onClick={() => navigate("/api/monitoramento")} className="rounded-lg px-2 py-2 text-sm hover:bg-muted focus:bg-muted">
+                <Activity className="mr-2 h-4 w-4 text-muted-foreground" />
+                Monitoramento
               </DropdownMenuItem>
             )}
             {isApi && (
