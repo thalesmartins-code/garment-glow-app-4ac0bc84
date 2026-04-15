@@ -16,7 +16,7 @@ import { useMLAds } from "@/hooks/useMLAds";
 import { computeAdsSummary } from "@/data/adsMockData";
 import { useMLReputation } from "@/hooks/useMLReputation";
 import { useMLFilters, getFilterDates, todayUTC, getComparisonRanges } from "@/hooks/useMLFilters";
-import { useMLDailyQuery, useMLHourlyQuery, useMLProductsQuery, useMLUserQuery, type DailyBreakdown, type HourlyBreakdown } from "@/hooks/useMLQueries";
+import { useMLDailyQuery, useMLHourlyQuery, useMLProductsQuery, useMLUserQuery, useMLMonthlyDailyQuery, type DailyBreakdown, type HourlyBreakdown } from "@/hooks/useMLQueries";
 import { useMLSync } from "@/hooks/useMLSync";
 import { MLKPIGrid } from "@/components/mercadolivre/MLKPIGrid";
 import { MLPeriodPicker } from "@/components/mercadolivre/MLPeriodPicker";
@@ -98,6 +98,8 @@ export default function MercadoLivre() {
   const { data: allHourly = [], isLoading: hourlyLoading } = useMLHourlyQuery(isHourlyAvailable, hourlyTargetDate);
   const { data: allProductSales = [], isLoading: productsLoading } = useMLProductsQuery(currentFrom, currentTo);
   const { data: mlUser = null } = useMLUserQuery();
+  // Monthly query is independent of the period filter — always fetches month-to-date.
+  const { data: allMonthlyDaily = [] } = useMLMonthlyDailyQuery();
 
   const [productStockMap, setProductStockMap] = useState<Record<string, number>>({});
   const [sellerReputation, setSellerReputation] = useState<any>(null);
@@ -341,11 +343,9 @@ export default function MercadoLivre() {
   }, [effectiveMetrics, adsSummary]);
 
   // ── Monthly metrics for GoalsCard ──
+  // Uses allMonthlyDaily — always month-to-date, independent of the period filter.
   const monthlyMetrics = useMemo(() => {
-    const now = new Date();
-    const monthFrom = format(new Date(now.getFullYear(), now.getMonth(), 1), "yyyy-MM-dd");
-    const monthTo = format(now, "yyyy-MM-dd");
-    const monthRows = allDaily.filter((d) => d.date >= monthFrom && d.date <= monthTo);
+    const monthRows = aggregateDailyRows(allMonthlyDaily);
     if (monthRows.length === 0) return null;
     const r = {
       total_revenue: monthRows.reduce((s, d) => s + d.total, 0),
@@ -359,7 +359,7 @@ export default function MercadoLivre() {
     if (r.total_orders > 0) r.avg_ticket = r.total_revenue / r.total_orders;
     if (r.unique_visits > 0) r.conversion_rate = (r.unique_buyers / r.unique_visits) * 100;
     return r;
-  }, [allDaily]);
+  }, [allMonthlyDaily]);
 
   // ── Per-store hourly data ──
   const perMarketplaceHourly = useMemo(() => {

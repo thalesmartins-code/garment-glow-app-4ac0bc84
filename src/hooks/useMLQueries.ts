@@ -3,6 +3,7 @@
  * Replaces manual useState/useCallback in useMLDataLoader.
  */
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMLStore } from "@/contexts/MLStoreContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -124,6 +125,31 @@ export function useMLUserQuery() {
     },
     enabled: !!userId && resolvedMLUserIds.length > 0,
     staleTime: 10 * 60 * 1000,
+    placeholderData: keepPreviousData,
+  });
+}
+
+// ── useMLMonthlyDailyQuery ──────────────────────────────────────────────────
+// Always fetches the full current month regardless of the period filter.
+// Used exclusively by GoalsCard so "Metas do Mês" always shows month-to-date.
+
+export function useMLMonthlyDailyQuery() {
+  const { user } = useAuth();
+  const { selectedStore, resolvedMLUserIds } = useMLStore();
+  const userId = user?.id ?? "";
+
+  const today = new Date();
+  const monthFrom = format(new Date(today.getFullYear(), today.getMonth(), 1), "yyyy-MM-dd");
+  const monthTo = format(today, "yyyy-MM-dd");
+
+  return useQuery({
+    queryKey: mlKeys.daily(userId, resolvedMLUserIds, monthFrom, monthTo, selectedStore),
+    queryFn: async () => {
+      const rows = await fetchDailyCache(userId, resolvedMLUserIds, monthFrom, monthTo, selectedStore);
+      return rows.map(mapDailyRow);
+    },
+    enabled: !!userId && resolvedMLUserIds.length > 0,
+    staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
 }
