@@ -1061,9 +1061,9 @@ export default function MLProdutos() {
                                 <TableCell className="text-center">
                                   {item.free_shipping ? (
                                     <Badge variant="outline" className="text-[10px] border-emerald-500 text-emerald-600 bg-emerald-50 px-[4px] py-px">
-                                      <Truck className="w-3 h-3 mr-0.5" /> Sim
+                                      <Truck className="w-3 h-3 mr-0.5" /> Grátis
                                     </Badge>
-                                  ) : <span className="text-xs text-muted-foreground">Não</span>}
+                                  ) : <span className="text-xs text-muted-foreground">Pago</span>}
                                 </TableCell>
                               </>
                             ) : columnView === "financeiro" ? (() => {
