@@ -50,6 +50,23 @@ async function mlGet(path: string, mlToken: string) {
 
 // ── type=items: lista leve de anúncios ativos (para o seletor de produto) ───
 
+async function fetchItemsBatched(itemIds: string[], attrs: string, mlToken: string) {
+  // ML API limita /items?ids= a 20 elementos. Buscamos em chunks paralelos.
+  const CHUNK = 20;
+  const chunks: string[][] = [];
+  for (let i = 0; i < itemIds.length; i += CHUNK) chunks.push(itemIds.slice(i, i + CHUNK));
+  const results = await Promise.all(
+    chunks.map((c) => mlGet(`/items?ids=${c.join(",")}&attributes=${attrs}`, mlToken)),
+  );
+  const items: any[] = [];
+  for (const r of results) {
+    if (Array.isArray(r)) {
+      r.filter((x: any) => x.code === 200 && x.body?.id).forEach((x: any) => items.push(x.body));
+    }
+  }
+  return items;
+}
+
 async function handleItemsList(mlUserId: string, mlToken: string) {
   const searchData = await mlGet(
     `/users/${mlUserId}/items/search?status=active&limit=50`,
@@ -58,41 +75,21 @@ async function handleItemsList(mlUserId: string, mlToken: string) {
   if (!searchData?.results?.length) return jsonResponse({ items: [], total: 0 });
 
   const itemIds: string[] = searchData.results.slice(0, 50);
-  const batchData = await mlGet(
-    `/items?ids=${itemIds.join(",")}&attributes=id,title,thumbnail,price,listing_type_id,category_id`,
-    mlToken,
+  const attrs = "id,title,thumbnail,price,listing_type_id,category_id";
+  const rawItems = await fetchItemsBatched(itemIds, attrs, mlToken);
+  if (!rawItems.length) return jsonResponse({ items: [], total: searchData.paging?.total ?? 0 });
+
+  // Busca preço efetivo via suggestions API — mesma fonte de "Seu Preço Atual" na Análise
+  const suggestionResults = await Promise.allSettled(
+    rawItems.map((item: any) =>
+      mlGet(`/suggestions/items/${item.id}/details`, mlToken),
+    ),
   );
-  if (!batchData) return jsonResponse({ items: [], total: searchData.paging?.total ?? 0 });
-
-  const rawItems = (Array.isArray(batchData) ? batchData : [])
-    .filter((r: any) => r.code === 200 && r.body?.id)
-    .map((r: any) => r.body);
-
-  // Busca preço efetivo:
-  //  1) /suggestions/items/{id}/details → mesma fonte de "Seu Preço Atual" na Análise
-  //  2) Fallback /items/{id}/sale_price?context=channel_marketplace → preço efetivo do canal
-  const [suggestionResults, salePriceResults] = await Promise.all([
-    Promise.allSettled(
-      rawItems.map((item: any) =>
-        mlGet(`/suggestions/items/${item.id}/details`, mlToken),
-      ),
-    ),
-    Promise.allSettled(
-      rawItems.map((item: any) =>
-        mlGet(`/items/${item.id}/sale_price?context=channel_marketplace`, mlToken),
-      ),
-    ),
-  ]);
 
   const items = rawItems.map((item: any, i: number) => {
     const detail = suggestionResults[i].status === "fulfilled" ? suggestionResults[i].value : null;
-    const salePriceData = salePriceResults[i].status === "fulfilled" ? salePriceResults[i].value : null;
     const priceStandard: number = item.price ?? 0;
-    // Prioridade: suggestions.current_price (idêntico à Análise) → sale_price → price
-    const priceSale: number =
-      detail?.current_price?.amount ??
-      salePriceData?.amount ??
-      priceStandard;
+    const priceSale: number = detail?.current_price?.amount ?? priceStandard;
     return {
       item_id: item.id,
       title: item.title,
@@ -122,15 +119,8 @@ async function handleItemPrices(mlUserId: string, mlToken: string) {
 
   const itemIds: string[] = searchData.results.slice(0, 50);
   const attrs = "id,title,thumbnail,price,original_price,listing_type_id,category_id,status";
-  const batchData = await mlGet(
-    `/items?ids=${itemIds.join(",")}&attributes=${attrs}`,
-    mlToken,
-  );
-  if (!batchData) return jsonResponse({ items: [], total: searchData.paging?.total ?? 0 });
-
-  const items = (Array.isArray(batchData) ? batchData : [])
-    .filter((r: any) => r.code === 200 && r.body?.id)
-    .map((r: any) => r.body);
+  const items = await fetchItemsBatched(itemIds, attrs, mlToken);
+  if (!items.length) return jsonResponse({ items: [], total: searchData.paging?.total ?? 0 });
 
   const [priceResults, salePriceResults] = await Promise.all([
     Promise.allSettled(
