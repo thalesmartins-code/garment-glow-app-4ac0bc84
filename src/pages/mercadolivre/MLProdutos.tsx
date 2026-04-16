@@ -478,7 +478,7 @@ export default function MLProdutos() {
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
   const [suggestion, setSuggestion] = useState<MLItemSuggestion | null>(null);
   const [noSuggestion, setNoSuggestion] = useState(false);
-  const { fetchItemSuggestion, items: precosItems } = useMLPrecosCustos();
+  const { fetchItemSuggestion, items: precosItems, refresh: precosRefresh } = useMLPrecosCustos();
 
   // Mapa item_id → price_sale (preço efetivo de canal) alimentado pelo hook
   const precosMap = useMemo(
@@ -831,7 +831,7 @@ export default function MLProdutos() {
               <TabsTrigger value="catalogo" className="text-xs px-3 h-7">Catálogo</TabsTrigger>
               <TabsTrigger value="relatorios" className="text-xs px-3 h-7">Relatórios</TabsTrigger>
             </TabsList>
-            <Button onClick={refresh} disabled={loading} size="sm" variant="outline" className="h-8">
+            <Button onClick={() => { refresh(); precosRefresh(); }} disabled={loading} size="sm" variant="outline" className="h-8">
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
               Atualizar
             </Button>
