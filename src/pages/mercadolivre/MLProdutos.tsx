@@ -962,8 +962,18 @@ export default function MLProdutos() {
                         </>
                       ) : (
                         <>
-                          <TableHead className="text-xs text-left w-36">Tipo de Anúncio</TableHead>
-                          <TableHead className="text-xs text-right w-28">Comissão/unid.</TableHead>
+                          <TableHead className="text-xs text-center w-32">Promoção</TableHead>
+                          <TableHead className="text-xs text-center w-24">Frete</TableHead>
+                          <TableHead className="text-xs text-right w-28">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help border-b border-dashed border-muted-foreground/40">Repasse Est.</span>
+                              </TooltipTrigger>
+                              <TooltipContent className="text-xs max-w-[200px]">
+                                Estimativa do valor recebido após dedução da comissão ML. Não inclui taxa fixa nem frete.
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableHead>
                           <TableHead className="text-xs text-center w-28">Análise</TableHead>
                         </>
                       )}
@@ -1076,13 +1086,37 @@ export default function MLProdutos() {
                               );
                             })() : (() => {
                               const commRate = getCommissionRate(item.listing_type_id);
-                              const commPerUnit = Math.round(item.price * commRate * 100) / 100;
+                              const repasse = Math.round(item.price * (1 - commRate) * 100) / 100;
+                              const hasPromo = item.deal_ids.length > 0;
                               return (
                                 <>
-                                  <TableCell className="text-left">
-                                    {listingBadge(item.listing_type_id, commRate)}
+                                  <TableCell className="text-center">
+                                    {hasPromo ? (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <span className="inline-flex items-center gap-0.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 text-[10px] font-medium text-orange-600 cursor-default leading-none">
+                                            <Tag className="w-2.5 h-2.5" />
+                                            {item.deal_ids.length > 1 ? `${item.deal_ids.length} promoções` : "Em promoção"}
+                                          </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="text-xs">
+                                          Participando de {item.deal_ids.length} promoção{item.deal_ids.length > 1 ? "ões" : ""} ativa{item.deal_ids.length > 1 ? "s" : ""} no ML
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    ) : (
+                                      <span className="text-xs text-muted-foreground">—</span>
+                                    )}
                                   </TableCell>
-                                  <TableCell className="text-right text-xs text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
+                                  <TableCell className="text-center">
+                                    {item.free_shipping ? (
+                                      <Badge variant="outline" className="text-[10px] border-emerald-500 text-emerald-600 bg-emerald-50 px-[4px] py-px">
+                                        <Truck className="w-3 h-3 mr-0.5" /> Grátis
+                                      </Badge>
+                                    ) : (
+                                      <span className="text-xs text-muted-foreground">Pago</span>
+                                    )}
+                                  </TableCell>
+                                  <TableCell className="text-right text-xs font-semibold text-emerald-700 font-mono">{currencyFmt(repasse)}</TableCell>
                                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                                     <Button
                                       size="sm"
@@ -1125,9 +1159,9 @@ export default function MLProdutos() {
                                           </>
                                         ) : (
                                           <>
-                                            <TableHead className="text-xs h-8 font-medium text-left">Tipo de Anúncio</TableHead>
-                                            <TableHead className="text-xs h-8 font-medium text-right">Comissão/unid.</TableHead>
-                                            <TableHead className="text-xs h-8 font-medium text-center" colSpan={1}>—</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-center" colSpan={2}>—</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-right">Repasse Est.</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-center">—</TableHead>
                                           </>
                                         )}
                                       </TableRow>
@@ -1171,13 +1205,13 @@ export default function MLProdutos() {
                                               );
                                             })() : (() => {
                                               const commRate = getCommissionRate(item.listing_type_id);
-                                              const commPerUnit = Math.round(v.price * commRate * 100) / 100;
+                                              const vRepasse = Math.round(v.price * (1 - commRate) * 100) / 100;
                                               return (
                                                 <>
-                                                  <TableCell className="py-2 text-left">
-                                                    {listingBadge(item.listing_type_id, commRate)}
+                                                  <TableCell className="py-2 text-center" colSpan={2}>
+                                                    <span className="text-xs text-muted-foreground">—</span>
                                                   </TableCell>
-                                                  <TableCell className="py-2 text-xs text-right text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
+                                                  <TableCell className="py-2 text-xs text-right font-semibold text-emerald-700 font-mono">{currencyFmt(vRepasse)}</TableCell>
                                                   <TableCell className="py-2" />
                                                 </>
                                               );
