@@ -30,21 +30,24 @@ export interface MLListingCost {
   currency_id: string;
 }
 
-export interface MLPriceReference {
+/** Detalhe de sugestão competitiva para um item específico */
+export interface MLItemSuggestion {
   item_id: string;
-  title: string;
-  thumbnail: string;
-  listing_type_id: string;
   status: string;
   currency_id: string;
   current_price: number;
   suggested_price: number | null;
   lowest_price: number | null;
+  internal_price: number | null;
   percent_difference: number;
   applicable_suggestion: boolean;
   selling_fees: number;
   shipping_fees: number;
-  graph: Array<{ price: { amount: number }; info: { title: string; sold_quantity: number } }>;
+  graph: Array<{
+    price: { amount: number };
+    info: { title: string; sold_quantity: number };
+  }>;
+  compared_values: number;
   last_updated: string | null;
 }
 
@@ -53,7 +56,6 @@ export interface MLPriceReference {
 interface PrecosCache {
   items: MLItemPrice[];
   itemsTotal: number;
-  references: MLPriceReference[];
   fetchedAt: number;
 }
 
@@ -63,15 +65,17 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export interface UseMLPrecosCustosResult {
+  /** Lista de anúncios ativos — usada para o seletor de produto em Referências */
   items: MLItemPrice[];
   itemsTotal: number;
-  references: MLPriceReference[];
   loading: boolean;
   isRealData: boolean;
   connected: boolean;
   refresh: () => Promise<void>;
   refreshing: boolean;
-  /** Fetch listing costs on-demand (used by Calculadora) */
+  /** Busca sugestão competitiva de um item específico */
+  fetchItemSuggestion: (itemId: string) => Promise<{ suggestion: MLItemSuggestion | null; no_suggestion: boolean }>;
+  /** Busca comissões com parâmetros dinâmicos (para a Calculadora) */
   fetchCosts: (params: {
     price: number;
     categoryId?: string;
@@ -86,7 +90,6 @@ export function useMLPrecosCustos(): UseMLPrecosCustosResult {
 
   const [items, setItems] = useState<MLItemPrice[]>([]);
   const [itemsTotal, setItemsTotal] = useState(0);
-  const [references, setReferences] = useState<MLPriceReference[]>([]);
   const [isRealData, setIsRealData] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -140,34 +143,26 @@ export function useMLPrecosCustos(): UseMLPrecosCustosResult {
       if (cacheValid && !force) {
         setItems(cached.items);
         setItemsTotal(cached.itemsTotal);
-        setReferences(cached.references);
         setIsRealData(true);
         return;
       }
 
       setLoading(true);
       try {
-        const [pricesData, refsData] = await Promise.all([
-          callEdgeFn("prices"),
-          callEdgeFn("references"),
-        ]);
-
+        const pricesData = await callEdgeFn("prices");
         const newItems: MLItemPrice[] = pricesData?.items ?? [];
         const newTotal: number = pricesData?.total ?? 0;
-        const newRefs: MLPriceReference[] = refsData?.references ?? [];
 
-        if (newItems.length > 0 || newRefs.length > 0) {
+        if (newItems.length > 0) {
           setItems(newItems);
           setItemsTotal(newTotal);
-          setReferences(newRefs);
           setIsRealData(true);
           cache.set(cacheKey, {
             items: newItems,
             itemsTotal: newTotal,
-            references: newRefs,
             fetchedAt: Date.now(),
           });
-          console.log(`ml-precos-custos: loaded ${newItems.length} items, ${newRefs.length} refs`);
+          console.log(`ml-precos-custos: loaded ${newItems.length} items`);
         }
       } catch (err) {
         console.warn("ml-precos-custos: fetch error", err);
@@ -176,6 +171,19 @@ export function useMLPrecosCustos(): UseMLPrecosCustosResult {
       }
     },
     [connected, user, storeId, cacheKey, callEdgeFn],
+  );
+
+  /** Busca sugestão competitiva de preço para um item específico */
+  const fetchItemSuggestion = useCallback(
+    async (itemId: string): Promise<{ suggestion: MLItemSuggestion | null; no_suggestion: boolean }> => {
+      const data = await callEdgeFn("references", { item_id: itemId });
+      if (!data) return { suggestion: null, no_suggestion: true };
+      return {
+        suggestion: data.reference ?? null,
+        no_suggestion: data.no_suggestion ?? !data.reference,
+      };
+    },
+    [callEdgeFn],
   );
 
   /** Busca comissões com parâmetros dinâmicos (para a Calculadora) */
@@ -206,7 +214,6 @@ export function useMLPrecosCustos(): UseMLPrecosCustosResult {
   useEffect(() => {
     setItems([]);
     setItemsTotal(0);
-    setReferences([]);
     setIsRealData(false);
   }, [scopeKey]);
 
@@ -224,12 +231,12 @@ export function useMLPrecosCustos(): UseMLPrecosCustosResult {
   return {
     items,
     itemsTotal,
-    references,
     loading: storeLoading || loading,
     isRealData,
     connected,
     refresh,
     refreshing,
+    fetchItemSuggestion,
     fetchCosts,
   };
 }

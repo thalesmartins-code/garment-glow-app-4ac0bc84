@@ -1,8 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
-  DollarSign, Tag, Calculator, BarChart3, Plug, RefreshCw,
-  Info, ChevronDown, ChevronUp, CheckCircle2, TrendingDown,
-  TrendingUp, Filter,
+  Calculator, BarChart3, Plug, RefreshCw, Info, ChevronDown, ChevronUp,
+  CheckCircle2, TrendingDown, TrendingUp, Search, X, AlertCircle,
+  Tag, Lightbulb,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -20,12 +20,13 @@ import {
   useMLPrecosCustos,
   type MLItemPrice,
   type MLListingCost,
-  type MLPriceReference,
+  type MLItemSuggestion,
 } from "@/hooks/useMLPrecosCustos";
 import type { UseMLPrecosCustosResult } from "@/hooks/useMLPrecosCustos";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip as RechartsTooltip, ResponsiveContainer, Cell, Legend,
+  Tooltip as RechartsTooltip, ResponsiveContainer, Cell,
+  ReferenceLine, Legend,
 } from "recharts";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -34,6 +35,46 @@ const currFmt = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
 const pctFmt = (v: number) => `${v.toFixed(1)}%`;
+
+// ── Status config ─────────────────────────────────────────────────────────────
+
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; badgeClass: string; color: string; icon: JSX.Element; advice: (s: MLItemSuggestion) => string }
+> = {
+  with_benchmark_highest: {
+    label: "Muito Acima do Mercado",
+    badgeClass: "bg-red-500/15 text-red-700 border-red-500/30",
+    color: "#ef4444",
+    icon: <TrendingUp className="w-4 h-4 text-red-600" />,
+    advice: (s) =>
+      `Seu preço está ${Math.abs(s.percent_difference).toFixed(0)}% acima dos concorrentes. Reduzir para ${s.suggested_price ? currFmt(s.suggested_price) : "o preço sugerido"} pode aumentar significativamente a visibilidade e as chances de venda.`,
+  },
+  with_benchmark_high: {
+    label: "Acima do Mercado",
+    badgeClass: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+    color: "#f59e0b",
+    icon: <TrendingUp className="w-4 h-4 text-amber-600" />,
+    advice: (s) =>
+      `Seu preço está ${Math.abs(s.percent_difference).toFixed(0)}% acima da média. Uma pequena redução${s.suggested_price ? ` para ${currFmt(s.suggested_price)}` : ""} pode melhorar o posicionamento nos resultados de busca.`,
+  },
+  no_benchmark_ok: {
+    label: "Preço Competitivo",
+    badgeClass: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+    color: "#22c55e",
+    icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
+    advice: () =>
+      "Seu preço está alinhado com o mercado. Mantenha a estratégia atual e monitore os concorrentes periodicamente.",
+  },
+  no_benchmark_lowest: {
+    label: "Abaixo do Mercado",
+    badgeClass: "bg-blue-500/15 text-blue-700 border-blue-500/30",
+    color: "#3b82f6",
+    icon: <TrendingDown className="w-4 h-4 text-blue-600" />,
+    advice: (s) =>
+      `Seu preço está abaixo da média dos concorrentes. Você pode aumentar a margem${s.suggested_price && s.suggested_price > s.current_price ? ` para até ${currFmt(s.suggested_price)}` : ""} sem perder competitividade.`,
+  },
+};
 
 // ── Not Connected ─────────────────────────────────────────────────────────────
 
@@ -52,455 +93,523 @@ function NotConnected() {
   );
 }
 
-// ── Real data badge ───────────────────────────────────────────────────────────
+// ── Product Picker ────────────────────────────────────────────────────────────
 
-function RealDataBadge({ isRealData }: { isRealData: boolean }) {
-  if (!isRealData) return null;
-  return (
-    <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-500/30 gap-1 text-xs">
-      <CheckCircle2 className="w-3 h-3" /> Dados reais
-    </Badge>
-  );
-}
-
-// ── Listing type badge ────────────────────────────────────────────────────────
-
-function ListingTypeBadge({ type }: { type: string }) {
-  if (type === "gold_pro")
-    return <Badge className="bg-yellow-500/15 text-yellow-700 border-yellow-500/30">Premium</Badge>;
-  if (type === "gold_special")
-    return <Badge className="bg-blue-500/15 text-blue-700 border-blue-500/30">Clássica</Badge>;
-  return <Badge variant="outline">Gratuita</Badge>;
-}
-
-// ── Tab: Preços de Produtos ───────────────────────────────────────────────────
-
-function PrecosProdutos({
+function ProductPicker({
   items,
+  selected,
+  onSelect,
   loading,
-  isRealData,
 }: {
   items: MLItemPrice[];
+  selected: MLItemPrice | null;
+  onSelect: (item: MLItemPrice | null) => void;
   loading: boolean;
-  isRealData: boolean;
 }) {
   const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const filtered = items.filter(
-    (item) =>
-      item.title.toLowerCase().includes(search.toLowerCase()) ||
-      item.item_id.toLowerCase().includes(search.toLowerCase()),
-  );
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Input
-            placeholder="Buscar por título ou ID..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <RealDataBadge isRealData={isRealData} />
-      </div>
+  const displayValue = selected && !open ? selected.title : search;
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">Preços dos Anúncios Ativos</CardTitle>
-          <CardDescription className="text-xs">
-            Preços standard e promocionais dos seus produtos — dados diretos da API do Mercado Livre.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Item</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Preço Standard</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Preço Promo</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Preço de Venda</th>
-                  <th className="text-center px-4 py-2.5 text-xs font-medium text-muted-foreground">Tipo</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Atualizado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading
-                  ? Array.from({ length: 5 }).map((_, i) => (
-                      <tr key={i} className="border-b">
-                        <td className="px-4 py-3"><Skeleton className="h-4 w-48" /></td>
-                        <td className="px-4 py-3"><Skeleton className="h-4 w-20 ml-auto" /></td>
-                        <td className="px-4 py-3"><Skeleton className="h-4 w-20 ml-auto" /></td>
-                        <td className="px-4 py-3"><Skeleton className="h-4 w-20 ml-auto" /></td>
-                        <td className="px-4 py-3"><Skeleton className="h-5 w-16 mx-auto" /></td>
-                        <td className="px-4 py-3"><Skeleton className="h-4 w-24 ml-auto" /></td>
-                      </tr>
-                    ))
-                  : filtered.length === 0
-                  ? (
-                      <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground text-sm">
-                          {items.length === 0 ? "Nenhum anúncio ativo encontrado." : "Nenhum resultado para a busca."}
-                        </td>
-                      </tr>
-                    )
-                  : filtered.map((item) => (
-                      <tr key={item.item_id} className="border-b hover:bg-muted/20 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2.5">
-                            {item.thumbnail && (
-                              <img
-                                src={item.thumbnail}
-                                alt=""
-                                className="w-8 h-8 object-contain rounded shrink-0 bg-muted"
-                              />
-                            )}
-                            <div>
-                              <p className="font-medium text-foreground leading-tight line-clamp-1">
-                                {item.title}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-0.5">{item.item_id}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium tabular-nums">
-                          {currFmt(item.price_standard)}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums">
-                          {item.price_promo != null ? (
-                            <span className="text-emerald-600 font-medium">
-                              {currFmt(item.price_promo)}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums font-semibold">
-                          {currFmt(item.price_sale)}
-                          {item.has_promotion && (
-                            <Badge className="ml-1.5 bg-emerald-500/15 text-emerald-700 border-emerald-500/30 text-[10px] px-1 py-0">
-                              Promo
-                            </Badge>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <ListingTypeBadge type={item.listing_type_id} />
-                        </td>
-                        <td className="px-4 py-3 text-right text-xs text-muted-foreground">
-                          {item.last_updated
-                            ? new Date(item.last_updated).toLocaleDateString("pt-BR")
-                            : "—"}
-                        </td>
-                      </tr>
-                    ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// ── Status config (shared) ────────────────────────────────────────────────────
-
-const STATUS_CONFIG: Record<string, { label: string; className: string; order: number }> = {
-  with_benchmark_highest: {
-    label: "Muito Acima",
-    className: "bg-red-500/15 text-red-700 border-red-500/30",
-    order: 0,
-  },
-  with_benchmark_high: {
-    label: "Acima",
-    className: "bg-amber-500/15 text-amber-700 border-amber-500/30",
-    order: 1,
-  },
-  no_benchmark_ok: {
-    label: "Competitivo",
-    className: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
-    order: 2,
-  },
-  no_benchmark_lowest: {
-    label: "Abaixo",
-    className: "bg-blue-500/15 text-blue-700 border-blue-500/30",
-    order: 3,
-  },
-};
-
-// ── Tab: Referências de Preços ────────────────────────────────────────────────
-
-function ReferenciasPreccos({
-  references,
-  loading,
-  isRealData,
-}: {
-  references: MLPriceReference[];
-  loading: boolean;
-  isRealData: boolean;
-}) {
-  const [filter, setFilter] = useState("all");
-
-  const getStatusConfig = (status: string) =>
-    STATUS_CONFIG[status] ?? { label: status, className: "bg-muted text-muted-foreground", order: 99 };
-
-  // Ordena: piores primeiro (Muito Acima → Acima → Competitivo → Abaixo)
-  const sorted = [...references].sort(
-    (a, b) => (getStatusConfig(a.status).order) - (getStatusConfig(b.status).order),
-  );
-
-  const filtered = filter === "all" ? sorted : sorted.filter((r) => r.status === filter);
-
-  const counts = Object.fromEntries(
-    Object.keys(STATUS_CONFIG).map((k) => [k, references.filter((r) => r.status === k).length]),
-  );
-
-  const diffColor = (ref: MLPriceReference) => {
-    if (ref.status === "with_benchmark_highest" || ref.status === "with_benchmark_high")
-      return "text-destructive";
-    if (ref.status === "no_benchmark_lowest") return "text-blue-600";
-    return "text-emerald-600";
-  };
-
-  // Chart: preço atual vs sugerido vs menor concorrente
-  const chartData = sorted.slice(0, 8).map((r) => ({
-    name: r.title.length > 14 ? r.title.substring(0, 14) + "…" : r.title,
-    atual: r.current_price,
-    sugerido: r.suggested_price ?? 0,
-    menor: r.lowest_price ?? 0,
-  }));
-
-  const hasChart = sorted.some((r) => r.suggested_price != null);
+  const filtered = items
+    .filter(
+      (item) =>
+        item.title.toLowerCase().includes(search.toLowerCase()) ||
+        item.item_id.toLowerCase().includes(search.toLowerCase()),
+    )
+    .slice(0, 8);
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <RealDataBadge isRealData={isRealData} />
-        {isRealData && (
-          <p className="text-xs text-muted-foreground">
-            Recomendações de preço competitivo geradas pela API do Mercado Livre.
-          </p>
+    <div ref={containerRef} className="relative w-full max-w-xl">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+        <Input
+          className="pl-9 pr-9"
+          placeholder={
+            loading ? "Carregando produtos..." : "Busque um produto pelo título ou ID..."
+          }
+          disabled={loading || items.length === 0}
+          value={displayValue}
+          onFocus={() => {
+            setSearch("");
+            setOpen(true);
+          }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setOpen(true);
+          }}
+        />
+        {selected && (
+          <button
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => {
+              onSelect(null);
+              setSearch("");
+              setOpen(false);
+            }}
+          >
+            <X className="w-4 h-4" />
+          </button>
         )}
       </div>
 
-      {/* Info banner */}
-      <Card className="border-blue-500/20 bg-blue-500/5">
-        <CardContent className="pt-3 pb-3 px-4">
-          <div className="flex items-start gap-2">
-            <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-600" />
-            <span className="text-xs text-blue-700">
-              Recomendações baseadas em produtos similares, histórico de vendas e demanda —
-              preços competitivos aumentam a visibilidade nos resultados de busca.
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Summary KPIs */}
-      {!loading && references.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
-            const count = counts[key] ?? 0;
-            return (
-              <Card
-                key={key}
-                className={`cursor-pointer transition-all ${
-                  filter === key ? "ring-2 ring-primary" : "hover:bg-muted/30"
-                }`}
-                onClick={() => setFilter(filter === key ? "all" : key)}
-              >
-                <CardContent className="pt-3 pb-3 px-4">
-                  <p className="text-2xl font-bold">{count}</p>
-                  <Badge className={`text-[10px] mt-1 ${cfg.className}`}>{cfg.label}</Badge>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Filter pills */}
-      {!loading && references.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-          <Button
-            variant={filter === "all" ? "default" : "outline"}
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => setFilter("all")}
-          >
-            Todos ({references.length})
-          </Button>
-          {Object.entries(STATUS_CONFIG).map(([key, cfg]) =>
-            counts[key] > 0 ? (
-              <Button
-                key={key}
-                variant={filter === key ? "default" : "outline"}
-                size="sm"
-                className="h-7 text-xs"
-                onClick={() => setFilter(filter === key ? "all" : key)}
-              >
-                {cfg.label} ({counts[key]})
-              </Button>
-            ) : null,
+      {open && filtered.length > 0 && (
+        <div className="absolute z-50 mt-1 w-full bg-background border rounded-lg shadow-lg max-h-64 overflow-y-auto">
+          {filtered.map((item) => (
+            <button
+              key={item.item_id}
+              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 text-left transition-colors"
+              onClick={() => {
+                onSelect(item);
+                setSearch("");
+                setOpen(false);
+              }}
+            >
+              {item.thumbnail ? (
+                <img
+                  src={item.thumbnail}
+                  alt=""
+                  className="w-9 h-9 object-contain rounded bg-muted shrink-0"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded bg-muted shrink-0" />
+              )}
+              <div className="min-w-0">
+                <p className="text-sm font-medium line-clamp-1">{item.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {item.item_id} · {currFmt(item.price_standard)}
+                </p>
+              </div>
+            </button>
+          ))}
+          {items.length > 8 && (
+            <p className="px-3 py-2 text-xs text-muted-foreground text-center border-t">
+              {items.length - 8} produtos adicionais — refine a busca
+            </p>
           )}
         </div>
       )}
 
-      {/* Comparison chart */}
-      {hasChart && !loading && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Preço Atual vs Sugerido</CardTitle>
-            <CardDescription className="text-xs">
-              Comparativo dos primeiros {Math.min(sorted.length, 8)} produtos (pior posicionamento primeiro)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={chartData} barGap={2} barCategoryGap="25%">
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${v}`} />
-                <RechartsTooltip
-                  formatter={(v: number, name: string) => [
-                    currFmt(v),
-                    name === "atual" ? "Preço Atual" : name === "sugerido" ? "Sugerido" : "Menor Concorrente",
-                  ]}
-                  contentStyle={{ fontSize: 12 }}
-                />
-                <Legend
-                  formatter={(v) =>
-                    v === "atual" ? "Preço Atual" : v === "sugerido" ? "Sugerido" : "Menor Concorrente"
-                  }
-                  wrapperStyle={{ fontSize: 11 }}
-                />
-                <Bar dataKey="atual" fill="#f59e0b" radius={[3, 3, 0, 0]} />
-                {sorted.some((r) => r.suggested_price != null) && (
-                  <Bar dataKey="sugerido" fill="#22c55e" radius={[3, 3, 0, 0]} />
-                )}
-                {sorted.some((r) => r.lowest_price != null) && (
-                  <Bar dataKey="menor" fill="#94a3b8" radius={[3, 3, 0, 0]} />
-                )}
-              </BarChart>
-            </ResponsiveContainer>
+      {open && search.length > 0 && filtered.length === 0 && (
+        <div className="absolute z-50 mt-1 w-full bg-background border rounded-lg shadow-lg px-3 py-4 text-center text-sm text-muted-foreground">
+          Nenhum produto encontrado para "{search}"
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Tab: Referências de Preços ────────────────────────────────────────────────
+
+function ReferenciasPreccos({
+  items,
+  loadingItems,
+  fetchItemSuggestion,
+}: {
+  items: MLItemPrice[];
+  loadingItems: boolean;
+  fetchItemSuggestion: UseMLPrecosCustosResult["fetchItemSuggestion"];
+}) {
+  const [selectedItem, setSelectedItem] = useState<MLItemPrice | null>(null);
+  const [suggestion, setSuggestion] = useState<MLItemSuggestion | null>(null);
+  const [noSuggestion, setNoSuggestion] = useState(false);
+  const [loadingSuggestion, setLoadingSuggestion] = useState(false);
+
+  const handleSelectItem = useCallback(
+    async (item: MLItemPrice | null) => {
+      setSelectedItem(item);
+      setSuggestion(null);
+      setNoSuggestion(false);
+      if (!item) return;
+
+      setLoadingSuggestion(true);
+      try {
+        const result = await fetchItemSuggestion(item.item_id);
+        setSuggestion(result.suggestion);
+        setNoSuggestion(result.no_suggestion);
+      } finally {
+        setLoadingSuggestion(false);
+      }
+    },
+    [fetchItemSuggestion],
+  );
+
+  const statusCfg = suggestion ? (STATUS_CONFIG[suggestion.status] ?? STATUS_CONFIG.no_benchmark_ok) : null;
+
+  // Gráfico de distribuição de preços dos concorrentes
+  const graphData = suggestion?.graph
+    ? [...suggestion.graph]
+        .sort((a, b) => a.price.amount - b.price.amount)
+        .map((entry, i) => ({
+          label: `Conc. ${i + 1}`,
+          title: entry.info.title ?? `Concorrente ${i + 1}`,
+          preco: entry.price.amount,
+          vendas: entry.info.sold_quantity ?? 0,
+        }))
+    : [];
+
+  // Preço mais popular entre concorrentes (maior sold_quantity)
+  const mostSoldCompetitor = graphData.length
+    ? graphData.reduce((best, cur) => (cur.vendas > best.vendas ? cur : best), graphData[0])
+    : null;
+
+  return (
+    <div className="space-y-5">
+      {/* Picker */}
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Selecione um produto para analisar</p>
+        <ProductPicker
+          items={items}
+          selected={selectedItem}
+          onSelect={handleSelectItem}
+          loading={loadingItems}
+        />
+        {items.length > 0 && !selectedItem && (
+          <p className="text-xs text-muted-foreground">
+            {items.length} anúncios ativos disponíveis para análise
+          </p>
+        )}
+      </div>
+
+      {/* Empty state */}
+      {!selectedItem && !loadingItems && (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12 gap-3">
+            <BarChart3 className="w-12 h-12 text-muted-foreground/30" />
+            <p className="text-sm text-muted-foreground text-center max-w-xs">
+              Selecione um produto acima para ver a análise competitiva de preços, os concorrentes
+              e a sugestão do Mercado Livre.
+            </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Table */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">Análise Competitiva de Preços</CardTitle>
-          <CardDescription className="text-xs">
-            {filter !== "all"
-              ? `Filtrado: ${STATUS_CONFIG[filter]?.label ?? filter} — ${filtered.length} produto${filtered.length !== 1 ? "s" : ""}`
-              : "Compare seu preço atual com a recomendação do Mercado Livre"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Produto</th>
-                  <th className="text-center px-4 py-2.5 text-xs font-medium text-muted-foreground">Posição</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Preço Atual</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Sugerido</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Menor Conc.</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Diferença</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Comissão+Frete</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading
-                  ? Array.from({ length: 5 }).map((_, i) => (
-                      <tr key={i} className="border-b">
-                        {Array.from({ length: 7 }).map((_, j) => (
-                          <td key={j} className="px-4 py-3">
-                            <Skeleton className="h-4 w-full" />
-                          </td>
-                        ))}
-                      </tr>
-                    ))
-                  : filtered.length === 0
-                  ? (
-                      <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground text-sm">
-                          {references.length === 0
-                            ? "Nenhuma referência de preço disponível para seus anúncios."
-                            : "Nenhum produto neste filtro."}
-                        </td>
-                      </tr>
-                    )
-                  : filtered.map((ref) => {
-                      const cfg = getStatusConfig(ref.status);
-                      const totalFees = ref.selling_fees + ref.shipping_fees;
-                      return (
-                        <tr key={ref.item_id} className="border-b hover:bg-muted/20 transition-colors">
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2.5">
-                              {ref.thumbnail && (
-                                <img
-                                  src={ref.thumbnail}
-                                  alt=""
-                                  className="w-8 h-8 object-contain rounded shrink-0 bg-muted"
-                                />
-                              )}
-                              <div>
-                                <p className="font-medium line-clamp-1 text-foreground leading-tight">
-                                  {ref.title}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-0.5">{ref.item_id}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <Badge className={`text-xs ${cfg.className}`}>{cfg.label}</Badge>
-                            {ref.applicable_suggestion && (
-                              <p className="text-[10px] text-emerald-600 mt-0.5 font-medium">
-                                Aplicável
-                              </p>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right tabular-nums font-medium">
-                            {currFmt(ref.current_price)}
-                          </td>
-                          <td className="px-4 py-3 text-right tabular-nums">
-                            {ref.suggested_price != null ? (
-                              <span className="font-semibold text-emerald-600">
-                                {currFmt(ref.suggested_price)}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground text-xs">—</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
-                            {ref.lowest_price != null ? currFmt(ref.lowest_price) : "—"}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <span className={`font-semibold tabular-nums flex items-center justify-end gap-1 ${diffColor(ref)}`}>
-                              {ref.percent_difference > 0
-                                ? <TrendingUp className="w-3.5 h-3.5" />
-                                : ref.percent_difference < 0
-                                ? <TrendingDown className="w-3.5 h-3.5" />
-                                : null}
-                              {ref.percent_difference > 0 ? "+" : ""}
-                              {ref.percent_difference.toFixed(1)}%
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right tabular-nums text-destructive">
-                            {totalFees > 0 ? currFmt(totalFees) : "—"}
-                          </td>
-                        </tr>
-                      );
-                    })}
-              </tbody>
-            </table>
+      {/* Loading skeleton */}
+      {loadingSuggestion && selectedItem && (
+        <div className="space-y-4">
+          <Skeleton className="h-24 w-full rounded-xl" />
+          <div className="grid grid-cols-3 gap-3">
+            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-20 rounded-xl" />
           </div>
-        </CardContent>
-      </Card>
+          <Skeleton className="h-40 w-full rounded-xl" />
+          <Skeleton className="h-56 w-full rounded-xl" />
+        </div>
+      )}
+
+      {/* No suggestion available */}
+      {noSuggestion && selectedItem && !loadingSuggestion && (
+        <Card className="border-amber-500/20 bg-amber-500/5">
+          <CardContent className="flex items-start gap-3 pt-4 pb-4">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-amber-800">
+                Sem referência disponível para este produto
+              </p>
+              <p className="text-xs text-amber-700 mt-1">
+                O Mercado Livre ainda não gerou sugestões competitivas para este anúncio.
+                Tente outro produto ou aguarde que o ML processe mais dados de mercado.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Detail view */}
+      {suggestion && selectedItem && !loadingSuggestion && statusCfg && (
+        <div className="space-y-4">
+          {/* Product header */}
+          <Card>
+            <CardContent className="pt-4 pb-4 px-4">
+              <div className="flex items-center gap-3">
+                {selectedItem.thumbnail && (
+                  <img
+                    src={selectedItem.thumbnail}
+                    alt=""
+                    className="w-14 h-14 object-contain rounded-lg bg-muted shrink-0"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold line-clamp-2 leading-tight">{selectedItem.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{selectedItem.item_id}</p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <Badge className={`text-xs gap-1 ${statusCfg.badgeClass}`}>
+                      {statusCfg.icon}
+                      {statusCfg.label}
+                    </Badge>
+                    {suggestion.applicable_suggestion && (
+                      <Badge className="text-xs bg-emerald-500/15 text-emerald-700 border-emerald-500/30">
+                        Sugestão aplicável
+                      </Badge>
+                    )}
+                    {suggestion.compared_values > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        {suggestion.compared_values} produto{suggestion.compared_values !== 1 ? "s" : ""} analisado{suggestion.compared_values !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Price comparison KPIs */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Card className="border-amber-500/30 bg-amber-500/5">
+              <CardContent className="pt-3 pb-3 px-4">
+                <p className="text-xs text-muted-foreground font-medium">Seu Preço Atual</p>
+                <p className="text-2xl font-bold tabular-nums mt-1">
+                  {currFmt(suggestion.current_price)}
+                </p>
+                {suggestion.percent_difference !== 0 && (
+                  <p className={`text-xs mt-1 font-medium ${
+                    suggestion.percent_difference > 0 ? "text-destructive" : "text-emerald-600"
+                  }`}>
+                    {suggestion.percent_difference > 0 ? "+" : ""}
+                    {suggestion.percent_difference.toFixed(1)}% vs mercado
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card
+              className={
+                suggestion.suggested_price != null
+                  ? "border-emerald-500/30 bg-emerald-500/5"
+                  : ""
+              }
+            >
+              <CardContent className="pt-3 pb-3 px-4">
+                <p className="text-xs text-muted-foreground font-medium">Preço Sugerido ML</p>
+                {suggestion.suggested_price != null ? (
+                  <>
+                    <p className="text-2xl font-bold tabular-nums mt-1 text-emerald-700">
+                      {currFmt(suggestion.suggested_price)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Recomendação do Mercado Livre
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-2">Não disponível</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-3 pb-3 px-4">
+                <p className="text-xs text-muted-foreground font-medium">Menor Concorrente</p>
+                {suggestion.lowest_price != null ? (
+                  <>
+                    <p className="text-2xl font-bold tabular-nums mt-1 text-blue-700">
+                      {currFmt(suggestion.lowest_price)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">Menor preço no mercado</p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-2">Não disponível</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recommendation */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-4 pb-4 px-4">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-primary">Sugestão de Precificação</p>
+                  <p className="text-sm mt-1 text-foreground/80">
+                    {statusCfg.advice(suggestion)}
+                  </p>
+                  {(suggestion.selling_fees > 0 || suggestion.shipping_fees > 0) && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Custos estimados para este anúncio:{" "}
+                      {suggestion.selling_fees > 0 && (
+                        <span className="font-medium">comissão {currFmt(suggestion.selling_fees)}</span>
+                      )}
+                      {suggestion.selling_fees > 0 && suggestion.shipping_fees > 0 && " + "}
+                      {suggestion.shipping_fees > 0 && (
+                        <span className="font-medium">frete {currFmt(suggestion.shipping_fees)}</span>
+                      )}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Competitor price distribution chart */}
+          {graphData.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Distribuição de Preços dos Concorrentes
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Barras = unidades vendidas por faixa de preço
+                  {mostSoldCompetitor && (
+                    <> · Mais vendido: <span className="font-medium">{currFmt(mostSoldCompetitor.preco)}</span> ({mostSoldCompetitor.vendas} vendas)</>
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={graphData} barSize={28}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis
+                      dataKey="preco"
+                      tickFormatter={(v) => `R$${v}`}
+                      tick={{ fontSize: 10 }}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      label={{ value: "Vendas", angle: -90, position: "insideLeft", style: { fontSize: 10 } }}
+                    />
+                    <RechartsTooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null;
+                        const d = payload[0].payload;
+                        return (
+                          <div className="bg-background border rounded-lg px-3 py-2 shadow text-xs">
+                            <p className="font-semibold line-clamp-1 max-w-[180px]">{d.title}</p>
+                            <p className="text-muted-foreground">Preço: {currFmt(d.preco)}</p>
+                            <p className="text-muted-foreground">Vendas: {d.vendas}</p>
+                          </div>
+                        );
+                      }}
+                    />
+                    {/* Linhas de referência */}
+                    <ReferenceLine
+                      x={suggestion.current_price}
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      strokeDasharray="4 2"
+                      label={{ value: "Seu preço", position: "top", style: { fontSize: 10, fill: "#f59e0b" } }}
+                    />
+                    {suggestion.suggested_price != null && (
+                      <ReferenceLine
+                        x={suggestion.suggested_price}
+                        stroke="#22c55e"
+                        strokeWidth={2}
+                        strokeDasharray="4 2"
+                        label={{ value: "Sugerido", position: "top", style: { fontSize: 10, fill: "#22c55e" } }}
+                      />
+                    )}
+                    <Bar dataKey="vendas" radius={[4, 4, 0, 0]}>
+                      {graphData.map((entry, i) => (
+                        <Cell
+                          key={i}
+                          fill={
+                            entry.preco === mostSoldCompetitor?.preco
+                              ? "#6366f1"
+                              : "hsl(var(--muted-foreground) / 0.4)"
+                          }
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="flex flex-wrap gap-3 mt-2">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <div className="w-3 h-0.5 bg-amber-500" style={{ borderTop: "2px dashed" }} />
+                    Seu preço ({currFmt(suggestion.current_price)})
+                  </div>
+                  {suggestion.suggested_price != null && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <div className="w-3 h-0.5 bg-emerald-500" />
+                      Sugerido ({currFmt(suggestion.suggested_price)})
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <div className="w-3 h-3 rounded-sm bg-indigo-500 shrink-0" />
+                    Mais vendido
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Competitor table */}
+          {graphData.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Produtos Concorrentes</CardTitle>
+                <CardDescription className="text-xs">
+                  Ordenados pelo menor preço
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/30">
+                        <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                          Produto
+                        </th>
+                        <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                          Preço
+                        </th>
+                        <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                          Vendas
+                        </th>
+                        <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                          vs Seu Preço
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {graphData.map((entry, i) => {
+                        const diff = ((entry.preco - suggestion.current_price) / suggestion.current_price) * 100;
+                        return (
+                          <tr key={i} className="border-b hover:bg-muted/20 transition-colors">
+                            <td className="px-4 py-2.5">
+                              <p className="text-xs line-clamp-1">{entry.title}</p>
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums font-medium">
+                              {currFmt(entry.preco)}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+                              {entry.vendas > 0 ? entry.vendas : "—"}
+                            </td>
+                            <td className="px-4 py-2.5 text-right">
+                              <span
+                                className={`text-xs font-medium tabular-nums ${
+                                  diff < 0
+                                    ? "text-emerald-600"
+                                    : diff > 0
+                                    ? "text-destructive"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                {diff > 0 ? "+" : ""}
+                                {diff.toFixed(1)}%
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -593,9 +702,6 @@ function Calculadora({
           const net_revenue = price - total_deductions;
           const profit = net_revenue - cost;
           const margin_pct = price > 0 ? (profit / price) * 100 : 0;
-          // Ponto de equilíbrio: preço mínimo para lucro zero
-          // price = cost + commission_pct/100 * price + fixed_fee + shipping
-          // price * (1 - commission_pct/100) = cost + fixed_fee + shipping
           const break_even = cost > 0
             ? (cost + c.fixed_fee + shippingCost) / (1 - c.percentage_fee / 100)
             : 0;
@@ -621,12 +727,8 @@ function Calculadora({
     }
   }, [productCost, salePrice, logisticType, shippingCostInput, fetchCosts, connected, logisticOpt]);
 
-  // Calculadora reversa: preço mínimo para atingir margem desejada
   const reverseCalc = useCallback(
     (targetPct: number, r: CalcResult) => {
-      // margin = (price - cost - commission_pct/100*price - fixed_fee - shipping) / price
-      // targetPct/100 = (price*(1 - commission_pct/100) - cost - fixed_fee - shipping) / price
-      // price * (1 - commission_pct/100 - targetPct/100) = cost + fixed_fee + shipping
       const cost = parseFloat(productCost.replace(",", ".")) || 0;
       const denom = 1 - r.commission_pct / 100 - targetPct / 100;
       if (denom <= 0) return null;
@@ -639,7 +741,6 @@ function Calculadora({
 
   return (
     <div className="space-y-5">
-      {/* Inputs */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -718,7 +819,6 @@ function Calculadora({
         </CardContent>
       </Card>
 
-      {/* Results */}
       {results && results.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -738,7 +838,6 @@ function Calculadora({
               className={r.listing_type_id === "gold_pro" ? "border-yellow-500/40" : ""}
             >
               <CardContent className="pt-4 pb-3 px-4">
-                {/* Header row */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Tag className="w-4 h-4 text-muted-foreground" />
@@ -779,7 +878,6 @@ function Calculadora({
                   </div>
                 </div>
 
-                {/* Break-even indicator */}
                 {r.break_even > 0 && (
                   <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                     <TrendingDown className="w-3.5 h-3.5" />
@@ -799,7 +897,6 @@ function Calculadora({
                   </div>
                 )}
 
-                {/* Detailed breakdown */}
                 {showDetail === r.listing_type_id && (
                   <div className="mt-3 pt-3 border-t space-y-1.5 text-sm">
                     <div className="flex justify-between">
@@ -807,12 +904,8 @@ function Calculadora({
                       <span className="tabular-nums font-medium">{currFmt(r.sale_price)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground text-xs">
-                        Comissão ({pctFmt(r.commission_pct)})
-                      </span>
-                      <span className="tabular-nums text-destructive">
-                        -{currFmt(r.commission_value)}
-                      </span>
+                      <span className="text-muted-foreground text-xs">Comissão ({pctFmt(r.commission_pct)})</span>
+                      <span className="tabular-nums text-destructive">-{currFmt(r.commission_value)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground text-xs">Taxa fixa</span>
@@ -820,9 +913,7 @@ function Calculadora({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground text-xs">Custo de envio</span>
-                      <span className="tabular-nums text-destructive">
-                        -{currFmt(r.shipping_cost)}
-                      </span>
+                      <span className="tabular-nums text-destructive">-{currFmt(r.shipping_cost)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between">
@@ -848,7 +939,7 @@ function Calculadora({
             </Card>
           ))}
 
-          {/* Margin comparison chart */}
+          {/* Margin chart */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Comparativo de Margem por Tipo</CardTitle>
@@ -895,33 +986,26 @@ function Calculadora({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-end gap-3">
-                <div className="space-y-1.5 w-48">
-                  <Label htmlFor="target-margin" className="text-xs">Margem desejada (%)</Label>
-                  <Input
-                    id="target-margin"
-                    placeholder="Ex: 20"
-                    value={targetMargin}
-                    onChange={(e) => setTargetMargin(e.target.value)}
-                  />
-                </div>
+              <div className="space-y-1.5 w-48">
+                <Label htmlFor="target-margin" className="text-xs">Margem desejada (%)</Label>
+                <Input
+                  id="target-margin"
+                  placeholder="Ex: 20"
+                  value={targetMargin}
+                  onChange={(e) => setTargetMargin(e.target.value)}
+                />
               </div>
 
-              {target > 0 && (
+              {target > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {results.map((r) => {
                     const minPrice = reverseCalc(target, r);
                     return (
-                      <div
-                        key={r.listing_type_id}
-                        className="rounded-lg border bg-muted/30 px-4 py-3"
-                      >
+                      <div key={r.listing_type_id} className="rounded-lg border bg-muted/30 px-4 py-3">
                         <p className="text-xs text-muted-foreground font-medium">{r.listing_name}</p>
                         {minPrice != null ? (
                           <>
-                            <p className="text-xl font-bold tabular-nums mt-1">
-                              {currFmt(minPrice)}
-                            </p>
+                            <p className="text-xl font-bold tabular-nums mt-1">{currFmt(minPrice)}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">
                               Preço mínimo para {pctFmt(target)} de margem
                             </p>
@@ -948,11 +1032,9 @@ function Calculadora({
                     );
                   })}
                 </div>
-              )}
-
-              {target <= 0 && (
+              ) : (
                 <p className="text-xs text-muted-foreground">
-                  Insira a margem desejada acima para ver o preço mínimo necessário.
+                  Insira a margem desejada para ver o preço mínimo necessário.
                 </p>
               )}
             </CardContent>
@@ -968,13 +1050,11 @@ function Calculadora({
 export default function MLPrecosCustos() {
   const {
     items,
-    itemsTotal,
-    references,
     loading,
-    isRealData,
     connected,
     refresh,
     refreshing,
+    fetchItemSuggestion,
     fetchCosts,
   } = useMLPrecosCustos();
 
@@ -1002,34 +1082,22 @@ export default function MLPrecosCustos() {
         </Button>
       </MLPageHeader>
 
-      <Tabs defaultValue="precos">
+      <Tabs defaultValue="referencias">
         <TabsList className="h-9">
-          <TabsTrigger value="precos" className="gap-1.5 text-xs">
-            <Tag className="w-3.5 h-3.5" /> Preços
-            {itemsTotal > 0 && (
-              <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
-                {itemsTotal}
-              </Badge>
-            )}
-          </TabsTrigger>
           <TabsTrigger value="referencias" className="gap-1.5 text-xs">
-            <BarChart3 className="w-3.5 h-3.5" /> Referências
-            {references.length > 0 && (
-              <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
-                {references.length}
-              </Badge>
-            )}
+            <BarChart3 className="w-3.5 h-3.5" /> Referências de Preços
           </TabsTrigger>
           <TabsTrigger value="calculadora" className="gap-1.5 text-xs">
             <Calculator className="w-3.5 h-3.5" /> Calculadora
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="precos" className="mt-5">
-          <PrecosProdutos items={items} loading={loading} isRealData={isRealData} />
-        </TabsContent>
         <TabsContent value="referencias" className="mt-5">
-          <ReferenciasPreccos references={references} loading={loading} isRealData={isRealData} />
+          <ReferenciasPreccos
+            items={items}
+            loadingItems={loading}
+            fetchItemSuggestion={fetchItemSuggestion}
+          />
         </TabsContent>
         <TabsContent value="calculadora" className="mt-5">
           <Calculadora fetchCosts={fetchCosts} connected={connected} />

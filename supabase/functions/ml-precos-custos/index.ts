@@ -138,16 +138,42 @@ async function handleListingCosts(mlToken: string, params: URLSearchParams) {
   return jsonResponse({ costs });
 }
 
-// ── type=references: sugestões de preços competitivos do ML ────────────────
+// ── type=references: sugestão competitiva para um item específico ───────────
+//   Com ?item_id=MLB123 → detalhe de um item
+//   Sem item_id         → lista de itens que possuem sugestão (bulk)
 
-async function handlePriceReferences(mlUserId: string, mlToken: string) {
-  // 1. Items que possuem sugestão de preço competitivo
+async function handlePriceReferences(mlUserId: string, mlToken: string, itemId?: string) {
+  // ── Modo item único ─────────────────────────────────────────────────────────
+  if (itemId) {
+    const detail = await mlGet(`/suggestions/items/${itemId}/details`, mlToken);
+    if (!detail) return jsonResponse({ reference: null, no_suggestion: true });
+
+    return jsonResponse({
+      reference: {
+        item_id: itemId,
+        status: detail.status ?? "no_benchmark_ok",
+        currency_id: detail.currency_id ?? "BRL",
+        current_price: detail.current_price?.amount ?? 0,
+        suggested_price: detail.suggested_price?.amount ?? null,
+        lowest_price: detail.lowest_price?.amount ?? null,
+        internal_price: detail.internal_price?.amount ?? null,
+        percent_difference: detail.percent_difference ?? 0,
+        applicable_suggestion: detail.applicable_suggestion ?? false,
+        selling_fees: detail.costs?.selling_fees ?? 0,
+        shipping_fees: detail.costs?.shipping_fees ?? 0,
+        graph: detail.metadata?.graph ?? [],
+        compared_values: detail.metadata?.compared_values ?? 0,
+        last_updated: detail.last_updated ?? null,
+      },
+    });
+  }
+
+  // ── Modo bulk: lista de itens com sugestão ──────────────────────────────────
   const suggestionsData = await mlGet(`/suggestions/user/${mlUserId}/items`, mlToken);
   if (!suggestionsData?.items?.length) return jsonResponse({ references: [] });
 
   const itemIds: string[] = suggestionsData.items.slice(0, 20);
 
-  // 2. Batch: busca título e thumbnail dos itens
   const batchData = await mlGet(
     `/items?ids=${itemIds.join(",")}&attributes=id,title,thumbnail,listing_type_id`,
     mlToken,
@@ -165,7 +191,6 @@ async function handlePriceReferences(mlUserId: string, mlToken: string) {
       });
   }
 
-  // 3. Detalhes de sugestão competitiva por item
   const detailResults = await Promise.allSettled(
     itemIds.map((id) => mlGet(`/suggestions/items/${id}/details`, mlToken)),
   );
@@ -190,6 +215,7 @@ async function handlePriceReferences(mlUserId: string, mlToken: string) {
         selling_fees: detail.costs?.selling_fees ?? 0,
         shipping_fees: detail.costs?.shipping_fees ?? 0,
         graph: detail.metadata?.graph ?? [],
+        compared_values: detail.metadata?.compared_values ?? 0,
         last_updated: detail.last_updated ?? null,
       };
     })
@@ -223,7 +249,10 @@ serve(async (req) => {
 
     if (type === "prices")     return handleItemPrices(mlUserId, mlToken);
     if (type === "costs")      return handleListingCosts(mlToken, url.searchParams);
-    if (type === "references") return handlePriceReferences(mlUserId, mlToken);
+    if (type === "references") {
+      const itemId = url.searchParams.get("item_id") ?? undefined;
+      return handlePriceReferences(mlUserId, mlToken, itemId);
+    }
 
     return jsonResponse({ error: "Unknown type" }, 400);
   } catch (err) {
