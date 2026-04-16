@@ -951,7 +951,7 @@ export default function MLProdutos() {
                         <>
                           <SortableHead label="Estoque" field="stock" current={sortBy} onSort={toggleSort} className="text-center w-20" />
                           <TableHead className="text-xs text-center w-24">Logística</TableHead>
-                          <TableHead className="text-xs text-center w-20">Frete Grátis</TableHead>
+                          <TableHead className="text-xs text-center w-20">Frete</TableHead>
                         </>
                       ) : columnView === "financeiro" ? (
                         <>
