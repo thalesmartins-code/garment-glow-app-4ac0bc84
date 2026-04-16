@@ -478,7 +478,13 @@ export default function MLProdutos() {
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
   const [suggestion, setSuggestion] = useState<MLItemSuggestion | null>(null);
   const [noSuggestion, setNoSuggestion] = useState(false);
-  const { fetchItemSuggestion } = useMLPrecosCustos();
+  const { fetchItemSuggestion, items: precosItems } = useMLPrecosCustos();
+
+  // Mapa item_id → price_sale (preço efetivo de canal) alimentado pelo hook
+  const precosMap = useMemo(
+    () => new Map(precosItems.map((p) => [p.item_id, p])),
+    [precosItems],
+  );
 
   const toggleRankingSort = (field: string) => {
     setRankingSort((prev) =>
@@ -962,6 +968,16 @@ export default function MLProdutos() {
                         </>
                       ) : (
                         <>
+                          <TableHead className="text-xs text-right w-32">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help border-b border-dashed border-muted-foreground/40">Preço de Venda</span>
+                              </TooltipTrigger>
+                              <TooltipContent className="text-xs max-w-[220px]">
+                                Preço efetivo cobrado do comprador, incluindo promoções de canal do Mercado Livre.
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableHead>
                           <TableHead className="text-xs text-center w-24">Frete</TableHead>
                           <TableHead className="text-xs text-center w-28">Análise</TableHead>
                         </>
@@ -1073,30 +1089,47 @@ export default function MLProdutos() {
                                   </TableCell>
                                 </>
                               );
-                            })() : (
-                              <>
-                                <TableCell className="text-center">
-                                  {item.free_shipping ? (
-                                    <Badge variant="outline" className="text-[10px] border-emerald-500 text-emerald-600 bg-emerald-50 px-[4px] py-px">
-                                      <Truck className="w-3 h-3 mr-0.5" /> Grátis
-                                    </Badge>
-                                  ) : (
-                                    <span className="text-xs text-muted-foreground">Pago</span>
-                                  )}
-                                </TableCell>
-                                <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-7 text-xs px-2 gap-1"
-                                    onClick={() => handleOpenPriceSheet({ id: item.id, title: item.title, thumbnail: item.thumbnail ?? "", price: item.price })}
-                                  >
-                                    <BarChart2 className="w-3 h-3" />
-                                    Análise
-                                  </Button>
-                                </TableCell>
-                              </>
-                            )}
+                            })() : (() => {
+                              const precos = precosMap.get(item.id);
+                              const priceSale = precos?.price_sale ?? item.price;
+                              const hasDiscount = precos != null && priceSale < item.price;
+                              return (
+                                <>
+                                  <TableCell className="text-right">
+                                    <div className="flex flex-col items-end gap-0.5">
+                                      <span className="text-xs font-semibold font-mono tabular-nums text-foreground">
+                                        {currencyFmt(priceSale)}
+                                      </span>
+                                      {hasDiscount && (
+                                        <span className="text-[10px] font-mono tabular-nums text-muted-foreground line-through">
+                                          {currencyFmt(item.price)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {item.free_shipping ? (
+                                      <Badge variant="outline" className="text-[10px] border-emerald-500 text-emerald-600 bg-emerald-50 px-[4px] py-px">
+                                        <Truck className="w-3 h-3 mr-0.5" /> Grátis
+                                      </Badge>
+                                    ) : (
+                                      <span className="text-xs text-muted-foreground">Pago</span>
+                                    )}
+                                  </TableCell>
+                                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 text-xs px-2 gap-1"
+                                      onClick={() => handleOpenPriceSheet({ id: item.id, title: item.title, thumbnail: item.thumbnail ?? "", price: priceSale })}
+                                    >
+                                      <BarChart2 className="w-3 h-3" />
+                                      Análise
+                                    </Button>
+                                  </TableCell>
+                                </>
+                              );
+                            })()}
 
                           </TableRow>
 
@@ -1125,6 +1158,7 @@ export default function MLProdutos() {
                                           </>
                                         ) : (
                                           <>
+                                            <TableHead className="text-xs h-8 font-medium text-right">Preço de Venda</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-center">Frete</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-center">—</TableHead>
                                           </>
@@ -1168,14 +1202,27 @@ export default function MLProdutos() {
                                                   </TableCell>
                                                 </>
                                               );
-                                            })() : (
-                                              <>
-                                                <TableCell className="py-2 text-center">
-                                                  <span className="text-xs text-muted-foreground">—</span>
-                                                </TableCell>
-                                                <TableCell className="py-2" />
-                                              </>
-                                            )}
+                                            })() : (() => {
+                                              const precos = precosMap.get(item.id);
+                                              const priceSale = precos?.price_sale ?? v.price;
+                                              const hasDiscount = precos != null && priceSale < v.price;
+                                              return (
+                                                <>
+                                                  <TableCell className="py-2 text-right">
+                                                    <div className="flex flex-col items-end gap-0.5">
+                                                      <span className="text-xs font-semibold font-mono tabular-nums">{currencyFmt(priceSale)}</span>
+                                                      {hasDiscount && (
+                                                        <span className="text-[10px] font-mono tabular-nums text-muted-foreground line-through">{currencyFmt(v.price)}</span>
+                                                      )}
+                                                    </div>
+                                                  </TableCell>
+                                                  <TableCell className="py-2 text-center">
+                                                    <span className="text-xs text-muted-foreground">—</span>
+                                                  </TableCell>
+                                                  <TableCell className="py-2" />
+                                                </>
+                                              );
+                                            })()}
                                           </TableRow>
                                         );
                                       })}

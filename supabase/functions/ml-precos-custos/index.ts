@@ -64,21 +64,35 @@ async function handleItemsList(mlUserId: string, mlToken: string) {
   );
   if (!batchData) return jsonResponse({ items: [], total: searchData.paging?.total ?? 0 });
 
-  const items = (Array.isArray(batchData) ? batchData : [])
+  const rawItems = (Array.isArray(batchData) ? batchData : [])
     .filter((r: any) => r.code === 200 && r.body?.id)
-    .map((r: any) => ({
-      item_id: r.body.id,
-      title: r.body.title,
-      thumbnail: r.body.thumbnail ?? "",
-      price_standard: r.body.price ?? 0,
+    .map((r: any) => r.body);
+
+  // Busca preço efetivo de canal em paralelo (promoções ML além do preço do vendedor)
+  const salePriceResults = await Promise.allSettled(
+    rawItems.map((item: any) =>
+      mlGet(`/items/${item.id}/sale_price?context=channel_marketplace`, mlToken),
+    ),
+  );
+
+  const items = rawItems.map((item: any, i: number) => {
+    const saleData = salePriceResults[i].status === "fulfilled" ? salePriceResults[i].value : null;
+    const priceStandard: number = item.price ?? 0;
+    const priceSale: number = saleData?.amount ?? priceStandard;
+    return {
+      item_id: item.id,
+      title: item.title,
+      thumbnail: item.thumbnail ?? "",
+      price_standard: priceStandard,
       price_promo: null,
-      price_sale: r.body.price ?? 0,
-      category_id: r.body.category_id ?? "",
-      listing_type_id: r.body.listing_type_id ?? "",
+      price_sale: priceSale,
+      category_id: item.category_id ?? "",
+      listing_type_id: item.listing_type_id ?? "",
       currency_id: "BRL",
       last_updated: null,
-      has_promotion: false,
-    }));
+      has_promotion: priceSale < priceStandard,
+    };
+  });
 
   return jsonResponse({ items, total: searchData.paging?.total ?? items.length });
 }
