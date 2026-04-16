@@ -916,7 +916,7 @@ export default function MLProdutos() {
                       onCheckedChange={(v) => setOnlyDiscount(!!v)}
                       className="h-3.5 w-3.5"
                     />
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">Somente com desconto</span>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">Com desconto</span>
                   </label>
                 )}
 
