@@ -467,6 +467,7 @@ export default function MLProdutos() {
   const [brandFilter, setBrandFilter] = useState("all");
   const [hideOutOfStock, setHideOutOfStock] = useState(true);
   const [logisticFilter, setLogisticFilter] = useState<LogisticFilter>("all");
+  const [onlyDiscount, setOnlyDiscount] = useState(false);
   const [rankingBrandFilter, setRankingBrandFilter] = useState("all");
   const [rankingSort, setRankingSort] = useState("revenue_desc");
   const [rankingSearch, setRankingSearch] = useState("");
