@@ -53,7 +53,6 @@ export interface MLPriceReference {
 interface PrecosCache {
   items: MLItemPrice[];
   itemsTotal: number;
-  costs: MLListingCost[];
   references: MLPriceReference[];
   fetchedAt: number;
 }
@@ -66,14 +65,13 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 export interface UseMLPrecosCustosResult {
   items: MLItemPrice[];
   itemsTotal: number;
-  costs: MLListingCost[];
   references: MLPriceReference[];
   loading: boolean;
   isRealData: boolean;
   connected: boolean;
   refresh: () => Promise<void>;
   refreshing: boolean;
-  /** Fetch listing costs for an arbitrary price (used by Calculadora) */
+  /** Fetch listing costs on-demand (used by Calculadora) */
   fetchCosts: (params: {
     price: number;
     categoryId?: string;
@@ -88,7 +86,6 @@ export function useMLPrecosCustos(): UseMLPrecosCustosResult {
 
   const [items, setItems] = useState<MLItemPrice[]>([]);
   const [itemsTotal, setItemsTotal] = useState(0);
-  const [costs, setCosts] = useState<MLListingCost[]>([]);
   const [references, setReferences] = useState<MLPriceReference[]>([]);
   const [isRealData, setIsRealData] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -143,7 +140,6 @@ export function useMLPrecosCustos(): UseMLPrecosCustosResult {
       if (cacheValid && !force) {
         setItems(cached.items);
         setItemsTotal(cached.itemsTotal);
-        setCosts(cached.costs);
         setReferences(cached.references);
         setIsRealData(true);
         return;
@@ -151,31 +147,27 @@ export function useMLPrecosCustos(): UseMLPrecosCustosResult {
 
       setLoading(true);
       try {
-        const [pricesData, costsData, refsData] = await Promise.all([
+        const [pricesData, refsData] = await Promise.all([
           callEdgeFn("prices"),
-          callEdgeFn("costs", { price: "100" }),
           callEdgeFn("references"),
         ]);
 
         const newItems: MLItemPrice[] = pricesData?.items ?? [];
         const newTotal: number = pricesData?.total ?? 0;
-        const newCosts: MLListingCost[] = costsData?.costs ?? [];
         const newRefs: MLPriceReference[] = refsData?.references ?? [];
 
-        if (newItems.length > 0 || newCosts.length > 0) {
+        if (newItems.length > 0 || newRefs.length > 0) {
           setItems(newItems);
           setItemsTotal(newTotal);
-          setCosts(newCosts);
           setReferences(newRefs);
           setIsRealData(true);
           cache.set(cacheKey, {
             items: newItems,
             itemsTotal: newTotal,
-            costs: newCosts,
             references: newRefs,
             fetchedAt: Date.now(),
           });
-          console.log(`ml-precos-custos: loaded ${newItems.length} items, ${newCosts.length} cost types`);
+          console.log(`ml-precos-custos: loaded ${newItems.length} items, ${newRefs.length} refs`);
         }
       } catch (err) {
         console.warn("ml-precos-custos: fetch error", err);
@@ -186,7 +178,7 @@ export function useMLPrecosCustos(): UseMLPrecosCustosResult {
     [connected, user, storeId, cacheKey, callEdgeFn],
   );
 
-  // Fetch listing costs com parâmetros dinâmicos (para a Calculadora)
+  /** Busca comissões com parâmetros dinâmicos (para a Calculadora) */
   const fetchCosts = useCallback(
     async ({
       price,
@@ -214,7 +206,6 @@ export function useMLPrecosCustos(): UseMLPrecosCustosResult {
   useEffect(() => {
     setItems([]);
     setItemsTotal(0);
-    setCosts([]);
     setReferences([]);
     setIsRealData(false);
   }, [scopeKey]);
@@ -233,7 +224,6 @@ export function useMLPrecosCustos(): UseMLPrecosCustosResult {
   return {
     items,
     itemsTotal,
-    costs,
     references,
     loading: storeLoading || loading,
     isRealData,
