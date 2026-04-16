@@ -119,15 +119,8 @@ async function handleItemPrices(mlUserId: string, mlToken: string) {
 
   const itemIds: string[] = searchData.results.slice(0, 50);
   const attrs = "id,title,thumbnail,price,original_price,listing_type_id,category_id,status";
-  const batchData = await mlGet(
-    `/items?ids=${itemIds.join(",")}&attributes=${attrs}`,
-    mlToken,
-  );
-  if (!batchData) return jsonResponse({ items: [], total: searchData.paging?.total ?? 0 });
-
-  const items = (Array.isArray(batchData) ? batchData : [])
-    .filter((r: any) => r.code === 200 && r.body?.id)
-    .map((r: any) => r.body);
+  const items = await fetchItemsBatched(itemIds, attrs, mlToken);
+  if (!items.length) return jsonResponse({ items: [], total: searchData.paging?.total ?? 0 });
 
   const [priceResults, salePriceResults] = await Promise.all([
     Promise.allSettled(
