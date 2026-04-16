@@ -1097,9 +1097,16 @@ export default function MLProdutos() {
                                 <>
                                   <TableCell className="text-right">
                                     <div className="flex flex-col items-end gap-0.5">
-                                      <span className="text-xs font-semibold font-mono tabular-nums text-foreground">
-                                        {currencyFmt(priceSale)}
-                                      </span>
+                                      <div className="flex items-center gap-1.5">
+                                        {hasDiscount && (
+                                          <Badge className="text-[9px] font-bold bg-emerald-500/15 text-emerald-600 border-0 px-1.5 py-0 h-4 leading-none">
+                                            −{Math.round(((item.price - priceSale) / item.price) * 100)}%
+                                          </Badge>
+                                        )}
+                                        <span className="text-xs font-semibold font-mono tabular-nums text-foreground">
+                                          {currencyFmt(priceSale)}
+                                        </span>
+                                      </div>
                                       {hasDiscount && (
                                         <span className="text-[10px] font-mono tabular-nums text-muted-foreground line-through">
                                           {currencyFmt(item.price)}
