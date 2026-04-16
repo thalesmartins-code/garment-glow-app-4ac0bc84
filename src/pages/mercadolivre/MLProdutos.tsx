@@ -21,7 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   ShoppingBag, RefreshCw, Search, ExternalLink, Plug, DollarSign, Tag, TrendingUp, Package,
   ChevronDown, ChevronRight, Receipt, LayoutGrid, Truck, ArrowUpDown, ArrowUp, ArrowDown,
-  BookOpen, CalendarIcon, X, Check,
+  BookOpen, CalendarIcon, X, Check, Lightbulb, BarChart2, CheckCircle2, TrendingDown, AlertCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,7 +29,7 @@ import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, ComposedChart, Line, Area,
+  PieChart, Pie, Cell, ComposedChart, Line, Area, ReferenceLine, CartesianGrid,
 } from "recharts";
 
 const TOTAL_PERIOD = -1; // sentinel: no date filter → use ML API's sold_quantity
@@ -76,7 +76,7 @@ type StatusFilter = "all" | "active" | "paused";
 type StockFilter = "all" | "in_stock" | "low" | "out";
 type SortBy = "title_asc" | "title_desc" | "price_desc" | "price_asc" | "stock_desc" | "stock_asc";
 type LogisticFilter = "all" | "fulfillment" | "cross_docking" | "self_service" | "drop_off";
-type ColumnView = "estoque" | "financeiro";
+type ColumnView = "estoque" | "financeiro" | "preco";
 
 const healthBadge = (health: number | null) => {
   if (health === null) return <span className="text-xs text-muted-foreground">—</span>;
@@ -151,6 +151,315 @@ function SortableHead({ label, field, current, onSort, className = "" }: {
 }
 
 import { Progress } from "@/components/ui/progress";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import { useMLPrecosCustos, type MLItemSuggestion } from "@/hooks/useMLPrecosCustos";
+
+// ─── Price analysis status config ────────────────────────────────────────────
+
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; badgeClass: string; icon: JSX.Element; advice: (s: MLItemSuggestion) => string }
+> = {
+  with_benchmark_highest: {
+    label: "Muito Acima do Mercado",
+    badgeClass: "bg-red-500/15 text-red-700 border-red-500/30",
+    icon: <TrendingUp className="w-3.5 h-3.5 text-red-600" />,
+    advice: (s) =>
+      `Seu preço está ${Math.abs(s.percent_difference).toFixed(0)}% acima dos concorrentes. Reduzir para ${s.suggested_price ? s.suggested_price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "o preço sugerido"} pode aumentar significativamente a visibilidade e as chances de venda.`,
+  },
+  with_benchmark_high: {
+    label: "Acima do Mercado",
+    badgeClass: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+    icon: <TrendingUp className="w-3.5 h-3.5 text-amber-600" />,
+    advice: (s) =>
+      `Seu preço está ${Math.abs(s.percent_difference).toFixed(0)}% acima da média. Uma pequena redução${s.suggested_price ? ` para ${s.suggested_price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}` : ""} pode melhorar o posicionamento nos resultados de busca.`,
+  },
+  no_benchmark_ok: {
+    label: "Preço Competitivo",
+    badgeClass: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+    icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />,
+    advice: () => "Seu preço está alinhado com o mercado. Mantenha a estratégia atual e monitore os concorrentes periodicamente.",
+  },
+  no_benchmark_lowest: {
+    label: "Abaixo do Mercado",
+    badgeClass: "bg-blue-500/15 text-blue-700 border-blue-500/30",
+    icon: <TrendingDown className="w-3.5 h-3.5 text-blue-600" />,
+    advice: (s) =>
+      `Seu preço está abaixo da média dos concorrentes. Você pode aumentar a margem${s.suggested_price && s.suggested_price > s.current_price ? ` para até ${s.suggested_price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}` : ""} sem perder competitividade.`,
+  },
+};
+
+const fmt = (v: number) =>
+  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+// ─── Price Detail Sheet ───────────────────────────────────────────────────────
+
+function PriceDetailSheet({
+  open,
+  onClose,
+  item,
+  suggestion,
+  noSuggestion,
+  loading,
+}: {
+  open: boolean;
+  onClose: () => void;
+  item: { id: string; title: string; thumbnail: string; price: number } | null;
+  suggestion: MLItemSuggestion | null;
+  noSuggestion: boolean;
+  loading: boolean;
+}) {
+  const statusCfg = suggestion
+    ? (STATUS_CONFIG[suggestion.status] ?? STATUS_CONFIG.no_benchmark_ok)
+    : null;
+
+  const graphData = suggestion?.graph
+    ? [...suggestion.graph]
+        .sort((a, b) => a.price.amount - b.price.amount)
+        .map((entry, i) => ({
+          label: `Conc. ${i + 1}`,
+          title: entry.info?.title ?? `Concorrente ${i + 1}`,
+          preco: entry.price.amount,
+          vendas: entry.info?.sold_quantity ?? 0,
+        }))
+    : [];
+
+  const mostSoldCompetitor = graphData.length
+    ? graphData.reduce((best, cur) => (cur.vendas > best.vendas ? cur : best), graphData[0])
+    : null;
+
+  return (
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent side="right" className="w-[560px] sm:max-w-[560px] overflow-y-auto p-0">
+        <SheetHeader className="px-6 py-4 border-b sticky top-0 bg-background z-10">
+          <SheetTitle className="flex items-center gap-2 text-base">
+            <BarChart2 className="w-4 h-4 text-primary" />
+            Análise de Preço Competitivo
+          </SheetTitle>
+        </SheetHeader>
+
+        <div className="px-6 py-5 space-y-5">
+          {/* Loading skeleton */}
+          {loading && (
+            <div className="space-y-4">
+              <div className="h-20 rounded-xl bg-muted animate-pulse" />
+              <div className="grid grid-cols-3 gap-3">
+                {[1,2,3].map(i => <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />)}
+              </div>
+              <div className="h-32 rounded-xl bg-muted animate-pulse" />
+              <div className="h-52 rounded-xl bg-muted animate-pulse" />
+            </div>
+          )}
+
+          {/* No suggestion */}
+          {!loading && noSuggestion && (
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-amber-800">Sem referência disponível</p>
+                <p className="text-xs text-amber-700 mt-1">
+                  O Mercado Livre ainda não gerou sugestões competitivas para este anúncio.
+                  Tente novamente mais tarde ou consulte outro produto.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Product header */}
+          {!loading && item && suggestion && statusCfg && (
+            <>
+              <div className="flex items-center gap-3 rounded-xl border bg-card p-3">
+                {item.thumbnail ? (
+                  <img
+                    src={item.thumbnail.replace("http://", "https://")}
+                    alt=""
+                    className="w-14 h-14 object-contain rounded-lg bg-muted shrink-0"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-lg bg-muted shrink-0 flex items-center justify-center">
+                    <Package className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm line-clamp-2 leading-snug">{item.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.id}</p>
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <Badge className={`text-[11px] gap-1 px-2 py-0.5 ${statusCfg.badgeClass}`}>
+                      {statusCfg.icon}
+                      {statusCfg.label}
+                    </Badge>
+                    {suggestion.applicable_suggestion && (
+                      <Badge className="text-[11px] bg-emerald-500/15 text-emerald-700 border-emerald-500/30 px-2 py-0.5">
+                        Sugestão aplicável
+                      </Badge>
+                    )}
+                    {suggestion.compared_values > 0 && (
+                      <span className="text-[11px] text-muted-foreground">
+                        {suggestion.compared_values} produto{suggestion.compared_values !== 1 ? "s" : ""} analisado{suggestion.compared_values !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* KPIs */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+                  <p className="text-[11px] text-muted-foreground font-medium">Seu Preço Atual</p>
+                  <p className="text-lg font-bold tabular-nums mt-1">{fmt(suggestion.current_price)}</p>
+                  {suggestion.percent_difference !== 0 && (
+                    <p className={`text-[11px] mt-0.5 font-medium ${suggestion.percent_difference > 0 ? "text-destructive" : "text-emerald-600"}`}>
+                      {suggestion.percent_difference > 0 ? "+" : ""}{suggestion.percent_difference.toFixed(1)}% vs mercado
+                    </p>
+                  )}
+                </div>
+                <div className={`rounded-xl border p-3 ${suggestion.suggested_price != null ? "border-emerald-500/30 bg-emerald-500/5" : ""}`}>
+                  <p className="text-[11px] text-muted-foreground font-medium">Sugerido ML</p>
+                  {suggestion.suggested_price != null ? (
+                    <>
+                      <p className="text-lg font-bold tabular-nums mt-1 text-emerald-700">{fmt(suggestion.suggested_price)}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Recomendação ML</p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-2">Não disponível</p>
+                  )}
+                </div>
+                <div className="rounded-xl border p-3">
+                  <p className="text-[11px] text-muted-foreground font-medium">Menor Concorrente</p>
+                  {suggestion.lowest_price != null ? (
+                    <>
+                      <p className="text-lg font-bold tabular-nums mt-1 text-blue-700">{fmt(suggestion.lowest_price)}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Menor preço no mercado</p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-2">Não disponível</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Recommendation */}
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-start gap-3">
+                <Lightbulb className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-primary">Sugestão de Precificação</p>
+                  <p className="text-sm mt-1 text-foreground/80">{statusCfg.advice(suggestion)}</p>
+                  {(suggestion.selling_fees > 0 || suggestion.shipping_fees > 0) && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Custos estimados:{" "}
+                      {suggestion.selling_fees > 0 && <span className="font-medium">comissão {fmt(suggestion.selling_fees)}</span>}
+                      {suggestion.selling_fees > 0 && suggestion.shipping_fees > 0 && " + "}
+                      {suggestion.shipping_fees > 0 && <span className="font-medium">frete {fmt(suggestion.shipping_fees)}</span>}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Competitor distribution chart */}
+              {graphData.length > 0 && (
+                <div className="rounded-xl border bg-card p-4">
+                  <p className="text-sm font-medium mb-0.5">Distribuição de Preços dos Concorrentes</p>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Barras = unidades vendidas por faixa de preço
+                    {mostSoldCompetitor && (
+                      <> · Mais vendido: <span className="font-medium">{fmt(mostSoldCompetitor.preco)}</span> ({mostSoldCompetitor.vendas} vendas)</>
+                    )}
+                  </p>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={graphData} barSize={26}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="preco" tickFormatter={(v) => `R$${v}`} tick={{ fontSize: 10 }} />
+                      <YAxis tick={{ fontSize: 11 }} label={{ value: "Vendas", angle: -90, position: "insideLeft", style: { fontSize: 10 } }} />
+                      <RechartsTooltip
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const d = payload[0].payload;
+                          return (
+                            <div className="bg-background border rounded-lg px-3 py-2 shadow text-xs">
+                              <p className="font-semibold line-clamp-1 max-w-[180px]">{d.title}</p>
+                              <p className="text-muted-foreground">Preço: {fmt(d.preco)}</p>
+                              <p className="text-muted-foreground">Vendas: {d.vendas}</p>
+                            </div>
+                          );
+                        }}
+                      />
+                      <ReferenceLine x={suggestion.current_price} stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 2"
+                        label={{ value: "Seu preço", position: "top", style: { fontSize: 10, fill: "#f59e0b" } }} />
+                      {suggestion.suggested_price != null && (
+                        <ReferenceLine x={suggestion.suggested_price} stroke="#22c55e" strokeWidth={2} strokeDasharray="4 2"
+                          label={{ value: "Sugerido", position: "top", style: { fontSize: 10, fill: "#22c55e" } }} />
+                      )}
+                      <Bar dataKey="vendas" radius={[4, 4, 0, 0]}>
+                        {graphData.map((entry, i) => (
+                          <Cell key={i} fill={entry.preco === mostSoldCompetitor?.preco ? "#6366f1" : "hsl(var(--muted-foreground) / 0.4)"} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div className="flex flex-wrap gap-3 mt-2">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <div className="w-3 h-0.5 bg-amber-500" style={{ borderTop: "2px dashed" }} />
+                      Seu preço ({fmt(suggestion.current_price)})
+                    </div>
+                    {suggestion.suggested_price != null && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <div className="w-3 h-0.5 bg-emerald-500" />
+                        Sugerido ({fmt(suggestion.suggested_price)})
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <div className="w-3 h-3 rounded-sm bg-indigo-500 shrink-0" />
+                      Mais vendido
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Competitor table */}
+              {graphData.length > 0 && (
+                <div className="rounded-xl border bg-card overflow-hidden">
+                  <div className="px-4 py-3 border-b">
+                    <p className="text-sm font-medium">Produtos Concorrentes</p>
+                    <p className="text-xs text-muted-foreground">Ordenados pelo menor preço</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted/30">
+                          <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Produto</th>
+                          <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Preço</th>
+                          <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Vendas</th>
+                          <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">vs Seu Preço</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {graphData.map((entry, i) => {
+                          const diff = ((entry.preco - suggestion.current_price) / suggestion.current_price) * 100;
+                          return (
+                            <tr key={i} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
+                              <td className="px-4 py-2.5"><p className="text-xs line-clamp-1">{entry.title}</p></td>
+                              <td className="px-4 py-2.5 text-right tabular-nums font-medium text-xs">{fmt(entry.preco)}</td>
+                              <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground text-xs">{entry.vendas > 0 ? entry.vendas : "—"}</td>
+                              <td className="px-4 py-2.5 text-right">
+                                <span className={`text-xs font-medium tabular-nums ${diff < 0 ? "text-emerald-600" : diff > 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                                  {diff > 0 ? "+" : ""}{diff.toFixed(1)}%
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
 
 export default function MLProdutos() {
   const { items, loading, hasToken, lastUpdated, refresh } = useMLInventory();
@@ -168,6 +477,14 @@ export default function MLProdutos() {
   const [rankingSort, setRankingSort] = useState("revenue_desc");
   const [rankingSearch, setRankingSearch] = useState("");
   const [reportTab, setReportTab] = useState("ranking");
+
+  // ── Price Sheet state ──────────────────────────────────────────────────────
+  const [priceSheetOpen, setPriceSheetOpen] = useState(false);
+  const [priceSheetItem, setPriceSheetItem] = useState<{ id: string; title: string; thumbnail: string; price: number } | null>(null);
+  const [loadingSuggestion, setLoadingSuggestion] = useState(false);
+  const [suggestion, setSuggestion] = useState<MLItemSuggestion | null>(null);
+  const [noSuggestion, setNoSuggestion] = useState(false);
+  const { fetchItemSuggestion } = useMLPrecosCustos();
 
   const toggleRankingSort = (field: string) => {
     setRankingSort((prev) =>
@@ -265,6 +582,21 @@ export default function MLProdutos() {
     }
     setRankingPopoverOpen(false);
   };
+
+  const handleOpenPriceSheet = useCallback(async (item: { id: string; title: string; thumbnail: string; price: number }) => {
+    setPriceSheetItem(item);
+    setPriceSheetOpen(true);
+    setSuggestion(null);
+    setNoSuggestion(false);
+    setLoadingSuggestion(true);
+    try {
+      const result = await fetchItemSuggestion(item.id);
+      setSuggestion(result.suggestion);
+      setNoSuggestion(result.no_suggestion);
+    } finally {
+      setLoadingSuggestion(false);
+    }
+  }, [fetchItemSuggestion]);
 
   const toggleSort = (field: string) => {
     const asc = `${field}_asc` as SortBy;
@@ -585,6 +917,12 @@ export default function MLProdutos() {
                       >
                         <Receipt className="w-3 h-3" /> Margem
                       </button>
+                      <button
+                        onClick={() => setColumnView("preco")}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-all ${columnView === "preco" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                      >
+                        <BarChart2 className="w-3 h-3" /> Preço
+                      </button>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>Alternar visão de colunas</TooltipContent>
@@ -620,13 +958,18 @@ export default function MLProdutos() {
                           <TableHead className="text-xs text-center w-24">Logística</TableHead>
                           <TableHead className="text-xs text-center w-20">Frete Grátis</TableHead>
                         </>
-                      ) : (
+                      ) : columnView === "financeiro" ? (
                         <>
                           <TableHead className="text-xs text-right w-24">Custo</TableHead>
                           <TableHead className="text-xs text-left w-36">Tipo / Comissão</TableHead>
                           <TableHead className="text-xs text-right w-32">Comissão/unid.</TableHead>
                           <TableHead className="text-xs text-right w-28">Margem est.</TableHead>
-                          
+                        </>
+                      ) : (
+                        <>
+                          <TableHead className="text-xs text-left w-36">Tipo de Anúncio</TableHead>
+                          <TableHead className="text-xs text-right w-28">Comissão/unid.</TableHead>
+                          <TableHead className="text-xs text-center w-28">Análise</TableHead>
                         </>
                       )}
                       
@@ -718,7 +1061,7 @@ export default function MLProdutos() {
                                   ) : <span className="text-xs text-muted-foreground">Não</span>}
                                 </TableCell>
                               </>
-                            ) : (() => {
+                            ) : columnView === "financeiro" ? (() => {
                               const commRate = getCommissionRate(item.listing_type_id);
                               const commPerUnit = Math.round(item.price * commRate * 100) / 100;
                               const netPerUnit = Math.round((item.price - commPerUnit) * 100) / 100;
@@ -733,6 +1076,28 @@ export default function MLProdutos() {
                                   <TableCell className="text-right text-xs text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
                                   <TableCell className="text-right">
                                     <span className={`text-xs font-bold ${marginColor}`}>{marginPct.toFixed(1)}%</span>
+                                  </TableCell>
+                                </>
+                              );
+                            })() : (() => {
+                              const commRate = getCommissionRate(item.listing_type_id);
+                              const commPerUnit = Math.round(item.price * commRate * 100) / 100;
+                              return (
+                                <>
+                                  <TableCell className="text-left">
+                                    {listingBadge(item.listing_type_id, commRate)}
+                                  </TableCell>
+                                  <TableCell className="text-right text-xs text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
+                                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 text-xs px-2 gap-1"
+                                      onClick={() => handleOpenPriceSheet({ id: item.id, title: item.title, thumbnail: item.thumbnail ?? "", price: item.price })}
+                                    >
+                                      <BarChart2 className="w-3 h-3" />
+                                      Análise
+                                    </Button>
                                   </TableCell>
                                 </>
                               );
@@ -756,12 +1121,18 @@ export default function MLProdutos() {
                                             <TableHead className="text-xs h-8 font-medium text-center">Estoque</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-center" colSpan={2}>—</TableHead>
                                           </>
-                                        ) : (
+                                        ) : columnView === "financeiro" ? (
                                           <>
                                             <TableHead className="text-xs h-8 font-medium text-right">Custo</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-left">Tipo / Comissão</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-right">Comissão/unid.</TableHead>
                                             <TableHead className="text-xs h-8 font-medium text-right">Margem est.</TableHead>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <TableHead className="text-xs h-8 font-medium text-left">Tipo de Anúncio</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-right">Comissão/unid.</TableHead>
+                                            <TableHead className="text-xs h-8 font-medium text-center" colSpan={1}>—</TableHead>
                                           </>
                                         )}
                                       </TableRow>
@@ -785,7 +1156,7 @@ export default function MLProdutos() {
                                                 </TableCell>
                                                 <TableCell className="py-2" colSpan={2} />
                                               </>
-                                            ) : (() => {
+                                            ) : columnView === "financeiro" ? (() => {
                                               const commRate = getCommissionRate(item.listing_type_id);
                                               const commPerUnit = Math.round(v.price * commRate * 100) / 100;
                                               const netPerUnit = Math.round((v.price - commPerUnit) * 100) / 100;
@@ -801,6 +1172,18 @@ export default function MLProdutos() {
                                                   <TableCell className="py-2 text-right">
                                                     <span className={`text-xs font-bold ${marginColor}`}>{marginPct.toFixed(1)}%</span>
                                                   </TableCell>
+                                                </>
+                                              );
+                                            })() : (() => {
+                                              const commRate = getCommissionRate(item.listing_type_id);
+                                              const commPerUnit = Math.round(v.price * commRate * 100) / 100;
+                                              return (
+                                                <>
+                                                  <TableCell className="py-2 text-left">
+                                                    {listingBadge(item.listing_type_id, commRate)}
+                                                  </TableCell>
+                                                  <TableCell className="py-2 text-xs text-right text-destructive font-mono">−{currencyFmt(commPerUnit)}</TableCell>
+                                                  <TableCell className="py-2" />
                                                 </>
                                               );
                                             })()}
@@ -1301,5 +1684,14 @@ export default function MLProdutos() {
         </Tabs>
       </TabsContent>
     </Tabs>
+
+    <PriceDetailSheet
+      open={priceSheetOpen}
+      onClose={() => setPriceSheetOpen(false)}
+      item={priceSheetItem}
+      suggestion={suggestion}
+      noSuggestion={noSuggestion}
+      loading={loadingSuggestion}
+    />
   );
 }
