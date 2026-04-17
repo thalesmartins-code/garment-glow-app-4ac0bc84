@@ -1,15 +1,4 @@
 export const routeTitles: Record<string, { title: string; subtitle: string }> = {
-  "/sheets": { title: "Dashboard", subtitle: "Monitoramento de performance por marketplace" },
-  "/sheets/vendas-diarias": { title: "Vendas", subtitle: "Acompanhe o desempenho diário de vendas" },
-  "/sheets/importacao": { title: "Importação", subtitle: "Importe dados de vendas via CSV ou Excel" },
-  "/sheets/configuracoes": { title: "Configurações", subtitle: "Configure metas e distribuição de PMT" },
-  "/sheets/sellers": { title: "Sellers", subtitle: "Gerencie sellers e marketplaces ativos" },
-  "/sheets/usuarios": { title: "Usuários", subtitle: "Gerencie usuários e permissões do sistema" },
-  "/perfil": { title: "Perfil", subtitle: "Gerencie suas informações pessoais" },
-  "/sheets/integracoes": {
-    title: "Integrações",
-    subtitle: "Conecte suas contas de marketplaces para sincronizar dados automaticamente",
-  },
   "/api": { title: "Vendas", subtitle: "" },
   "/api/estoque": { title: "Estoque", subtitle: "Gestão de estoque dos seus anúncios" },
   "/api/anuncios": { title: "Anúncios", subtitle: "Catálogo de produtos e anúncios ativos" },
@@ -31,6 +20,7 @@ export const routeTitles: Record<string, { title: string; subtitle: string }> = 
   "/api/precos-custos": { title: "Preços e Custos", subtitle: "Preços de produtos, comissões, custos por venda e calculadora de precificação" },
   "/api/vendas-hora": { title: "Venda / Hora", subtitle: "Análise de vendas por hora do dia" },
   "/api/relatorios": { title: "Relatórios", subtitle: "Ferramentas de análise estratégica e comparativos" },
+  "/api/usuarios": { title: "Usuários", subtitle: "Gerencie usuários e permissões do sistema" },
   "/api/monitoramento": { title: "Monitoramento", subtitle: "Estatísticas de banco de dados e capacidade do sistema" },
 };
 
