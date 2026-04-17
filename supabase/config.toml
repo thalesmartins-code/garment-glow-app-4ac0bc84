@@ -1,8 +1,5 @@
 project_id = "gionpsuunfkkzzjdubfy"
 
-[functions.google-sheets-sync]
-verify_jwt = false
-
 [functions.admin-list-users]
 verify_jwt = false
 
