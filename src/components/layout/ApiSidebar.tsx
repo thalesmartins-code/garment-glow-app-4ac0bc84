@@ -1,6 +1,5 @@
 import {
   Target,
-  ArrowLeft,
   ClipboardList,
   Layers,
   LayoutDashboard,
@@ -18,8 +17,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import {
-  EnvironmentSidebar, type SidebarNavSection } from "./EnvironmentSidebar";
+import { EnvironmentSidebar, type SidebarNavSection } from "./EnvironmentSidebar";
 
 const apiSections: SidebarNavSection[] = [
   {
@@ -73,17 +71,7 @@ const apiSections: SidebarNavSection[] = [
   },
 ];
 
-const backToMainItem = {
-  icon: ArrowLeft,
-  label: "Voltar ao painel",
-  path: "/",
-};
-
 export function ApiSidebar() {
-  return (
-    <EnvironmentSidebar
-      sections={apiSections}
-      footerItem={backToMainItem}
-    />
-  );
+  return <EnvironmentSidebar sections={apiSections} />;
 }
+
