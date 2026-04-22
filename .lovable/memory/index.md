@@ -17,6 +17,7 @@ FloatingChat removed — do not re-add. No Lovable native payments (Stripe/Paddl
 - [Mercado Livre Config](mem://integrations/mercado-livre/config) — Redirect URI setup
 - [Integrations UI logic](mem://features/integrations/ui-logic) — Compact layout without header stores for /api/integracoes
 - [Mercado Livre Auth Flow](mem://integrations/mercado-livre/auth-flow) — OAuth 2.0 PKCE via Edge Functions, auto-capture
+- [Required Secrets](mem://integrations/required-secrets) — Secrets ativos no modo 100% API (ML, Magalu); GOOGLE_* removidos
 - [Magalu Metrics](mem://integrations/magalu/metrics-display) — Edge function 30-day stats stored in localstorage
 - [Magalu Auth Logic](mem://integrations/magalu/auth-logic) — OAuth2 SDK via popup, auth token to edge function
 - [Callback Routing](mem://features/integrations/callback-routing) — OAuthCodeRedirect always routes to /api/integracoes
