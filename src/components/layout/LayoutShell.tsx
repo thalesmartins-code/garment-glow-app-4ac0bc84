@@ -44,7 +44,7 @@ export function LayoutShell({ sidebar, mobileSidebar, showSellerSwitcher = true,
         <Header
           title={title}
           subtitle={subtitle}
-          showSellerSwitcher={!hideSwitcher && showSellerSwitcher}
+          showSellerSwitcher={!hideSwitcher && !hideStores && showSellerSwitcher}
           showMarketplaceSwitcher={showMarketplaceSwitcher}
           showSellerMarketplaceBar={(!hideSwitcher || hideStores) && showSellerMarketplaceBar}
           hideStores={hideStores}
