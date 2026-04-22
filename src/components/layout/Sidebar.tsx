@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import {
   BarChart3,
   TrendingUp,
-  FileUp,
   Users,
   ChevronLeft,
   ChevronRight,
@@ -36,7 +35,6 @@ import {
 const baseNavItems = [
   { icon: BarChart3, label: "Dashboard", path: "/" },
   { icon: TrendingUp, label: "Vendas", path: "/vendas-diarias" },
-  { icon: FileUp, label: "Importação", path: "/importacao" },
   { icon: Users, label: "Sellers", path: "/sellers" },
   { icon: Plug, label: "Integrações", path: "/integracoes" },
 ];

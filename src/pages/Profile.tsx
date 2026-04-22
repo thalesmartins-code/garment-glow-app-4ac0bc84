@@ -4,9 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Loader2, Save } from "lucide-react";
+import { Camera, Loader2, Save, UserCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Profile() {
@@ -73,13 +73,21 @@ export default function Profile() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Meu Perfil</CardTitle>
-          <CardDescription>Atualize suas informações pessoais.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4 pt-1 pb-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <UserCircle className="h-5 w-5 text-primary" />
+            Perfil
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Atualize suas informações pessoais e foto de avatar.
+          </p>
+        </div>
+      </div>
+
+      <Card className="max-w-2xl">
+        <CardContent className="space-y-6 pt-6">
           <div className="flex flex-col items-center gap-3">
             <div className="relative group">
               <Avatar className="w-24 h-24">

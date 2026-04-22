@@ -31,8 +31,6 @@ const MLFinanceiro = React.lazy(() => import("./pages/mercadolivre/MLFinanceiro"
 const MLReputacao = React.lazy(() => import("./pages/mercadolivre/MLReputacao"));
 const MLDevolucoes = React.lazy(() => import("./pages/mercadolivre/MLDevolucoes"));
 const MLPerguntas = React.lazy(() => import("./pages/mercadolivre/MLPerguntas"));
-const MLSincronizacoes = React.lazy(() => import("./pages/mercadolivre/MLSincronizacoes"));
-const MLImportacao = React.lazy(() => import("./pages/mercadolivre/MLImportacao"));
 const MLMetas = React.lazy(() => import("./pages/mercadolivre/MLMetas"));
 const MLPrecosCustos = React.lazy(() => import("./pages/mercadolivre/MLPrecosCustos"));
 const TVModeVendas = React.lazy(() => import("./pages/TVModeVendas"));
@@ -113,14 +111,6 @@ const App = () => (
                       <Route
                         path="/api/perguntas"
                         element={<RoleRoute><ErrorBoundary fallbackTitle="Erro na página de Perguntas"><MLPerguntas /></ErrorBoundary></RoleRoute>}
-                      />
-                      <Route
-                        path="/api/sincronizacoes"
-                        element={<RoleRoute><MLSincronizacoes /></RoleRoute>}
-                      />
-                      <Route
-                        path="/api/importacao"
-                        element={<RoleRoute><MLImportacao /></RoleRoute>}
                       />
                       <Route
                         path="/api/metas"

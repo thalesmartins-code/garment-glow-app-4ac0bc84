@@ -40,7 +40,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Loader2, Shield, UserCheck, Eye, Ban, CheckCircle } from "lucide-react";
+import { Plus, Loader2, Shield, UserCheck, Eye, Ban, CheckCircle, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import { validatePassword } from "@/utils/passwordValidation";
@@ -243,11 +243,20 @@ export default function UserManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex items-start justify-between gap-4 pt-1 pb-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            Gestão de Usuários
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Administre usuários, permissões e visibilidade do menu.
+          </p>
+        </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
+            <Button size="sm" className="h-8 text-sm">
+              <Plus className="h-4 w-4 mr-1.5" />
               Novo Usuário
             </Button>
           </DialogTrigger>

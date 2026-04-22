@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Database, Users, HardDrive, TrendingUp } from "lucide-react";
+import { RefreshCw, Database, Users, HardDrive, TrendingUp, Activity } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -66,11 +66,17 @@ export default function AdminMonitoring() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4 pt-1 pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Monitoramento do Sistema</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            Monitoramento
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Estatísticas de banco de dados, capacidade e organizações ativas.
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
             Última atualização: {lastRefresh.toLocaleString("pt-BR")}
           </p>
         </div>

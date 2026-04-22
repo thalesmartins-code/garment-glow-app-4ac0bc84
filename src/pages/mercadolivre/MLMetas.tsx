@@ -155,14 +155,15 @@ export default function MLMetas() {
   ];
 
   return (
-    <div className="space-y-6 p-4 md:p-6 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4 pt-1 pb-4">
         <div>
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <Target className="w-5 h-5 text-primary" /> Metas
+          <h1 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <Target className="h-5 w-5 text-primary" />
+            Metas
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Defina metas mensais por loja e acompanhe no card de Vendas.
+            Defina metas mensais por loja e acompanhe no dashboard de Vendas.
           </p>
         </div>
         <Button onClick={handleSave} disabled={!selectedStoreId || !hasAnyTarget || saving} className="gap-2">

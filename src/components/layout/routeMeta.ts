@@ -14,8 +14,6 @@ export const routeTitles: Record<string, { title: string; subtitle: string }> = 
     title: "Integrações",
     subtitle: "Conecte suas contas de marketplaces para sincronizar dados automaticamente",
   },
-  "/api/importacao": { title: "Importação", subtitle: "Importe dados de vendas dos marketplaces" },
-  "/api/sincronizacoes": { title: "Sincronizações", subtitle: "Histórico e logs de sincronização" },
   "/api/metas": { title: "Metas", subtitle: "Defina metas mensais por loja e acompanhe no card de Vendas" },
   "/api/precos-custos": { title: "Preços e Custos", subtitle: "Preços de produtos, comissões, custos por venda e calculadora de precificação" },
   "/api/vendas-hora": { title: "Venda / Hora", subtitle: "Análise de vendas por hora do dia" },
