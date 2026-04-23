@@ -43,16 +43,31 @@ export function OrgMembersTab({ orgId, myRole }: { orgId: string; myRole: OrgRol
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data: rows, error } = await supabase
       .from("organization_members")
-      .select("id, user_id, role, joined_at, profiles:user_id(full_name)")
+      .select("id, user_id, role, joined_at")
       .eq("organization_id", orgId);
-    const list: Member[] = (data ?? []).map((m: any) => ({
+    if (error) {
+      toast({ title: "Erro ao carregar membros", description: error.message, variant: "destructive" });
+      setMembers([]);
+      setLoading(false);
+      return;
+    }
+    const ids = (rows ?? []).map((r: any) => r.user_id);
+    let nameMap = new Map<string, string | null>();
+    if (ids.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", ids);
+      nameMap = new Map((profs ?? []).map((p: any) => [p.id, p.full_name ?? null]));
+    }
+    const list: Member[] = (rows ?? []).map((m: any) => ({
       id: m.id,
       user_id: m.user_id,
       role: m.role,
       joined_at: m.joined_at,
-      full_name: m.profiles?.full_name ?? null,
+      full_name: nameMap.get(m.user_id) ?? null,
       email: null,
     }));
     setMembers(list);
