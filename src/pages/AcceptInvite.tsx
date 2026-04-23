@@ -133,7 +133,7 @@ export default function AcceptInvite() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="max-w-sm w-full text-center space-y-4">
-          <AlertCircle className="w-12 h-12 text-amber-500 mx-auto" />
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
           <h1 className="text-xl font-semibold">Conta diferente</h1>
           <p className="text-sm text-muted-foreground">
             Este convite é para <span className="font-medium text-foreground">{invite?.email}</span>, mas você está logado como <span className="font-medium text-foreground">{user?.email}</span>.
