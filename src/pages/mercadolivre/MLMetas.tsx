@@ -84,17 +84,21 @@ function KpiInput({ label, icon, value, onChange, format: fmt, color }: {
 
 export default function MLMetas() {
   const { toast } = useToast();
-  const { stores } = useMLStore();
+  const { stores, resolvedMLUserIds } = useMLStore();
   const { getTarget, saveTarget } = useSettings();
 
-  const [selectedStoreId, setSelectedStoreId] = useState<string>("");
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [kpi, setKpi] = useState({ revenue: 0, orders: 0, ticket: 0, conversion: 0 });
 
-  useEffect(() => {
-    if (!selectedStoreId && stores.length > 0) setSelectedStoreId(stores[0].ml_user_id);
-  }, [stores, selectedStoreId]);
+  // Drive store selection from the global header scope.
+  // When the header has a single store selected, use it. When "Todas as lojas"
+  // is active, fall back to the first available store so the user can still edit.
+  const selectedStoreId = useMemo(() => {
+    if (resolvedMLUserIds.length === 1) return resolvedMLUserIds[0];
+    return stores[0]?.ml_user_id ?? "";
+  }, [resolvedMLUserIds, stores]);
+  const isAllStoresScope = resolvedMLUserIds.length !== 1 && stores.length > 1;
 
   useEffect(() => {
     if (!selectedStoreId) return;
