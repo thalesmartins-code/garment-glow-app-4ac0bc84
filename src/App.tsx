@@ -15,6 +15,7 @@ import { MenuVisibilityProvider } from "@/contexts/MenuVisibilityContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { RoleRoute } from "@/components/auth/RoleRoute";
 import { OAuthCodeRedirect } from "@/components/auth/OAuthCodeRedirect";
+import { PageLoader } from "@/components/ui/PageLoader";
 import Sellers from "./pages/Sellers";
 import UserManagement from "./pages/UserManagement";
 import Profile from "./pages/Profile";
@@ -61,7 +62,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <OAuthCodeRedirect>
-              <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+              <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
