@@ -54,9 +54,9 @@ export default function AcceptInvite() {
     setSubmitting(true);
     const body: any = { token, mode: "accept" };
     if (step === "needs-password") {
-      const errs = validatePassword(password);
-      if (errs.length > 0) {
-        toast({ title: "Senha inválida", description: errs[0], variant: "destructive" });
+      const v = validatePassword(password);
+      if (!v.isValid) {
+        toast({ title: "Senha inválida", description: v.errors[0], variant: "destructive" });
         setSubmitting(false);
         return;
       }
