@@ -17,7 +17,7 @@ import {
   Megaphone,
   Receipt,
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { canAccess } from "@/config/roleAccess";
 import { useMenuVisibility } from "@/contexts/MenuVisibilityContext";
 import { cn } from "@/lib/utils";
@@ -51,7 +51,7 @@ const mlSubItems = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const { role } = useAuth();
+  const { orgRole: role } = useOrganization();
   const { isMenuItemVisible } = useMenuVisibility();
 
   const allNavItems = [...baseNavItems, { icon: ShieldCheck, label: "Usuários", path: "/usuarios" }];

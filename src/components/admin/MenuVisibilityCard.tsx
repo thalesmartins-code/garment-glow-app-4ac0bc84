@@ -12,7 +12,7 @@ import {
   type MenuVisibilityConfig,
 } from "@/contexts/MenuVisibilityContext";
 
-const ROLES: AppRole[] = ["admin", "editor", "viewer"];
+const ROLES: AppRole[] = ["owner", "admin", "member", "viewer"];
 
 export function MenuVisibilityCard() {
   const { config, saveConfig } = useMenuVisibility();

@@ -12,8 +12,10 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSeller } from "@/contexts/SellerContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { MarketplaceSwitcher } from "./MarketplaceSwitcher";
 import { SellerMarketplaceBar } from "./SellerMarketplaceBar";
+import { OrganizationSwitcher } from "./OrganizationSwitcher";
 
 interface HeaderProps {
   title: string;
@@ -27,11 +29,12 @@ interface HeaderProps {
 
 export function Header({ title, subtitle, showSellerSwitcher = true, showMarketplaceSwitcher = false, showSellerMarketplaceBar = false, hideStores = false, onMenuClick }: HeaderProps) {
   const { selectedSeller, setSelectedSeller, activeSellers } = useSeller();
-  const { profile, role, signOut } = useAuth();
+  const { profile, signOut } = useAuth();
+  const { orgRole } = useOrganization();
   const navigate = useNavigate();
 
   const profilePath = "/api/perfil";
-  const settingsPath = "/api/usuarios";
+  const orgPath = "/api/organizacao";
   const displayName = profile?.full_name || "Usuário";
   const initials = displayName
     .split(" ")
@@ -39,7 +42,11 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const roleLabel = role === "admin" ? "Admin" : role === "editor" ? "Editor" : "Viewer";
+  const roleLabel =
+    orgRole === "owner" ? "Owner" :
+    orgRole === "admin" ? "Admin" :
+    orgRole === "member" ? "Member" : "Viewer";
+  const isOrgAdmin = orgRole === "owner" || orgRole === "admin";
 
   return (
     <header className="flex items-center justify-between border-b border-border bg-card px-4 md:px-8 py-3 md:py-4 gap-2">
@@ -49,6 +56,7 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
             <Menu className="h-5 w-5" />
           </Button>
         )}
+        <OrganizationSwitcher />
         {showSellerMarketplaceBar && !hideStores ? (
           <SellerMarketplaceBar showStores />
         ) : null}
@@ -145,13 +153,13 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
               <User className="mr-2 h-4 w-4 text-muted-foreground" />
               Perfil
             </DropdownMenuItem>
-            {role === "admin" && (
-              <DropdownMenuItem onClick={() => navigate(settingsPath)} className="rounded-lg px-2 py-2 text-sm hover:bg-muted focus:bg-muted">
+            {isOrgAdmin && (
+              <DropdownMenuItem onClick={() => navigate(orgPath)} className="rounded-lg px-2 py-2 text-sm hover:bg-muted focus:bg-muted">
                 <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
-                Gestão de Usuários
+                Organização
               </DropdownMenuItem>
             )}
-            {role === "admin" && (
+            {isOrgAdmin && (
               <DropdownMenuItem onClick={() => navigate("/api/monitoramento")} className="rounded-lg px-2 py-2 text-sm hover:bg-muted focus:bg-muted">
                 <Activity className="mr-2 h-4 w-4 text-muted-foreground" />
                 Monitoramento

@@ -11,16 +11,18 @@ import { MLStoreProvider } from "@/contexts/MLStoreContext";
 import { HeaderScopeProvider } from "@/contexts/HeaderScopeContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { MenuVisibilityProvider } from "@/contexts/MenuVisibilityContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { RoleRoute } from "@/components/auth/RoleRoute";
 import { OAuthCodeRedirect } from "@/components/auth/OAuthCodeRedirect";
 import { PageLoader } from "@/components/ui/PageLoader";
 import Sellers from "./pages/Sellers";
-import UserManagement from "./pages/UserManagement";
 import Profile from "./pages/Profile";
 import Integrations from "./pages/Integrations";
 import AdminMonitoring from "./pages/AdminMonitoring";
+import OrgSettings from "./pages/org/OrgSettings";
+import AcceptInvite from "./pages/AcceptInvite";
 import React, { Suspense } from "react";
 
 const MercadoLivre = React.lazy(() => import("./pages/MercadoLivre"));
@@ -55,6 +57,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
+        <OrganizationProvider>
         <MenuVisibilityProvider>
         <SellerProvider>
           <SettingsProvider>
@@ -66,6 +69,7 @@ const App = () => (
                 <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/aceitar-convite" element={<AcceptInvite />} />
                   <Route path="/api/tv" element={<ProtectedRoute />}>
                     <Route index element={<TVModeVendas />} />
                   </Route>
@@ -130,9 +134,10 @@ const App = () => (
                         element={<RoleRoute><Integrations /></RoleRoute>}
                       />
                       <Route
-                        path="/api/usuarios"
-                        element={<RoleRoute><UserManagement /></RoleRoute>}
+                        path="/api/organizacao"
+                        element={<RoleRoute><OrgSettings /></RoleRoute>}
                       />
+                      <Route path="/api/usuarios" element={<Navigate to="/api/organizacao" replace />} />
                       <Route
                         path="/api/monitoramento"
                         element={<RoleRoute><ErrorBoundary fallbackTitle="Erro no Monitoramento"><AdminMonitoring /></ErrorBoundary></RoleRoute>}
@@ -147,6 +152,7 @@ const App = () => (
           </SettingsProvider>
         </SellerProvider>
         </MenuVisibilityProvider>
+        </OrganizationProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

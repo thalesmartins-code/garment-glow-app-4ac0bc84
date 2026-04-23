@@ -4,7 +4,7 @@ import {
   AreaChart, ChevronLeft, ChevronRight, ChevronDown,
   type LucideIcon,
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { canAccess } from "@/config/roleAccess";
 import { useMenuVisibility } from "@/contexts/MenuVisibilityContext";
 import { cn } from "@/lib/utils";
@@ -41,7 +41,7 @@ interface EnvironmentSidebarProps {
 export function EnvironmentSidebar({ sections, items, footerItem }: EnvironmentSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const { role } = useAuth();
+  const { orgRole: role } = useOrganization();
   const { isMenuItemVisible } = useMenuVisibility();
 
   // Normalise: convert flat items to a single unnamed section for backwards compat

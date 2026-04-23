@@ -1,13 +1,13 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
 
-export type AppRole = "admin" | "editor" | "viewer";
+export type AppRole = "owner" | "admin" | "member" | "viewer";
 
 const STORAGE_KEY = "menu-visibility-config";
 
 /** Routes that are HIDDEN per role (empty array = all visible) */
 export type MenuVisibilityConfig = Record<AppRole, string[]>;
 
-const DEFAULT_CONFIG: MenuVisibilityConfig = { admin: [], editor: [], viewer: [] };
+const DEFAULT_CONFIG: MenuVisibilityConfig = { owner: [], admin: [], member: [], viewer: [] };
 
 /** All configurable menu items grouped by section — mirrors ApiSidebar */
 export const MENU_SECTIONS = [

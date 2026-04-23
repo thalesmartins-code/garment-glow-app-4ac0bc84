@@ -35,3 +35,18 @@ verify_jwt = false
 
 [functions.ml-products-aggregated]
 verify_jwt = false
+
+[functions.org-invite-create]
+verify_jwt = true
+
+[functions.org-invite-accept]
+verify_jwt = false
+
+[functions.org-member-update-role]
+verify_jwt = true
+
+[functions.org-member-remove]
+verify_jwt = true
+
+[functions.org-transfer-ownership]
+verify_jwt = true
