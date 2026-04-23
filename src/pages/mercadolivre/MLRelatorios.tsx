@@ -39,56 +39,16 @@ const BRAND_COLORS = {
   cyan: "#06b6d4",
 };
 
-// Typical Brazilian e-commerce state distribution (% of orders)
-const STATE_DIST: { uf: string; name: string; pct: number }[] = [
-  { uf: "SP", name: "São Paulo",            pct: 30.2 },
-  { uf: "RJ", name: "Rio de Janeiro",       pct: 12.8 },
-  { uf: "MG", name: "Minas Gerais",         pct: 10.5 },
-  { uf: "RS", name: "Rio Grande do Sul",    pct:  6.4 },
-  { uf: "PR", name: "Paraná",               pct:  6.1 },
-  { uf: "BA", name: "Bahia",                pct:  4.9 },
-  { uf: "SC", name: "Santa Catarina",       pct:  4.3 },
-  { uf: "GO", name: "Goiás",                pct:  3.1 },
-  { uf: "PE", name: "Pernambuco",           pct:  2.9 },
-  { uf: "CE", name: "Ceará",                pct:  2.7 },
-  { uf: "DF", name: "Distrito Federal",     pct:  2.2 },
-  { uf: "ES", name: "Espírito Santo",       pct:  1.8 },
-  { uf: "MT", name: "Mato Grosso",          pct:  1.3 },
-  { uf: "PA", name: "Pará",                 pct:  1.2 },
-  { uf: "MA", name: "Maranhão",             pct:  0.9 },
-  { uf: "AM", name: "Amazonas",             pct:  0.7 },
-  { uf: "MS", name: "Mato Grosso do Sul",   pct:  0.7 },
-  { uf: "PI", name: "Piauí",               pct:  0.5 },
-  { uf: "RN", name: "Rio Grande do Norte",  pct:  0.5 },
-  { uf: "PB", name: "Paraíba",             pct:  0.5 },
-  { uf: "AL", name: "Alagoas",              pct:  0.4 },
-  { uf: "SE", name: "Sergipe",              pct:  0.4 },
-  { uf: "TO", name: "Tocantins",            pct:  0.3 },
-  { uf: "RO", name: "Rondônia",            pct:  0.3 },
-  { uf: "AC", name: "Acre",                pct:  0.1 },
-  { uf: "AP", name: "Amapá",              pct:  0.1 },
-  { uf: "RR", name: "Roraima",             pct:  0.1 },
-];
-
-// Typical ML Brazil payment distribution
-const PAYMENT_DIST = [
-  { name: "Cartão parcelado", pct: 38.0, color: BRAND_COLORS.blue },
-  { name: "Cartão à vista",   pct: 22.0, color: BRAND_COLORS.cyan },
-  { name: "Pix",              pct: 23.0, color: BRAND_COLORS.green },
-  { name: "Boleto",           pct: 13.0, color: BRAND_COLORS.orange },
-  { name: "Outros",           pct:  4.0, color: BRAND_COLORS.purple },
-];
-
-// ─── Simulated note ──────────────────────────────────────────────────────────
-
-function SimNote({ text }: { text: string }) {
-  return (
-    <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-      <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-      <span>{text}</span>
-    </div>
-  );
-}
+// Fallback UF → state name map (used when API didn't return state.name for some reason)
+const UF_NAME_FALLBACK: Record<string, string> = {
+  AC: "Acre", AL: "Alagoas", AP: "Amapá", AM: "Amazonas", BA: "Bahia",
+  CE: "Ceará", DF: "Distrito Federal", ES: "Espírito Santo", GO: "Goiás",
+  MA: "Maranhão", MT: "Mato Grosso", MS: "Mato Grosso do Sul", MG: "Minas Gerais",
+  PA: "Pará", PB: "Paraíba", PR: "Paraná", PE: "Pernambuco", PI: "Piauí",
+  RJ: "Rio de Janeiro", RN: "Rio Grande do Norte", RS: "Rio Grande do Sul",
+  RO: "Rondônia", RR: "Roraima", SC: "Santa Catarina", SP: "São Paulo",
+  SE: "Sergipe", TO: "Tocantins",
+};
 
 // ─── Empty state ─────────────────────────────────────────────────────────────
 
