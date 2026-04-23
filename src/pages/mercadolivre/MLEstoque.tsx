@@ -889,7 +889,38 @@ export default function MLEstoque() {
   // hasToken: null = ainda carregando, false = sem token, true = conectado
   const isConnected = hasToken !== false;
   const [coveragePeriod, setCoveragePeriod] = useState<CoveragePeriod>(30);
-  const { coverageMap, stats } = useMLCoverage(items, coveragePeriod);
+  const [thresholds, setThresholds] = useState<CoverageThresholds>(() => {
+    if (typeof window === "undefined") return defaultThresholds(30);
+    try {
+      const raw = window.localStorage.getItem("ml_coverage_thresholds");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (
+          parsed &&
+          Number.isInteger(parsed.criticoMax) &&
+          Number.isInteger(parsed.alertaMax) &&
+          parsed.criticoMax >= 1 &&
+          parsed.alertaMax <= 365 &&
+          parsed.criticoMax < parsed.alertaMax
+        ) {
+          return { criticoMax: parsed.criticoMax, alertaMax: parsed.alertaMax };
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    return defaultThresholds(30);
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("ml_coverage_thresholds", JSON.stringify(thresholds));
+    } catch {
+      /* ignore */
+    }
+  }, [thresholds]);
+
+  const { coverageMap, stats } = useMLCoverage(items, coveragePeriod, thresholds);
 
   // Filter / sort state
   const [search, setSearch] = useState("");
