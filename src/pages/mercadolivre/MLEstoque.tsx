@@ -1066,14 +1066,13 @@ export default function MLEstoque() {
             </TabsList>
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={refresh}
               disabled={isLoading}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              title="Atualizar"
-              aria-label="Atualizar"
+              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+              Atualizar
             </Button>
           </div>
         </div>
