@@ -18,32 +18,38 @@ interface Props {
 
 export function CoverageSettingsPopover({ period, thresholds, onChange }: Props) {
   const [open, setOpen] = useState(false);
+  const [ruptura, setRuptura] = useState(String(thresholds.rupturaMax));
   const [critico, setCritico] = useState(String(thresholds.criticoMax));
   const [alerta, setAlerta] = useState(String(thresholds.alertaMax));
 
   // Re-sync local form state whenever the popover opens or external thresholds change
   useEffect(() => {
+    setRuptura(String(thresholds.rupturaMax));
     setCritico(String(thresholds.criticoMax));
     setAlerta(String(thresholds.alertaMax));
   }, [thresholds, open]);
 
+  const rupturaNum = Number(ruptura);
   const criticoNum = Number(critico);
   const alertaNum = Number(alerta);
   const valid =
+    Number.isInteger(rupturaNum) &&
     Number.isInteger(criticoNum) &&
     Number.isInteger(alertaNum) &&
-    criticoNum >= 1 &&
+    rupturaNum >= 0 &&
+    criticoNum > rupturaNum &&
     alertaNum <= 365 &&
     criticoNum < alertaNum;
 
   const handleSave = () => {
     if (!valid) return;
-    onChange({ criticoMax: criticoNum, alertaMax: alertaNum });
+    onChange({ rupturaMax: rupturaNum, criticoMax: criticoNum, alertaMax: alertaNum });
     setOpen(false);
   };
 
   const handleReset = () => {
     const def = defaultThresholds(period);
+    setRuptura(String(def.rupturaMax));
     setCritico(String(def.criticoMax));
     setAlerta(String(def.alertaMax));
     onChange(def);
@@ -74,14 +80,33 @@ export function CoverageSettingsPopover({ period, thresholds, onChange }: Props)
           </div>
 
           <div className="space-y-2">
-            {/* Ruptura — fixed */}
-            <div className="flex items-center justify-between rounded-md bg-muted/40 px-2.5 py-1.5">
-              <div className="flex items-center gap-2">
+            {/* Ruptura */}
+            <div className="flex items-center justify-between gap-2">
+              <Label
+                htmlFor="ruptura-max"
+                className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+              >
                 <PackageX className="w-3.5 h-3.5 text-destructive" />
-                <span className="text-xs font-medium">Ruptura</span>
+                Ruptura
+              </Label>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-muted-foreground">abaixo de</span>
+                <Input
+                  id="ruptura-max"
+                  type="number"
+                  min={0}
+                  max={363}
+                  value={ruptura}
+                  onChange={(e) => setRuptura(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="h-7 w-14 text-xs text-center px-1 tabular-nums"
+                />
+                <span className="text-[11px] text-muted-foreground">dias</span>
               </div>
-              <span className="text-[11px] text-muted-foreground">Estoque = 0</span>
             </div>
+            <p className="text-[10px] text-muted-foreground -mt-1 pl-5">
+              Estoque zerado é sempre Ruptura. Use 0 para considerar apenas zerados.
+            </p>
 
             {/* Crítico */}
             <div className="flex items-center justify-between gap-2">
@@ -147,7 +172,7 @@ export function CoverageSettingsPopover({ period, thresholds, onChange }: Props)
 
           {!valid && (
             <p className="text-[11px] text-destructive">
-              Crítico deve ser menor que Alerta (1–365).
+              Use valores crescentes: Ruptura &lt; Crítico &lt; Alerta (0–365).
             </p>
           )}
 
