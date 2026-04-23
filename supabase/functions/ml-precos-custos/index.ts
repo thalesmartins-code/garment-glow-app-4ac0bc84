@@ -29,11 +29,19 @@ async function getUserAndToken(
   if (claimsErr || !claimsData?.user) return null;
   const { data: tokenRow, error: tokenErr } = await supabase
     .from("ml_tokens")
-    .select("access_token")
-    .eq("user_id", claimsData.user.id)
+    .select("access_token, organization_id")
     .eq("ml_user_id", mlUserId)
-    .single();
+    .not("access_token", "is", null)
+    .limit(1)
+    .maybeSingle();
   if (tokenErr || !tokenRow?.access_token) return null;
+  if (tokenRow.organization_id) {
+    const { data: isMember } = await supabase.rpc("is_org_member", {
+      _user_id: claimsData.user.id,
+      _org_id: tokenRow.organization_id,
+    });
+    if (!isMember) return null;
+  }
   return tokenRow.access_token as string;
 }
 
