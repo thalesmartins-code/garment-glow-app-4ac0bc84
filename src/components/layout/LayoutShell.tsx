@@ -4,6 +4,8 @@ import { Header } from "./Header";
 import { getRouteMeta } from "./routeMeta";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useOrganization } from "@/contexts/OrganizationContext";
+import { PageLoader } from "@/components/ui/PageLoader";
 
 interface LayoutShellProps {
   sidebar: ReactNode;
@@ -23,6 +25,11 @@ export function LayoutShell({ sidebar, mobileSidebar, showSellerSwitcher = true,
   const hideStores = HIDE_STORES_ROUTES.includes(location.pathname);
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { loading: orgLoading } = useOrganization();
+
+  if (orgLoading) {
+    return <PageLoader />;
+  }
 
   return (
     <div className="flex h-screen bg-background">
