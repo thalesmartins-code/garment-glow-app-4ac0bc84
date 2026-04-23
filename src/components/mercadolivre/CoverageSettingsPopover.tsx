@@ -65,9 +65,14 @@ export function CoverageSettingsPopover({ period, thresholds, onChange }: Props)
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 gap-1.5">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          title="Configurar cobertura"
+          aria-label="Configurar cobertura"
+        >
           <Settings2 className="w-3.5 h-3.5" />
-          Cobertura
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-72 p-3">

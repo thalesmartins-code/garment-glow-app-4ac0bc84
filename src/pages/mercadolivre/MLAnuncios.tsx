@@ -154,14 +154,15 @@ export default function MLAnuncios() {
               </Tooltip>
             )}
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              size="icon"
               onClick={sync}
               disabled={syncing || !connected}
-              className="h-8 gap-1.5"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              title={syncing ? "Sincronizando..." : "Sincronizar"}
+              aria-label="Sincronizar"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
-              {syncing ? "Sincronizando..." : "Sincronizar"}
             </Button>
           </div>
         </MLPageHeader>
