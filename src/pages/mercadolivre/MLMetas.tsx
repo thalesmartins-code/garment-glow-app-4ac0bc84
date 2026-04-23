@@ -168,7 +168,7 @@ export default function MLMetas() {
               Acompanhe no dashboard de Vendas
             </p>
           </div>
-          <Button onClick={handleSave} disabled={!selectedStoreId || !hasAnyTarget || saving} className="gap-2">
+          <Button onClick={handleSave} disabled={!selectedStoreId || isAllStoresScope || !hasAnyTarget || saving} className="gap-2">
             <Save className="w-4 h-4" /> {saving ? "Salvando..." : "Salvar"}
           </Button>
         </div>
