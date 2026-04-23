@@ -10,7 +10,7 @@ import { Camera, Loader2, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Profile() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
 
   const [fullName, setFullName] = useState(profile?.full_name ?? "");
@@ -51,6 +51,7 @@ export default function Profile() {
       .from("avatars")
       .createSignedUrl(filePath, 3600);
     setAvatarUrl(signedData?.signedUrl ?? "");
+    await refreshProfile();
     toast({ title: "Foto atualizada" });
     setUploading(false);
   };
@@ -67,6 +68,7 @@ export default function Profile() {
     if (error) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     } else {
+      await refreshProfile();
       toast({ title: "Perfil atualizado com sucesso" });
     }
     setSaving(false);
