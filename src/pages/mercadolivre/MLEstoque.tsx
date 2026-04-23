@@ -1120,7 +1120,7 @@ export default function MLEstoque() {
             title="OK"
             value={numFmt(filteredStats.ok)}
             icon={<CheckCircle2 className="w-4 h-4" />}
-            variant="minimal"
+            variant={filteredStats.ok > 0 ? "success" : "minimal"}
             size="compact"
             iconClassName="bg-success/10 text-success"
           />
@@ -1163,10 +1163,28 @@ export default function MLEstoque() {
                     <SelectItem value="all">Todas coberturas</SelectItem>
                     {(Object.keys(COVERAGE_CLASS_LABELS) as CoverageClass[]).map((cls) => {
                       const Icon = COVERAGE_CLASS_ICONS[cls];
+                      const color = COVERAGE_COLORS[cls];
                       return (
-                        <SelectItem key={cls} value={cls}>
+                        <SelectItem
+                          key={cls}
+                          value={cls}
+                          className="focus:bg-transparent"
+                          style={{ ["--cov-color" as string]: color }}
+                          onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLElement).style.color = color;
+                          }}
+                          onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLElement).style.color = "";
+                          }}
+                          onFocus={(e) => {
+                            (e.currentTarget as HTMLElement).style.color = color;
+                          }}
+                          onBlur={(e) => {
+                            (e.currentTarget as HTMLElement).style.color = "";
+                          }}
+                        >
                           <span className="flex items-center gap-2">
-                            <Icon className="w-3.5 h-3.5" style={{ color: COVERAGE_COLORS[cls] }} />
+                            <Icon className="w-3.5 h-3.5" style={{ color }} />
                             {COVERAGE_CLASS_LABELS[cls]}
                           </span>
                         </SelectItem>
