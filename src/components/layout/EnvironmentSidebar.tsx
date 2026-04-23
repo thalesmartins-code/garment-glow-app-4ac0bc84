@@ -289,9 +289,11 @@ export function EnvironmentSidebar({ sections, items, footerItem }: EnvironmentS
           const visibleItems = section.items
             .map((item) => {
               if (!item.children) return item;
-              // Filter children by menu visibility config
+              // Filter children by menu visibility config AND viewer permissions
               const visibleChildren = item.children.filter(
-                (child) => isMenuItemVisible(child.path, role)
+                (child) =>
+                  isMenuItemVisible(child.path, role) &&
+                  canAccessWithViewer(role, child.path, viewerPermissions)
               );
               return { ...item, children: visibleChildren };
             })
