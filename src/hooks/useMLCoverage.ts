@@ -90,7 +90,6 @@ export function useMLCoverage(
       const { data, error } = await supabase
         .from("ml_product_daily_cache")
         .select("item_id, date, qty_sold")
-        .eq("user_id", user.id)
         .gte("date", from)
         .order("date", { ascending: false });
       if (!error && data) setRawData(data);
