@@ -184,14 +184,17 @@ export default function MLMetas() {
               {stores.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic">Nenhuma loja conectada</p>
               ) : (
-                <Select value={selectedStoreId} onValueChange={setSelectedStoreId}>
-                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>
-                    {stores.map((s) => (
-                      <SelectItem key={s.ml_user_id} value={s.ml_user_id}>{s.displayName}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="h-10 px-3 rounded-md border border-input bg-muted/40 flex items-center text-sm">
+                  {isAllStoresScope ? (
+                    <span className="text-muted-foreground italic">
+                      Selecione uma loja no cabeçalho
+                    </span>
+                  ) : (
+                    <span className="font-medium truncate">
+                      {selectedStore?.displayName ?? "—"}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
             <div className="space-y-1.5">
