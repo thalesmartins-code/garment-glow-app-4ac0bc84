@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMLInventory } from "@/contexts/MLInventoryContext";
-import { useMLCoverage, COVERAGE_PERIODS, COVERAGE_CLASS_LABELS } from "@/hooks/useMLCoverage";
-import type { CoveragePeriod, CoverageClass, CoverageData } from "@/hooks/useMLCoverage";
+import { useMLCoverage, COVERAGE_PERIODS, COVERAGE_CLASS_LABELS, defaultThresholds } from "@/hooks/useMLCoverage";
+import type { CoveragePeriod, CoverageClass, CoverageData, CoverageThresholds } from "@/hooks/useMLCoverage";
 import type { ProductItem } from "@/contexts/MLInventoryContext";
 import { CoverageAlerts } from "@/components/mercadolivre/CoverageAlerts";
+import { CoverageSettingsPopover } from "@/components/mercadolivre/CoverageSettingsPopover";
 import { MLPageHeader } from "@/components/mercadolivre/MLPageHeader";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
