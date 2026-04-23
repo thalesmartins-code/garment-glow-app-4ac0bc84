@@ -1172,15 +1172,19 @@ export default function MLEstoque() {
                           style={{ ["--cov-color" as string]: color }}
                           onMouseEnter={(e) => {
                             (e.currentTarget as HTMLElement).style.color = color;
+                            (e.currentTarget as HTMLElement).style.backgroundColor = `${color}1f`;
                           }}
                           onMouseLeave={(e) => {
                             (e.currentTarget as HTMLElement).style.color = "";
+                            (e.currentTarget as HTMLElement).style.backgroundColor = "";
                           }}
                           onFocus={(e) => {
                             (e.currentTarget as HTMLElement).style.color = color;
+                            (e.currentTarget as HTMLElement).style.backgroundColor = `${color}1f`;
                           }}
                           onBlur={(e) => {
                             (e.currentTarget as HTMLElement).style.color = "";
+                            (e.currentTarget as HTMLElement).style.backgroundColor = "";
                           }}
                         >
                           <span className="flex items-center gap-2">
