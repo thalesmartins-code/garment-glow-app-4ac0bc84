@@ -364,6 +364,22 @@ serve(async (req) => {
       { date: string; uf: string; state_name: string; qty_orders: number; revenue: number; approved_revenue: number }
     > = {};
 
+    // Pre-fetch shipment receiver states (orders/search does not include them).
+    const shipmentIdsToFetch: string[] = [];
+    const seenShipmentIds = new Set<string>();
+    for (const order of orders) {
+      const dateCreated = order.date_created || null;
+      const date = dateCreated ? toBRT(dateCreated).date : null;
+      if (!date || date < brtDateFrom || date > brtDateTo) continue;
+      const sid = order.shipping?.id;
+      if (sid && !seenShipmentIds.has(String(sid))) {
+        seenShipmentIds.add(String(sid));
+        shipmentIdsToFetch.push(String(sid));
+      }
+    }
+    const shipmentStates = await fetchShipmentStates(shipmentIdsToFetch, access_token);
+    console.log(`Shipments: fetched state for ${shipmentStates.size}/${shipmentIdsToFetch.length}`);
+
     for (const order of orders) {
       const amount = Number(order.total_amount || 0);
       const dateCreated = order.date_created || null;
