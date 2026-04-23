@@ -36,6 +36,16 @@ export interface ProductDailyRow {
   ml_user_id?: string;
 }
 
+export interface StateDailyRow {
+  date: string;
+  uf: string;
+  state_name: string;
+  qty_orders: number;
+  revenue: number;
+  approved_revenue: number;
+  ml_user_id?: string;
+}
+
 export interface MLUserCacheRow {
   ml_user_id: number;
   nickname: string | null;
