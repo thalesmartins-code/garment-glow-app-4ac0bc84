@@ -617,7 +617,8 @@ serve(async (req) => {
           unique_visits: data.unique_visits,
           unique_buyers: data.unique_buyers,
           synced_at: syncedAt,
-          ...(seller_id ? { seller_id } : {}),
+          ...(effectiveSellerId ? { seller_id: effectiveSellerId } : {}),
+          ...(organization_id ? { organization_id } : {}),
         }));
 
         const hourlyRows = Object.values(hourlySales).map((data) => ({
@@ -630,7 +631,8 @@ serve(async (req) => {
           qty_orders: data.qty,
           units_sold: data.units_sold,
           synced_at: syncedAt,
-          ...(seller_id ? { seller_id } : {}),
+          ...(effectiveSellerId ? { seller_id: effectiveSellerId } : {}),
+          ...(organization_id ? { organization_id } : {}),
         }));
 
         // Paraleliza upserts de daily + hourly + user simultaneamente
