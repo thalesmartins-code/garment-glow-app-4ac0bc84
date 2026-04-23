@@ -434,7 +434,7 @@ export default function MercadoLivre() {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="flex items-center gap-3 px-3 py-1.5 rounded-md border border-border/50 bg-muted/30 text-xs text-muted-foreground"
+                  className="flex items-center gap-3 px-3 py-1.5 mb-3 rounded-md border border-border/50 bg-muted/30 text-xs text-muted-foreground"
                 >
                   <Loader2 className="h-3 w-3 animate-spin shrink-0" />
                   <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
