@@ -156,16 +156,18 @@ export default function MLMetas() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 pt-4 pb-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Metas</h1>
-          <p className="text-[11px] text-muted-foreground/60 mt-0.5">
-            Acompanhe no dashboard de Vendas
-          </p>
+      <div className="sticky -top-4 md:-top-6 lg:-top-8 z-20 -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pb-4 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">Metas</h1>
+            <p className="text-[11px] text-muted-foreground/60 mt-0.5">
+              Acompanhe no dashboard de Vendas
+            </p>
+          </div>
+          <Button onClick={handleSave} disabled={!selectedStoreId || !hasAnyTarget || saving} className="gap-2">
+            <Save className="w-4 h-4" /> {saving ? "Salvando..." : "Salvar"}
+          </Button>
         </div>
-        <Button onClick={handleSave} disabled={!selectedStoreId || !hasAnyTarget || saving} className="gap-2">
-          <Save className="w-4 h-4" /> {saving ? "Salvando..." : "Salvar"}
-        </Button>
       </div>
 
       <Card>
