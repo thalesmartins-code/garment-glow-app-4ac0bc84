@@ -9,7 +9,6 @@ import { useMLStateQuery } from "@/hooks/useMLQueries";
 import { KPICard } from "@/components/dashboard/KPICard";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell,
   AreaChart, Area,
 } from "recharts";
 
