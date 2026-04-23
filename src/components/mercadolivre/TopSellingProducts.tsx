@@ -25,7 +25,6 @@ const MP_BADGE: Record<string, { label: string; cls: string }> = {
   "mercado-livre": { label: "ML", cls: "border-yellow-500 text-yellow-600" },
   amazon: { label: "Amazon", cls: "border-orange-500 text-orange-600" },
   shopee: { label: "Shopee", cls: "border-red-500 text-red-600" },
-  magalu: { label: "Magalu", cls: "border-blue-500 text-blue-600" },
 };
 
 export function TopSellingProducts({ products, loading, showOrigin }: Props) {

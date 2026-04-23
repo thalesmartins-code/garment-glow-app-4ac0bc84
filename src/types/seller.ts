@@ -25,7 +25,6 @@ export const ALL_MARKETPLACES = [
   { id: "ml",          name: "Mercado Livre" },
   { id: "amz",         name: "Amazon" },
   { id: "shopee",      name: "Shopee" },
-  { id: "magalu",      name: "Magazine Luiza" },
   { id: "americanas",  name: "Americanas" },
   { id: "casasbahia",  name: "Casas Bahia" },
   { id: "dafiti",      name: "Dafiti" },

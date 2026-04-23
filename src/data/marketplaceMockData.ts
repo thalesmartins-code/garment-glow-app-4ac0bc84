@@ -134,23 +134,6 @@ const PRODUCT_THUMBNAILS: Record<string, string[]> = {
     "https://cdn.dummyjson.com/product-images/kitchen-accessories/glass/thumbnail.webp", // Garrafa
     "https://cdn.dummyjson.com/product-images/beauty/essence-mascara-lash-princess/thumbnail.webp", // Escova Dental
   ],
-  magalu: [
-    "https://cdn.dummyjson.com/product-images/tablets/samsung-galaxy-tab-s8-plus-grey/thumbnail.webp", // Smart TV LG
-    "https://cdn.dummyjson.com/product-images/kitchen-accessories/electric-stove/thumbnail.webp", // Geladeira
-    "https://cdn.dummyjson.com/product-images/kitchen-accessories/boxed-blender/thumbnail.webp", // Máquina Lavar
-    "https://cdn.dummyjson.com/product-images/home-decoration/plant-pot/thumbnail.webp", // Ar Condicionado
-    "https://cdn.dummyjson.com/product-images/laptops/apple-macbook-pro-14-inch-space-grey/thumbnail.webp", // Notebook
-    "https://cdn.dummyjson.com/product-images/smartphones/iphone-13-pro/thumbnail.webp", // iPhone 15
-    "https://cdn.dummyjson.com/product-images/mobile-accessories/apple-homepod-mini-cosmic-grey/thumbnail.webp", // Aspirador Robô
-    "https://cdn.dummyjson.com/product-images/kitchen-accessories/black-aluminium-cup/thumbnail.webp", // Cafeteira
-    "https://cdn.dummyjson.com/product-images/kitchen-accessories/carbon-steel-wok/thumbnail.webp", // Air Fryer
-    "https://cdn.dummyjson.com/product-images/kitchen-accessories/fine-mesh-strainer/thumbnail.webp", // Micro-ondas
-    "https://cdn.dummyjson.com/product-images/kitchen-accessories/hand-blender/thumbnail.webp", // Processador
-    "https://cdn.dummyjson.com/product-images/home-decoration/house-showpiece-plant/thumbnail.webp", // Ventilador
-    "https://cdn.dummyjson.com/product-images/kitchen-accessories/electric-stove/thumbnail.webp", // Fogão
-    "https://cdn.dummyjson.com/product-images/kitchen-accessories/boxed-blender/thumbnail.webp", // Batedeira
-    "https://cdn.dummyjson.com/product-images/kitchen-accessories/glass/thumbnail.webp", // Purificador
-  ],
 };
 
 function generateProducts(seed: number, marketplace: string, count: number, ticketRange: [number, number]): ProductSalesRow[] {
@@ -158,7 +141,6 @@ function generateProducts(seed: number, marketplace: string, count: number, tick
   const prefixes: Record<string, string[]> = {
     amazon: ["Echo Dot 5ª Geração", "Kindle Paperwhite 11ª", "Fire TV Stick 4K", "Ring Video Doorbell", "AirPods Pro 2", "Samsung Galaxy Buds2", "JBL Flip 6", "Logitech MX Master 3S", "SSD Kingston 480GB", "Carregador Anker 65W", "Mouse Gamer Razer", "Teclado Mecânico HyperX", "Webcam Logitech C920", "HD Externo Seagate 2TB", "Fone Bluetooth QCY"],
     shopee: ["Capa iPhone 15 Silicone", "Película 9D Samsung A54", "Fone Bluetooth i12 TWS", "Carregador Turbo 30W", "Ring Light 26cm Tripé", "Suporte Celular Carro", "Cabo USB-C 2m Nylon", "Mouse Sem Fio 2.4GHz", "Fita LED RGB 5m WiFi", "Organizador Maquiagem Acrílico", "Camiseta Dry Fit Masculina", "Meia Invisível Kit 6 Pares", "Relógio Digital LED", "Garrafa Térmica 500ml", "Escova Dental Elétrica USB"],
-    magalu: ["Smart TV LG 55\" 4K", "Geladeira Brastemp Frost Free", "Máquina Lavar Electrolux 12kg", "Ar Condicionado Split 12000 BTU", "Notebook Lenovo IdeaPad", "iPhone 15 128GB", "Aspirador Robô Xiaomi", "Cafeteira Nespresso Vertuo", "Fritadeira Air Fryer Mondial 5L", "Micro-ondas Panasonic 32L", "Processador Philips Walita", "Ventilador Arno Turbo", "Fogão Consul 4 Bocas", "Batedeira Planetária KitchenAid", "Purificador Água Electrolux"],
   };
   const thumbnails = PRODUCT_THUMBNAILS[marketplace] || [];
   const items = prefixes[marketplace] || prefixes.amazon;
@@ -218,7 +200,6 @@ const MP_CONFIG: Record<string, { seed: number; orders: [number, number]; ticket
   "mercado-livre": { seed: 7, orders: [25, 70], ticket: [60, 200], inventoryCount: 30 },
   amazon:     { seed: 42,  orders: [15, 45], ticket: [80, 250],  inventoryCount: 25 },
   shopee:     { seed: 137, orders: [30, 80], ticket: [40, 120],  inventoryCount: 20 },
-  magalu:     { seed: 256, orders: [10, 30], ticket: [100, 350], inventoryCount: 15 },
   netshoes:   { seed: 311, orders: [5, 20],  ticket: [90, 280],  inventoryCount: 10 },
   dafiti:     { seed: 389, orders: [8, 25],  ticket: [70, 220],  inventoryCount: 12 },
   americanas: { seed: 444, orders: [12, 35], ticket: [60, 200],  inventoryCount: 15 },
@@ -252,8 +233,8 @@ export function getMarketplaceInventory(marketplaceId: string): { items: MockInv
   return generateInventoryItems(cfg.seed, marketplaceId, cfg.inventoryCount, cfg.ticket);
 }
 
-// Aggregate mock data from Amazon + Shopee + Magalu
-const MOCK_MARKETPLACE_IDS = ["mercado-livre", "amazon", "shopee", "magalu", "netshoes", "dafiti", "americanas", "casasbahia"];
+// Aggregate mock data across supported marketplaces
+const MOCK_MARKETPLACE_IDS = ["mercado-livre", "amazon", "shopee", "netshoes", "dafiti", "americanas", "casasbahia"];
 
 export function getAllMarketplaceMockDaily(daysBack = 30): DailyBreakdown[] {
   const allData = MOCK_MARKETPLACE_IDS.map((id) => getMarketplaceDailyData(id, daysBack));
@@ -319,7 +300,6 @@ export function getMarketplaceName(id: string): string {
     "mercado-livre": "Mercado Livre",
     amazon: "Amazon",
     shopee: "Shopee",
-    magalu: "Magazine Luiza",
   };
   return names[id] || id;
 }

@@ -278,7 +278,7 @@ export default function MercadoLivre() {
       const mlTagged = filteredTopProducts.map(p => ({ ...p, _marketplace: "mercado-livre" }));
       const mockTagged = mockProducts.map(p => {
         const prefix = p.item_id?.substring(0, 3)?.toLowerCase();
-        const mp = prefix === "ama" ? "amazon" : prefix === "sho" ? "shopee" : prefix === "mag" ? "magalu" : "other";
+        const mp = prefix === "ama" ? "amazon" : prefix === "sho" ? "shopee" : "other";
         return { ...p, _marketplace: mp };
       });
       return [...mlTagged, ...mockTagged].sort((a, b) => b.revenue - a.revenue).slice(0, 15);

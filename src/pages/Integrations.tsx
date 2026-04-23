@@ -14,7 +14,6 @@ import { KPICard } from "@/components/dashboard/KPICard";
 import { Seller } from "@/types/seller";
 import { supabase } from "@/integrations/supabase/client";
 import { getMarketplaceBrand, SELLER_TO_MP_ID } from "@/config/marketplaceConfig";
-import createMagaluClient from "@magalucloud/sdk-idmagalu-js";
 import {
   Dialog,
   DialogContent,
@@ -64,16 +63,6 @@ const MARKETPLACE_INTEGRATIONS: MarketplaceIntegration[] = [
     authType: "oauth",
     docsUrl: "https://developers.mercadolivre.com.br",
     features: ["Pedidos", "Vendas", "Métricas", "Anúncios"],
-  },
-  {
-    id: "magalu",
-    name: "Magazine Luiza",
-    logo: "🔵",
-    description: "Conecte via ID Magalu (OAuth2) para importar pedidos e vendas do Magalu Marketplace.",
-    status: "disconnected",
-    authType: "oauth",
-    docsUrl: "https://docs.magalu.cloud",
-    features: ["Pedidos", "Vendas", "Entregas", "Métricas"],
   },
   {
     id: "amz",
@@ -191,18 +180,6 @@ export default function Integrations() {
   });
   const [mlUser, setMlUser] = useState<{ nickname: string } | null>(() => {
     const saved = localStorage.getItem("ml_user");
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [magaluMetrics, setMagaluMetrics] = useState<{
-    total_revenue: number;
-    approved_revenue: number;
-    total_orders: number;
-    cancelled_orders: number;
-    shipped_orders: number;
-    avg_ticket: number;
-    period: string;
-  } | null>(() => {
-    const saved = localStorage.getItem("magalu_metrics");
     return saved ? JSON.parse(saved) : null;
   });
 
@@ -405,63 +382,6 @@ export default function Integrations() {
     }
 
 
-    if (integration.id === "magalu") {
-      // Magalu OAuth2 PKCE via SDK popup
-      setConnecting(true);
-      try {
-        const magaluClient = await createMagaluClient({
-          client_id: "BhbJFTFdYejGKGzhxIvv36p4YCeikcjvF5XGCz6y-4k",
-          redirect_uri: "https://analytics.alcavie.com/integracoes",
-        });
-
-        const response: Record<string, unknown> = await magaluClient.loginWithPopup() as unknown as Record<string, unknown>;
-
-        if (response?.access_token) {
-          localStorage.setItem("magalu_tokens", JSON.stringify({
-            access_token: response.access_token,
-            refresh_token: response.refresh_token,
-            expires_at: Date.now() + (Number(response.expires_in) || 1800) * 1000,
-            id_token: response.id_token,
-          }));
-
-          // Test connection with the obtained token
-          const { data, error } = await supabase.functions.invoke("magalu-integration", {
-            body: { action: "test_connection", access_token: response.access_token },
-          });
-
-          if (error || !data?.success) {
-            toast({
-              title: "Autenticação OK, mas falha ao testar API",
-              description: data?.error || error?.message || "Token válido, mas a API retornou erro.",
-              variant: "destructive",
-            });
-          }
-
-          updateIntegrationStatus("magalu", "connected");
-          toast({
-            title: "Magazine Luiza conectada!",
-            description: "Autenticação via ID Magalu realizada com sucesso.",
-          });
-        } else {
-          toast({
-            title: "Login cancelado",
-            description: "O login com ID Magalu foi cancelado ou falhou.",
-            variant: "destructive",
-          });
-        }
-      } catch (err: any) {
-        console.error("Magalu OAuth error:", err);
-        toast({
-          title: "Erro ao conectar Magazine Luiza",
-          description: err?.message || "Falha na autenticação via ID Magalu.",
-          variant: "destructive",
-        });
-      } finally {
-        setConnecting(false);
-      }
-      return;
-    }
-
     // Other marketplaces: show dialog
     setConnectDialog(integration);
     setApiKeyInput("");
@@ -484,11 +404,6 @@ export default function Integrations() {
       localStorage.removeItem("ml_user");
       setMlMetrics(null);
       setMlUser(null);
-    }
-    if (integrationId === "magalu") {
-      localStorage.removeItem("magalu_tokens");
-      localStorage.removeItem("magalu_metrics");
-      setMagaluMetrics(null);
     }
     updateIntegrationStatus(integrationId, "disconnected");
     toast({
@@ -624,50 +539,6 @@ export default function Integrations() {
     setMlCodeInput("");
   };
 
-  const handleSyncMagalu = async () => {
-    setSyncing(true);
-    try {
-      const tokens = localStorage.getItem("magalu_tokens");
-      if (!tokens) {
-        toast({
-          title: "Erro",
-          description: "Nenhum token da Magalu encontrado. Conecte-se primeiro.",
-          variant: "destructive",
-        });
-        setSyncing(false);
-        return;
-      }
-      const { access_token } = JSON.parse(tokens);
-
-      const { data, error } = await supabase.functions.invoke("magalu-integration", {
-        body: { action: "get_orders", access_token },
-      });
-
-      if (error || !data?.success) {
-        toast({
-          title: "Erro ao sincronizar Magalu",
-          description: data?.error || error?.message || "Falha ao buscar dados da Magazine Luiza.",
-          variant: "destructive",
-        });
-      } else {
-        setMagaluMetrics(data.metrics);
-        localStorage.setItem("magalu_metrics", JSON.stringify(data.metrics));
-        toast({
-          title: "Sincronização concluída!",
-          description: "Dados da Magazine Luiza importados com sucesso.",
-        });
-      }
-    } catch (err: any) {
-      toast({
-        title: "Erro",
-        description: err.message || "Erro inesperado na sincronização.",
-        variant: "destructive",
-      });
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   const handleRenameStore = async (mlUserId: string) => {
     if (!editingStoreName.trim()) return;
     try {
@@ -797,65 +668,6 @@ export default function Integrations() {
           </div>
         </div>
       )}
-
-      {/* Magalu Metrics */}
-      {magaluMetrics && integrations.find((i) => i.id === "magalu")?.status === "connected" && (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                🔵 Métricas da Magazine Luiza
-              </CardTitle>
-              <span className="text-xs text-muted-foreground">{magaluMetrics.period}</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-                  <DollarSign className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Receita Aprovada</p>
-                  <p className="text-lg font-bold">
-                    {magaluMetrics.approved_revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-                  <ShoppingCart className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Pedidos</p>
-                  <p className="text-lg font-bold">{magaluMetrics.total_orders}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Ticket Médio</p>
-                  <p className="text-lg font-bold">
-                    {magaluMetrics.avg_ticket.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border/5">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-                  <ShoppingCart className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Enviados</p>
-                  <p className="text-lg font-bold">{magaluMetrics.shipped_orders}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredIntegrations.map((integration) => {
@@ -994,11 +806,6 @@ export default function Integrations() {
                             <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
                           </Button>
                         </>
-                      )}
-                      {integration.id === "magalu" && (
-                        <Button variant="ghost" size="sm" onClick={handleSyncMagalu} disabled={syncing} title="Sincronizar pedidos e vendas">
-                          <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
-                        </Button>
                       )}
                     </>
                   ) : (
