@@ -22,14 +22,7 @@ export interface Seller {
 }
 
 export const ALL_MARKETPLACES = [
-  { id: "ml",          name: "Mercado Livre" },
-  { id: "amz",         name: "Amazon" },
-  { id: "shopee",      name: "Shopee" },
-  { id: "americanas",  name: "Americanas" },
-  { id: "casasbahia",  name: "Casas Bahia" },
-  { id: "dafiti",      name: "Dafiti" },
-  { id: "netshoes",    name: "Netshoes" },
-  { id: "total",       name: "Total" },
+  { id: "ml", name: "Mercado Livre" },
 ] as const;
 
 export type MarketplaceId = typeof ALL_MARKETPLACES[number]["id"];
