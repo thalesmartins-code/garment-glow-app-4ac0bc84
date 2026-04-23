@@ -16,8 +16,6 @@ export const routeTitles: Record<string, { title: string; subtitle: string }> = 
   },
   "/api/metas": { title: "Metas", subtitle: "Defina metas mensais por loja e acompanhe no card de Vendas" },
   "/api/precos-custos": { title: "Preços e Custos", subtitle: "Preços de produtos, comissões, custos por venda e calculadora de precificação" },
-  "/api/vendas-hora": { title: "Venda / Hora", subtitle: "Análise de vendas por hora do dia" },
-  "/api/relatorios": { title: "Relatórios", subtitle: "Ferramentas de análise estratégica e comparativos" },
   "/api/usuarios": { title: "Usuários", subtitle: "Gerencie usuários e permissões do sistema" },
   "/api/monitoramento": { title: "Monitoramento", subtitle: "Estatísticas de banco de dados e capacidade do sistema" },
 };
