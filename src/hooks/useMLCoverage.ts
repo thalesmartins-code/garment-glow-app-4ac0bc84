@@ -99,6 +99,7 @@ export function useMLCoverage(
     if (items.length === 0) return new Map();
 
     const cutoff = format(subDays(new Date(), period), "yyyy-MM-dd");
+    const effectiveThresholds: CoverageThresholds = thresholds ?? defaultThresholds(period);
 
     // Aggregate sold qty per item within the selected window
     const soldByItem = new Map<string, number>();
