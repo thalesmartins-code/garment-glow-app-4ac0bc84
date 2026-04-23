@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { useSeller } from "@/contexts/SellerContext";
 
 export interface ScopeToken {
@@ -24,6 +25,7 @@ const HeaderScopeContext = createContext<HeaderScopeState | null>(null);
 
 export function HeaderScopeProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { currentOrg } = useOrganization();
   const { selectedSeller } = useSeller();
   const sellerId = selectedSeller?.id ?? null;
 
@@ -53,9 +55,10 @@ export function HeaderScopeProvider({ children }: { children: ReactNode }) {
   // Use user.id (primitive) instead of the user object so that Supabase auth
   // token-refresh re-renders don't recreate this callback unnecessarily.
   const userId = user?.id ?? null;
+  const orgId = currentOrg?.id ?? null;
 
   const fetchTokens = useCallback(async () => {
-    if (!userId || !sellerId) {
+    if (!userId || !sellerId || !orgId) {
       setTokens([]);
       setLoading(false);
       hasLoadedOnce.current = true;
@@ -66,7 +69,7 @@ export function HeaderScopeProvider({ children }: { children: ReactNode }) {
       const { data } = await supabase
         .from("ml_tokens")
         .select("ml_user_id, seller_id")
-        .eq("user_id", userId)
+        .eq("organization_id", orgId)
         .eq("seller_id", sellerId)
         .not("ml_user_id", "is", null);
 
@@ -86,7 +89,7 @@ export function HeaderScopeProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       hasLoadedOnce.current = true;
     }
-  }, [userId, sellerId]);
+  }, [userId, sellerId, orgId]);
 
   useEffect(() => {
     fetchTokens();
