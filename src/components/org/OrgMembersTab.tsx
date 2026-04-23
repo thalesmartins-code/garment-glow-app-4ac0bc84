@@ -245,7 +245,7 @@ export function OrgMembersTab({ orgId, myRole }: { orgId: string; myRole: OrgRol
                   {canManage && !isSelf && !isMemberOwner && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </AlertDialogTrigger>
