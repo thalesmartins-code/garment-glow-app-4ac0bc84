@@ -20,42 +20,41 @@ export default function OrgSettings() {
   const isOwner = orgRole === "owner";
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="sticky top-0 z-10 bg-card border-b border-border px-6 pt-4 pb-3">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="sticky -top-4 md:-top-6 lg:-top-8 z-20 -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pb-4 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Building2 className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold tracking-tight">{currentOrg.name}</h1>
-            <p className="text-xs text-muted-foreground">Gerencie sua organização, membros e convites</p>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">{currentOrg.name}</h1>
+            <p className="text-[11px] text-muted-foreground/60 mt-0.5">Gerencie sua organização, membros e convites</p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="geral">Geral</TabsTrigger>
-            <TabsTrigger value="membros">Membros</TabsTrigger>
-            <TabsTrigger value="convites">Convites</TabsTrigger>
-            <TabsTrigger value="audit">Audit log</TabsTrigger>
-          </TabsList>
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="geral">Geral</TabsTrigger>
+          <TabsTrigger value="membros">Membros</TabsTrigger>
+          <TabsTrigger value="convites">Convites</TabsTrigger>
+          <TabsTrigger value="audit">Audit log</TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="geral">
-            <OrgGeneralTab org={currentOrg} canEdit={isOwner} />
-          </TabsContent>
-          <TabsContent value="membros">
-            <OrgMembersTab orgId={currentOrg.id} myRole={orgRole!} />
-          </TabsContent>
-          <TabsContent value="convites">
-            <OrgInvitesTab orgId={currentOrg.id} />
-          </TabsContent>
-          <TabsContent value="audit">
-            <OrgAuditTab orgId={currentOrg.id} />
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="geral">
+          <OrgGeneralTab org={currentOrg} canEdit={isOwner} />
+        </TabsContent>
+        <TabsContent value="membros">
+          <OrgMembersTab orgId={currentOrg.id} myRole={orgRole!} />
+        </TabsContent>
+        <TabsContent value="convites">
+          <OrgInvitesTab orgId={currentOrg.id} />
+        </TabsContent>
+        <TabsContent value="audit">
+          <OrgAuditTab orgId={currentOrg.id} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
