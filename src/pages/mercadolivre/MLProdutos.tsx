@@ -485,27 +485,6 @@ export default function MLProdutos() {
   // (promoção ativa), ao entrar na view "Preço"
   const [dealPriceCache, setDealPriceCache] = useState<Map<string, number>>(new Map());
 
-  const dealItemKey = useMemo(
-    () => filtered.filter(i => i.deal_ids.length > 0).map(i => i.id).sort().join(','),
-    [filtered],
-  );
-
-  useEffect(() => {
-    if (columnView !== "preco" || !dealItemKey) return;
-    const toFetch = filtered.filter(
-      i => i.deal_ids.length > 0 && !dealPriceCache.has(i.id),
-    );
-    if (toFetch.length === 0) return;
-    toFetch.forEach(async (item) => {
-      const result = await fetchItemSuggestion(item.id, item._ml_user_id);
-      const price = result.suggestion?.current_price;
-      if (price != null) {
-        setDealPriceCache(prev => new Map(prev).set(item.id, price));
-      }
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnView, dealItemKey]);
-
   const toggleRankingSort = (field: string) => {
     setRankingSort((prev) =>
       prev === `${field}_asc` ? `${field}_desc` : `${field}_asc`
@@ -672,6 +651,28 @@ export default function MLProdutos() {
         return a.title.localeCompare(b.title);
       });
   }, [items, search, statusFilter, stockFilter, sortBy, brandFilter, hideOutOfStock, logisticFilter, onlyDiscount, columnView, dealPriceCache]);
+
+  // Lazy-fetch de preço real para itens com deal_ids (promoções de canal) — depende de `filtered`
+  const dealItemKey = useMemo(
+    () => filtered.filter(i => i.deal_ids.length > 0).map(i => i.id).sort().join(','),
+    [filtered],
+  );
+
+  useEffect(() => {
+    if (columnView !== "preco" || !dealItemKey) return;
+    const toFetch = filtered.filter(
+      i => i.deal_ids.length > 0 && !dealPriceCache.has(i.id),
+    );
+    if (toFetch.length === 0) return;
+    toFetch.forEach(async (item) => {
+      const result = await fetchItemSuggestion(item.id, item._ml_user_id);
+      const price = result.suggestion?.current_price;
+      if (price != null) {
+        setDealPriceCache(prev => new Map(prev).set(item.id, price));
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columnView, dealItemKey]);
 
   // KPI stats derived from filtered items so cards react to active filters
   const filteredKPIs = useMemo(() => {
