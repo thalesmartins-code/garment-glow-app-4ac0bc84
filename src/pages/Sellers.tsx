@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const MARKETPLACES_NO_TOTAL = ALL_MARKETPLACES.filter((m) => m.id !== "total");
+const MARKETPLACES_NO_TOTAL = ALL_MARKETPLACES;
 
 export default function Sellers() {
   const {
