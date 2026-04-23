@@ -269,7 +269,7 @@ serve(async (req) => {
     // Look up ML access_token from DB (by ml_user_id, validate org membership)
     const { data: tokenRow, error: tokenErr } = await supabaseAdmin
       .from("ml_tokens")
-      .select("access_token, organization_id")
+      .select("access_token, organization_id, seller_id")
       .eq("ml_user_id", reqMLUserId)
       .not("access_token", "is", null)
       .limit(1)
@@ -295,6 +295,9 @@ serve(async (req) => {
       }
     }
     const access_token = tokenRow.access_token as string;
+    const organization_id = tokenRow.organization_id as string | null;
+    const tokenSellerId = tokenRow.seller_id as string | null;
+    const effectiveSellerId = seller_id || tokenSellerId;
 
     const user = await mlFetch("/users/me", access_token);
     const sellerId = user.id;
