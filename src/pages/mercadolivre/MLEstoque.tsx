@@ -1064,9 +1064,16 @@ export default function MLEstoque() {
               <TabsTrigger value="estoque" className="text-xs px-3 h-7">Estoque</TabsTrigger>
               <TabsTrigger value="relatorios" className="text-xs px-3 h-7">Relatórios</TabsTrigger>
             </TabsList>
-            <Button variant="outline" size="sm" onClick={refresh} disabled={isLoading} className="h-8 gap-1.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={refresh}
+              disabled={isLoading}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              title="Atualizar"
+              aria-label="Atualizar"
+            >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
-              Atualizar
             </Button>
           </div>
         </div>
