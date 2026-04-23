@@ -536,7 +536,6 @@ export default function MLProdutos() {
     let query = supabase
       .from("ml_product_daily_cache")
       .select("item_id, qty_sold, revenue")
-      .eq("user_id", user.id)
       .gte("date", fromDate)
       .lte("date", toDate);
     if (selectedStore !== "all") {
