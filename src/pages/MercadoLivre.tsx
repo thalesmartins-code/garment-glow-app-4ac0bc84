@@ -69,26 +69,22 @@ function aggregateDailyRows(rows: DailyBreakdown[]): DailyBreakdown[] {
 export default function MercadoLivre() {
   const { user } = useAuth();
   const { stores, selectedStore, setSalesCache, scopeKey, sellerId, resolvedMLUserIds, hasMLConnection, loading: storeLoading } = useMLStore();
-  const { selectedMarketplace, activeMarketplace } = useMarketplace();
   const { selectedSeller, selectedStoreIds } = useSeller();
 
   // ── Filters ──
   const filters = useMLFilters();
   const { period, setPeriod, customRange, setCustomRange, chartMode, isHourlyAvailable, hourlyTargetDate, activeFilterKey, currentFrom, currentTo, prevFrom, prevTo, fetchFrom, fetchTo, adsChartFrom, periodLabel } = filters;
 
-  // ── Effective stores ──
-  const effectiveStores = useMemo<StoreRef[]>(() => {
-    const allActive = (selectedSeller?.stores ?? []).filter((s) => s.is_active);
+  // ── Effective stores (only ML is supported) ──
+  const mlStores = useMemo(() => {
+    const allActive = (selectedSeller?.stores ?? []).filter((s) => s.is_active && s.marketplace === "ml");
     const base = selectedStoreIds.length === 0 ? allActive : allActive.filter((s) => selectedStoreIds.includes(s.id));
-    return base.map((s) => ({ id: s.id, marketplace: s.marketplace }));
+    return base;
   }, [selectedSeller, selectedStoreIds]);
 
-  const mlStores = useMemo(() => effectiveStores.filter((s) => s.marketplace === "ml"), [effectiveStores]);
-  const nonMlStores = useMemo(() => effectiveStores.filter((s) => s.marketplace !== "ml"), [effectiveStores]);
-
-  const isML = selectedStore !== "all" || (mlStores.length > 0 && nonMlStores.length === 0);
+  const isML = true;
   const isAll = selectedStore === "all" && resolvedMLUserIds.length > 1;
-  const useRealData = mlStores.length > 0 || hasMLConnection;
+  const useRealData = true;
 
   // ── React Query data ──
   const { data: allDaily = [], isLoading: dailyLoading } = useMLDailyQuery(fetchFrom, fetchTo);
