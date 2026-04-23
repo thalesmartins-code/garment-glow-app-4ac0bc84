@@ -68,11 +68,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // THEN check existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+      // If the stored session is invalid (e.g. user was removed), purge it
+      // so the app doesn't get stuck waiting for data that never arrives.
+      if (error || (session && !session.user)) {
+        await supabase.auth.signOut().catch(() => {});
+        setSession(null);
+        setUser(null);
+        setRole(null);
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+
       if (session?.user) {
+        // Validate the session is still acceptable to the server.
+        const { error: userErr } = await supabase.auth.getUser();
+        if (userErr) {
+          await supabase.auth.signOut().catch(() => {});
+          setSession(null);
+          setUser(null);
+          setRole(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+        setSession(session);
+        setUser(session.user);
         fetchUserData(session.user.id);
+      } else {
+        setSession(null);
+        setUser(null);
       }
       setLoading(false);
     });
