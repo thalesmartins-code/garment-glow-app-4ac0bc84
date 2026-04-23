@@ -736,6 +736,8 @@ export default function Integrations() {
   const sellerMarketplaces = [...new Set((selectedSeller?.stores ?? []).map((s) => s.marketplace))].filter((id) => id !== "total");
   const filteredIntegrations = integrations.filter((i) => sellerMarketplaces.includes(i.id));
   const connectedCount = filteredIntegrations.filter((i) => i.status === "connected").length;
+  const connectedMarketplaceIds = new Set(filteredIntegrations.filter((i) => i.status === "connected").map((i) => i.id));
+  const connectedStoresCount = (selectedSeller?.stores ?? []).filter((s) => connectedMarketplaceIds.has(s.marketplace)).length;
 
   return (
     <div className="space-y-6">
@@ -752,16 +754,25 @@ export default function Integrations() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <KPICard
-          title="Conectados"
+          title="Marketplaces conectados"
           value={String(connectedCount)}
+          icon={<Link2 className="w-4 h-4" />}
+          variant="minimal"
+          size="compact"
+        />
+        <KPICard
+          title="Lojas conectadas"
+          value={String(connectedStoresCount)}
+          icon={<Store className="w-4 h-4" />}
           variant="minimal"
           size="compact"
         />
         <KPICard
           title="Disponíveis"
           value={String(filteredIntegrations.length - connectedCount)}
+          icon={<Building2 className="w-4 h-4" />}
           variant="minimal"
           size="compact"
         />
@@ -769,6 +780,7 @@ export default function Integrations() {
           title="Autenticação"
           value="OAuth 2.0"
           subtitle="Segura"
+          icon={<ShieldCheck className="w-4 h-4" />}
           variant="minimal"
           size="compact"
         />
