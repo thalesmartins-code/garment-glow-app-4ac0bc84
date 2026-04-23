@@ -55,6 +55,15 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: insertErr.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Clear viewer custom permissions when role changes (always reset to a clean slate).
+    // - Promoting from viewer -> member/admin: permissions are no longer used.
+    // - Demoting to viewer: starts with default-deny (nothing granted) per product spec.
+    await admin
+      .from("member_route_permissions")
+      .delete()
+      .eq("organization_id", organization_id)
+      .eq("user_id", user_id);
+
     await admin.from("audit_log").insert({
       actor_id: user.id,
       action: "member_role_changed",

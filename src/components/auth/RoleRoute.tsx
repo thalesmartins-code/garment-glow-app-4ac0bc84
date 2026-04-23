@@ -1,10 +1,10 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useOrganization } from "@/contexts/OrganizationContext";
-import { canAccess } from "@/config/roleAccess";
+import { canAccessWithViewer } from "@/config/roleAccess";
 import { PageLoader } from "@/components/ui/PageLoader";
 
 export function RoleRoute({ children }: { children: React.ReactNode }) {
-  const { orgRole, loading } = useOrganization();
+  const { orgRole, loading, viewerPermissions } = useOrganization();
   const location = useLocation();
 
   if (loading) {
@@ -15,7 +15,7 @@ export function RoleRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!canAccess(orgRole, location.pathname)) {
+  if (!canAccessWithViewer(orgRole, location.pathname, viewerPermissions)) {
     return <Navigate to="/api" replace />;
   }
 

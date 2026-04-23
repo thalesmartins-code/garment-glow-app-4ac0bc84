@@ -17,8 +17,10 @@ interface OrganizationContextType {
   currentOrg: Organization | null;
   orgRole: OrgRole | null;
   loading: boolean;
+  viewerPermissions: Set<string>;
   switchOrg: (id: string) => void;
   refreshOrgs: () => Promise<void>;
+  refreshViewerPermissions: () => Promise<void>;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
@@ -29,6 +31,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const [orgs, setOrgs] = useState<Organization[]>([]);
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
+  const [viewerPermissions, setViewerPermissions] = useState<Set<string>>(new Set());
 
   const loadOrgs = useCallback(async (uid: string) => {
     setLoading(true);
@@ -56,15 +59,36 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  const loadViewerPermissions = useCallback(async (uid: string, orgId: string) => {
+    const { data } = await supabase
+      .from("member_route_permissions")
+      .select("route")
+      .eq("organization_id", orgId)
+      .eq("user_id", uid);
+    setViewerPermissions(new Set((data ?? []).map((r: any) => r.route)));
+  }, []);
+
   useEffect(() => {
     if (user) {
       loadOrgs(user.id);
     } else {
       setOrgs([]);
       setCurrentOrg(null);
+      setViewerPermissions(new Set());
       setLoading(false);
     }
   }, [user, loadOrgs]);
+
+  // Load viewer permissions whenever current org changes (only relevant for viewer role)
+  useEffect(() => {
+    if (user && currentOrg) {
+      if (currentOrg.role === "viewer") {
+        loadViewerPermissions(user.id, currentOrg.id);
+      } else {
+        setViewerPermissions(new Set());
+      }
+    }
+  }, [user, currentOrg, loadViewerPermissions]);
 
   const switchOrg = useCallback((id: string) => {
     const found = orgs.find((o) => o.id === id);
@@ -78,6 +102,12 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     if (user) await loadOrgs(user.id);
   }, [user, loadOrgs]);
 
+  const refreshViewerPermissions = useCallback(async () => {
+    if (user && currentOrg && currentOrg.role === "viewer") {
+      await loadViewerPermissions(user.id, currentOrg.id);
+    }
+  }, [user, currentOrg, loadViewerPermissions]);
+
   return (
     <OrganizationContext.Provider
       value={{
@@ -85,8 +115,10 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         currentOrg,
         orgRole: currentOrg?.role ?? null,
         loading,
+        viewerPermissions,
         switchOrg,
         refreshOrgs,
+        refreshViewerPermissions,
       }}
     >
       {children}

@@ -18,7 +18,7 @@ import {
   Receipt,
 } from "lucide-react";
 import { useOrganization } from "@/contexts/OrganizationContext";
-import { canAccess } from "@/config/roleAccess";
+import { canAccessWithViewer } from "@/config/roleAccess";
 import { useMenuVisibility } from "@/contexts/MenuVisibilityContext";
 import { cn } from "@/lib/utils";
 import {
@@ -51,13 +51,13 @@ const mlSubItems = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const { orgRole: role } = useOrganization();
+  const { orgRole: role, viewerPermissions } = useOrganization();
   const { isMenuItemVisible } = useMenuVisibility();
 
   const allNavItems = [...baseNavItems, { icon: ShieldCheck, label: "Usuários", path: "/usuarios" }];
-  const navItems = allNavItems.filter((item) => canAccess(role, item.path));
+  const navItems = allNavItems.filter((item) => canAccessWithViewer(role, item.path, viewerPermissions));
   const visibleMlSubItems = mlSubItems.filter(
-    (item) => canAccess(role, item.path) && isMenuItemVisible(item.path, role)
+    (item) => canAccessWithViewer(role, item.path, viewerPermissions) && isMenuItemVisible(item.path, role)
   );
   const isMLActive = location.pathname.startsWith("/api");
   const showMLGroup = visibleMlSubItems.length > 0;

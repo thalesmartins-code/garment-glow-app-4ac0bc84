@@ -5,7 +5,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useOrganization } from "@/contexts/OrganizationContext";
-import { canAccess } from "@/config/roleAccess";
+import { canAccessWithViewer } from "@/config/roleAccess";
 import { useMenuVisibility } from "@/contexts/MenuVisibilityContext";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -41,7 +41,7 @@ interface EnvironmentSidebarProps {
 export function EnvironmentSidebar({ sections, items, footerItem }: EnvironmentSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const { orgRole: role } = useOrganization();
+  const { orgRole: role, viewerPermissions } = useOrganization();
   const { isMenuItemVisible } = useMenuVisibility();
 
   // Normalise: convert flat items to a single unnamed section for backwards compat
@@ -297,7 +297,7 @@ export function EnvironmentSidebar({ sections, items, footerItem }: EnvironmentS
             })
             .filter((item) => {
               if (item.comingSoon) return true;
-              if (!canAccess(role, item.path)) return false;
+              if (!canAccessWithViewer(role, item.path, viewerPermissions)) return false;
               // Hide parent if all children are hidden
               if (item.children && item.children.length === 0) return false;
               return true;
@@ -331,7 +331,7 @@ export function EnvironmentSidebar({ sections, items, footerItem }: EnvironmentS
         })}
 
         {/* Footer item */}
-        {footerItem && canAccess(role, footerItem.path) && (
+        {footerItem && canAccessWithViewer(role, footerItem.path, viewerPermissions) && (
           <div className={cn("mt-auto pt-4 border-t border-sidebar-border/40", collapsed ? "w-full flex justify-center" : "")}>
             {renderLink(footerItem)}
           </div>

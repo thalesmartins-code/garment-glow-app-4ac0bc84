@@ -9,11 +9,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Trash2, Crown } from "lucide-react";
+import { Loader2, Trash2, Crown, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import type { OrgRole } from "@/contexts/OrganizationContext";
+import { ViewerPermissionsDialog } from "@/components/org/ViewerPermissionsDialog";
 
 interface Member {
   id: string;
@@ -32,6 +33,7 @@ export function OrgMembersTab({ orgId, myRole }: { orgId: string; myRole: OrgRol
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [permsTarget, setPermsTarget] = useState<{ id: string; name: string } | null>(null);
 
   const canManage = myRole === "owner" || myRole === "admin";
   const isOwner = myRole === "owner";
@@ -139,6 +141,19 @@ export function OrgMembersTab({ orgId, myRole }: { orgId: string; myRole: OrgRol
                     <span className="text-xs text-muted-foreground capitalize">{m.role}</span>
                   )}
 
+                  {canManage && !isSelf && m.role === "viewer" && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-xs"
+                      onClick={() =>
+                        setPermsTarget({ id: m.user_id, name: m.full_name ?? "Viewer" })
+                      }
+                    >
+                      <SlidersHorizontal className="w-3.5 h-3.5 mr-1" /> Acesso
+                    </Button>
+                  )}
+
                   {isOwner && !isSelf && !isMemberOwner && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -190,6 +205,16 @@ export function OrgMembersTab({ orgId, myRole }: { orgId: string; myRole: OrgRol
           </div>
         )}
       </CardContent>
+
+      {permsTarget && (
+        <ViewerPermissionsDialog
+          open={!!permsTarget}
+          onOpenChange={(o) => !o && setPermsTarget(null)}
+          organizationId={orgId}
+          memberUserId={permsTarget.id}
+          memberName={permsTarget.name}
+        />
+      )}
     </Card>
   );
 }

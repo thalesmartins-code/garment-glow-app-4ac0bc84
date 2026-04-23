@@ -52,6 +52,41 @@ export type Database = {
           },
         ]
       }
+      member_route_permissions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          route: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          route: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          route?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_route_permissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ml_ads_campaigns_cache: {
         Row: {
           attributed_orders: number
@@ -1136,6 +1171,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_member_access_route: {
+        Args: { _org_id: string; _route: string; _user_id: string }
+        Returns: boolean
+      }
       get_cache_table_stats: {
         Args: never
         Returns: {
