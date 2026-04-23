@@ -41,16 +41,25 @@ serve(async (req) => {
     if (!mlUserIdParsed.success) return jsonResponse({ error: "ml_user_id required" }, 400);
     const mlUserId = mlUserIdParsed.data;
 
-    // Get access token
+    // Get access token (lookup by ml_user_id, then validate org membership)
     const { data: tokenRow, error: tokenErr } = await supabase
       .from("ml_tokens")
-      .select("access_token")
-      .eq("user_id", userId)
+      .select("access_token, organization_id")
       .eq("ml_user_id", mlUserId)
-      .single();
+      .not("access_token", "is", null)
+      .limit(1)
+      .maybeSingle();
 
     if (tokenErr || !tokenRow?.access_token) {
       return jsonResponse({ error: "No ML token found" }, 404);
+    }
+
+    if (tokenRow.organization_id) {
+      const { data: isMember } = await supabase.rpc("is_org_member", {
+        _user_id: userId,
+        _org_id: tokenRow.organization_id,
+      });
+      if (!isMember) return jsonResponse({ error: "Forbidden" }, 403);
     }
 
     // Fetch user data from ML API (includes seller_reputation)

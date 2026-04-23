@@ -84,19 +84,33 @@ serve(async (req) => {
 
     const { ml_user_id } = parsed.data;
 
-    // Look up ML access_token from DB (server-side only)
+    // Look up ML access_token from DB (lookup by ml_user_id, validate org membership)
     const { data: tokenRow, error: tokenErr } = await supabaseAdmin
       .from("ml_tokens")
-      .select("access_token")
-      .eq("user_id", authData.user.id)
+      .select("access_token, organization_id")
       .eq("ml_user_id", ml_user_id)
-      .single();
+      .not("access_token", "is", null)
+      .limit(1)
+      .maybeSingle();
 
     if (tokenErr || !tokenRow?.access_token) {
       return new Response(
         JSON.stringify({ error: "No ML token found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
+    }
+
+    if (tokenRow.organization_id) {
+      const { data: isMember } = await supabaseAdmin.rpc("is_org_member", {
+        _user_id: authData.user.id,
+        _org_id: tokenRow.organization_id,
+      });
+      if (!isMember) {
+        return new Response(
+          JSON.stringify({ error: "Forbidden" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
     }
 
     const access_token = tokenRow.access_token as string;
