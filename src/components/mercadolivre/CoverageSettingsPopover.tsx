@@ -74,7 +74,11 @@ export function CoverageSettingsPopover({ period, thresholds, onChange }: Props)
           Cobertura
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-72 p-3">
+      <PopoverContent
+        align="end"
+        className="w-72 p-3"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <div className="space-y-3">
           <div>
             <h4 className="text-sm font-medium text-foreground">Configurar cobertura</h4>
