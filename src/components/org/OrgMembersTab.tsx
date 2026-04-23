@@ -252,7 +252,8 @@ export function OrgMembersTab({ orgId, myRole }: { orgId: string; myRole: OrgRol
                   )}
                 </div>
               );
-            })}
+              });
+            })()}
           </div>
         )}
       </CardContent>
