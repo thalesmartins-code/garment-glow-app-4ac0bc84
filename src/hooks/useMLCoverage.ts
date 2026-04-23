@@ -8,6 +8,11 @@ export type CoveragePeriod = 7 | 15 | 30;
 export type CoverageClass = "ruptura" | "critico" | "alerta" | "ok" | "sem_giro";
 
 export interface CoverageThresholds {
+  /**
+   * Coverage strictly less than this value is classified as `ruptura` (in addition to
+   * stock-zero items). Default `0` preserves the legacy behavior (only stock-zero = ruptura).
+   */
+  rupturaMax: number;
   /** Coverage strictly less than this value is classified as `critico`. */
   criticoMax: number;
   /** Coverage strictly less than this value (and ≥ criticoMax) is classified as `alerta`. */
@@ -16,7 +21,7 @@ export interface CoverageThresholds {
 
 /** Default thresholds derived from the lookback period (preserves legacy behavior). */
 export function defaultThresholds(period: CoveragePeriod): CoverageThresholds {
-  return { criticoMax: Math.ceil(period * 0.25), alertaMax: period };
+  return { rupturaMax: 0, criticoMax: Math.ceil(period * 0.25), alertaMax: period };
 }
 
 export interface CoverageData {
@@ -55,11 +60,13 @@ export const COVERAGE_CLASS_LABELS: Record<CoverageClass, string> = {
 
 /**
  * Classification based on user-configurable absolute day thresholds.
- *   critico  → coverage_days < criticoMax
+ *   ruptura  → coverage_days < rupturaMax
+ *   critico  → rupturaMax ≤ coverage_days < criticoMax
  *   alerta   → criticoMax ≤ coverage_days < alertaMax
  *   ok       → coverage_days ≥ alertaMax
  */
 function classifyDays(coverage_days: number, thresholds: CoverageThresholds): CoverageClass {
+  if (coverage_days < thresholds.rupturaMax) return "ruptura";
   if (coverage_days < thresholds.criticoMax) return "critico";
   if (coverage_days < thresholds.alertaMax) return "alerta";
   return "ok";
