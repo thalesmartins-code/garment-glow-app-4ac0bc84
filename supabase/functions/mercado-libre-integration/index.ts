@@ -607,6 +607,42 @@ serve(async (req) => {
           })();
         }
 
+        // Upsert state daily cache (fire-and-forget, batches of 200)
+        const stateRows = Object.values(stateSales).map((s) => ({
+          user_id,
+          ml_user_id: mlUserIdStr,
+          date: s.date,
+          uf: s.uf,
+          state_name: s.state_name,
+          qty_orders: s.qty_orders,
+          revenue: s.revenue,
+          approved_revenue: s.approved_revenue,
+          synced_at: syncedAt,
+          ...(seller_id ? { seller_id } : {}),
+        }));
+
+        if (stateRows.length > 0) {
+          (async () => {
+            try {
+              const stateBatches: typeof stateRows[] = [];
+              for (let i = 0; i < stateRows.length; i += 200) {
+                stateBatches.push(stateRows.slice(i, i + 200));
+              }
+              await Promise.all(
+                stateBatches.map((batch) =>
+                  supabaseAdmin
+                    .from("ml_state_daily_cache")
+                    .upsert(batch, { onConflict: "user_id,ml_user_id,date,uf" })
+                    .then(({ error }) => { if (error) console.error("State cache upsert error:", error); }),
+                ),
+              );
+              console.log(`State cache: ${stateRows.length} rows saved`);
+            } catch (e) {
+              console.error("State cache async error:", e);
+            }
+          })();
+        }
+
         // User cache junto com daily/hourly em paralelo
         upsertPromises.push(
           supabaseAdmin
