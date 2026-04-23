@@ -183,7 +183,7 @@ export function OrgInvitesTab({ orgId }: { orgId: string }) {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-muted"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                           title="Apagar convite"
                         >
                           <Trash2 className="w-4 h-4" />
