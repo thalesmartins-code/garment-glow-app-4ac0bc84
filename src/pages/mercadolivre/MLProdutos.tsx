@@ -430,7 +430,7 @@ function PriceDetailSheet({
                       <tbody>
                         {graphData.map((entry, i) => {
                           const diff = ((entry.preco - suggestion.current_price) / suggestion.current_price) * 100;
-                          const mlSearchUrl = `https://www.mercadolivre.com.br/busca?q=${encodeURIComponent(entry.title)}`;
+                          const mlSearchUrl = `https://lista.mercadolivre.com.br/${encodeURIComponent(entry.title.replace(/\s+/g, "-"))}`;
                           return (
                             <tr key={i} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
                               <td className="px-4 py-2.5"><p className="text-xs line-clamp-1">{entry.title}</p></td>
