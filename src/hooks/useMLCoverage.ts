@@ -133,7 +133,7 @@ export function useMLCoverage(
     }
 
     return map;
-  }, [rawData, items, period]);
+  }, [rawData, items, period, thresholds]);
 
   const stats = useMemo<CoverageStats>(() => {
     const all = [...coverageMap.values()];
