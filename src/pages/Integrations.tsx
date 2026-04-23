@@ -40,6 +40,7 @@ import {
   Pencil,
   Check as CheckIcon,
   X,
+  Building2,
 } from "lucide-react";
 
 interface MarketplaceIntegration {
