@@ -51,12 +51,7 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
         )}
         {showSellerMarketplaceBar && !hideStores ? (
           <SellerMarketplaceBar showStores />
-        ) : (
-          <div className="min-w-0">
-            <h1 className="text-lg md:text-xl font-semibold tracking-tight text-foreground truncate">{title}</h1>
-            {subtitle && <p className="mt-0.5 md:mt-1 text-xs md:text-sm text-muted-foreground truncate">{subtitle}</p>}
-          </div>
-        )}
+        ) : null}
       </div>
 
       <div className="flex items-center gap-2 md:gap-3 shrink-0">
