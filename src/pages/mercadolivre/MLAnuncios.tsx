@@ -158,7 +158,7 @@ export default function MLAnuncios() {
               size="sm"
               onClick={sync}
               disabled={syncing || !connected}
-              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:bg-muted hover:text-muted-foreground"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
               {syncing ? "Sincronizando..." : "Sincronizar"}

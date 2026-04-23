@@ -68,7 +68,7 @@ export function CoverageSettingsPopover({ period, thresholds, onChange }: Props)
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+          className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:bg-muted hover:text-muted-foreground"
         >
           <Settings2 className="w-3.5 h-3.5" />
           Cobertura

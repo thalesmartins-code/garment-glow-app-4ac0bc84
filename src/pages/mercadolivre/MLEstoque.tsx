@@ -1069,7 +1069,7 @@ export default function MLEstoque() {
               size="sm"
               onClick={refresh}
               disabled={isLoading}
-              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:bg-muted hover:text-muted-foreground"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
               Atualizar
