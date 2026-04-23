@@ -2,13 +2,13 @@ import { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock3, MapPin, CreditCard, TrendingUp, GitMerge, Info, ShoppingCart, DollarSign, Eye, Users, Percent, Tag } from "lucide-react";
+import { Clock3, MapPin, TrendingUp, GitMerge, Info, ShoppingCart, DollarSign, Eye, Users, Percent, Tag } from "lucide-react";
 import { BrazilHeatMap } from "@/components/mercadolivre/BrazilHeatMap";
 import { useMLStore } from "@/contexts/MLStoreContext";
+import { useMLStateQuery } from "@/hooks/useMLQueries";
 import { KPICard } from "@/components/dashboard/KPICard";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell,
   AreaChart, Area,
 } from "recharts";
 
@@ -38,56 +38,16 @@ const BRAND_COLORS = {
   cyan: "#06b6d4",
 };
 
-// Typical Brazilian e-commerce state distribution (% of orders)
-const STATE_DIST: { uf: string; name: string; pct: number }[] = [
-  { uf: "SP", name: "São Paulo",            pct: 30.2 },
-  { uf: "RJ", name: "Rio de Janeiro",       pct: 12.8 },
-  { uf: "MG", name: "Minas Gerais",         pct: 10.5 },
-  { uf: "RS", name: "Rio Grande do Sul",    pct:  6.4 },
-  { uf: "PR", name: "Paraná",               pct:  6.1 },
-  { uf: "BA", name: "Bahia",                pct:  4.9 },
-  { uf: "SC", name: "Santa Catarina",       pct:  4.3 },
-  { uf: "GO", name: "Goiás",                pct:  3.1 },
-  { uf: "PE", name: "Pernambuco",           pct:  2.9 },
-  { uf: "CE", name: "Ceará",                pct:  2.7 },
-  { uf: "DF", name: "Distrito Federal",     pct:  2.2 },
-  { uf: "ES", name: "Espírito Santo",       pct:  1.8 },
-  { uf: "MT", name: "Mato Grosso",          pct:  1.3 },
-  { uf: "PA", name: "Pará",                 pct:  1.2 },
-  { uf: "MA", name: "Maranhão",             pct:  0.9 },
-  { uf: "AM", name: "Amazonas",             pct:  0.7 },
-  { uf: "MS", name: "Mato Grosso do Sul",   pct:  0.7 },
-  { uf: "PI", name: "Piauí",               pct:  0.5 },
-  { uf: "RN", name: "Rio Grande do Norte",  pct:  0.5 },
-  { uf: "PB", name: "Paraíba",             pct:  0.5 },
-  { uf: "AL", name: "Alagoas",              pct:  0.4 },
-  { uf: "SE", name: "Sergipe",              pct:  0.4 },
-  { uf: "TO", name: "Tocantins",            pct:  0.3 },
-  { uf: "RO", name: "Rondônia",            pct:  0.3 },
-  { uf: "AC", name: "Acre",                pct:  0.1 },
-  { uf: "AP", name: "Amapá",              pct:  0.1 },
-  { uf: "RR", name: "Roraima",             pct:  0.1 },
-];
-
-// Typical ML Brazil payment distribution
-const PAYMENT_DIST = [
-  { name: "Cartão parcelado", pct: 38.0, color: BRAND_COLORS.blue },
-  { name: "Cartão à vista",   pct: 22.0, color: BRAND_COLORS.cyan },
-  { name: "Pix",              pct: 23.0, color: BRAND_COLORS.green },
-  { name: "Boleto",           pct: 13.0, color: BRAND_COLORS.orange },
-  { name: "Outros",           pct:  4.0, color: BRAND_COLORS.purple },
-];
-
-// ─── Simulated note ──────────────────────────────────────────────────────────
-
-function SimNote({ text }: { text: string }) {
-  return (
-    <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-      <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-      <span>{text}</span>
-    </div>
-  );
-}
+// Fallback UF → state name map (used when API didn't return state.name for some reason)
+const UF_NAME_FALLBACK: Record<string, string> = {
+  AC: "Acre", AL: "Alagoas", AP: "Amapá", AM: "Amazonas", BA: "Bahia",
+  CE: "Ceará", DF: "Distrito Federal", ES: "Espírito Santo", GO: "Goiás",
+  MA: "Maranhão", MT: "Mato Grosso", MS: "Mato Grosso do Sul", MG: "Minas Gerais",
+  PA: "Pará", PB: "Paraíba", PR: "Paraná", PE: "Pernambuco", PI: "Piauí",
+  RJ: "Rio de Janeiro", RN: "Rio Grande do Norte", RS: "Rio Grande do Sul",
+  RO: "Rondônia", RR: "Roraima", SC: "Santa Catarina", SP: "São Paulo",
+  SE: "Sergipe", TO: "Tocantins",
+};
 
 // ─── Empty state ─────────────────────────────────────────────────────────────
 
@@ -384,35 +344,73 @@ function TabEstado() {
   const { salesCache } = useMLStore();
   const { daily } = salesCache;
 
-  const stateData = useMemo(() => {
-    const totalRevenue = daily.reduce((s, d) => s + d.approved, 0);
-    const totalOrders = daily.reduce((s, d) => s + d.qty, 0);
-    return STATE_DIST.map((s) => {
-      const revenue = totalRevenue * (s.pct / 100);
-      const orders = Math.round(totalOrders * (s.pct / 100));
-      return {
-        uf: s.uf,
-        name: s.name,
-        revenue,
-        orders,
-        avgTicket: orders > 0 ? revenue / orders : 0,
-        pct: s.pct,
-      };
-    }).sort((a, b) => b.revenue - a.revenue);
+  // Derive period range from the cached daily rows so this tab follows the
+  // same period filter applied to the rest of the report.
+  const { rangeFrom, rangeTo } = useMemo(() => {
+    if (daily.length === 0) {
+      const today = new Date().toISOString().slice(0, 10);
+      return { rangeFrom: today, rangeTo: today };
+    }
+    const dates = daily.map((d) => d.date).sort();
+    return { rangeFrom: dates[0], rangeTo: dates[dates.length - 1] };
   }, [daily]);
 
-  const hasAny = daily.some((d) => d.approved > 0);
+  const { data: stateRows = [], isLoading } = useMLStateQuery(rangeFrom, rangeTo);
 
-  if (!hasAny) {
-    return <EmptyState message="Nenhum dado de vendas disponível para o período selecionado." />;
+  const stateData = useMemo(() => {
+    const agg: Record<string, { uf: string; name: string; revenue: number; orders: number }> = {};
+    for (const r of stateRows) {
+      if (!r.uf) continue;
+      if (!agg[r.uf]) {
+        agg[r.uf] = {
+          uf: r.uf,
+          name: r.state_name || UF_NAME_FALLBACK[r.uf] || r.uf,
+          revenue: 0,
+          orders: 0,
+        };
+      }
+      agg[r.uf].revenue += Number(r.approved_revenue || 0) || Number(r.revenue || 0);
+      agg[r.uf].orders += Number(r.qty_orders || 0);
+    }
+    const totalRevenue = Object.values(agg).reduce((s, v) => s + v.revenue, 0);
+    return Object.values(agg)
+      .map((s) => ({
+        uf: s.uf,
+        name: s.name,
+        revenue: s.revenue,
+        orders: s.orders,
+        avgTicket: s.orders > 0 ? s.revenue / s.orders : 0,
+        pct: totalRevenue > 0 ? (s.revenue / totalRevenue) * 100 : 0,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+  }, [stateRows]);
+
+  const dailyHasSales = daily.some((d) => d.approved > 0 || d.qty > 0);
+
+  if (isLoading && stateData.length === 0) {
+    return <EmptyState message="Carregando dados de estado..." />;
+  }
+
+  if (stateData.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+          <span>
+            {dailyHasSales
+              ? "Sem dados de estado para o período. Execute uma sincronização para carregar pedidos com endereço de entrega."
+              : "Sem dados de estado para o período. Sincronize para carregar pedidos com endereço de entrega."}
+          </span>
+        </div>
+      </div>
+    );
   }
 
   const top10 = stateData.slice(0, 10);
+  const maxPct = top10[0]?.pct || 1;
 
   return (
     <div className="space-y-4">
-      <SimNote text="Distribuição estimada com base em padrões típicos do e-commerce brasileiro. A API de Pedidos (Orders) é necessária para dados reais por estado." />
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <Card>
           <div className="px-4 pt-4 pb-3">
@@ -436,7 +434,7 @@ function TabEstado() {
                   <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
                     <div
                       className="h-full rounded-full bg-primary"
-                      style={{ width: `${(s.pct / top10[0].pct) * 100}%` }}
+                      style={{ width: `${(s.pct / maxPct) * 100}%` }}
                     />
                   </div>
                   <span className="text-[10px] text-muted-foreground w-8 text-right">{pctFmt(s.pct)}</span>
@@ -466,123 +464,6 @@ function TabEstado() {
                 contentStyle={tooltipStyle}
               />
               <Bar dataKey="receita" name="Receita" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} maxBarSize={24} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// ─── Tab: Forma de Pagamento ──────────────────────────────────────────────────
-
-function TabPagamento() {
-  const { salesCache } = useMLStore();
-  const { daily } = salesCache;
-
-  const payData = useMemo(() => {
-    const totalRevenue = daily.reduce((s, d) => s + d.approved, 0);
-    const totalOrders = daily.reduce((s, d) => s + d.qty, 0);
-    return PAYMENT_DIST.map((p) => ({
-      ...p,
-      revenue: totalRevenue * (p.pct / 100),
-      orders: Math.round(totalOrders * (p.pct / 100)),
-    }));
-  }, [daily]);
-
-  const hasAny = daily.some((d) => d.approved > 0);
-
-  if (!hasAny) {
-    return <EmptyState message="Nenhum dado de vendas disponível para o período selecionado." />;
-  }
-
-  return (
-    <div className="space-y-4">
-      <SimNote text="Distribuição estimada com base em padrões típicos do Mercado Livre Brasil. A API de Pagamentos é necessária para dados reais por forma de pagamento." />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Card>
-          <div className="px-4 pt-4 pb-3">
-            <span className="text-sm font-medium text-foreground">Participação na receita</span>
-          </div>
-          <CardContent className="px-4 pb-2 pt-0 flex flex-col items-center">
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={payData}
-                  dataKey="revenue"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={85}
-                  paddingAngle={2}
-                  label={({ name, pct }) => `${name} ${pctFmt(pct)}`}
-                  labelLine={false}
-                >
-                  {payData.map((p) => (
-                    <Cell key={p.name} fill={p.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(v: any, name: any) => [currencyFmt(v), name]}
-                  contentStyle={tooltipStyle}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <div className="px-4 pt-4 pb-3">
-            <span className="text-sm font-medium text-foreground">Detalhamento</span>
-          </div>
-          <CardContent className="px-4 pb-4 pt-0">
-            <div className="space-y-3">
-              {payData.map((p) => (
-                <div key={p.name} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: p.color }} />
-                      {p.name}
-                    </span>
-                    <span className="font-medium">{pctFmt(p.pct)}</span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${p.pct}%`, background: p.color }} />
-                  </div>
-                  <div className="flex justify-between text-[10px] text-muted-foreground">
-                    <span>{p.orders.toLocaleString("pt-BR")} pedidos</span>
-                    <span>{currencyFmt(p.revenue)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <div className="px-4 pt-4 pb-3">
-          <span className="text-sm font-medium text-foreground">Receita por forma de pagamento</span>
-        </div>
-        <CardContent className="px-4 pb-2 pt-0">
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart
-              data={payData.map((p) => ({ name: p.name, receita: Math.round(p.revenue) }))}
-              layout="vertical"
-              margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--muted-foreground))" width={110} />
-              <Tooltip
-                formatter={(value: number) => [currencyFmt(value), "Receita"]}
-                contentStyle={tooltipStyle}
-              />
-              <Bar dataKey="receita" name="Receita" radius={[0, 6, 6, 0]} maxBarSize={24}>
-                {payData.map((p) => <Cell key={p.name} fill={p.color} />)}
-              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -758,14 +639,12 @@ export default function MLRelatorios() {
           <TabsTrigger value="horario"    className="gap-1.5 text-xs"><Clock3   className="w-3.5 h-3.5" />Venda por Hora</TabsTrigger>
           <TabsTrigger value="ticket"     className="gap-1.5 text-xs"><TrendingUp className="w-3.5 h-3.5" />Ticket M&eacute;dio</TabsTrigger>
           <TabsTrigger value="estado"     className="gap-1.5 text-xs"><MapPin   className="w-3.5 h-3.5" />Por Estado</TabsTrigger>
-          <TabsTrigger value="pagamento"  className="gap-1.5 text-xs"><CreditCard className="w-3.5 h-3.5" />Pagamento</TabsTrigger>
           <TabsTrigger value="funil"      className="gap-1.5 text-xs"><GitMerge className="w-3.5 h-3.5" />Funil</TabsTrigger>
         </TabsList>
 
         <TabsContent value="horario"   className="mt-4"><TabHorario  /></TabsContent>
         <TabsContent value="ticket"    className="mt-4"><TabTicket   /></TabsContent>
         <TabsContent value="estado"    className="mt-4"><TabEstado   /></TabsContent>
-        <TabsContent value="pagamento" className="mt-4"><TabPagamento /></TabsContent>
         <TabsContent value="funil"     className="mt-4"><TabFunil    /></TabsContent>
       </Tabs>
     </div>

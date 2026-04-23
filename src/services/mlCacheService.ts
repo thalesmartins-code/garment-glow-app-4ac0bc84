@@ -1,9 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { DailyRow, HourlyRow, ProductDailyRow, MLUserCacheRow } from "@/types/mlCache";
+import type { DailyRow, HourlyRow, ProductDailyRow, MLUserCacheRow, StateDailyRow } from "@/types/mlCache";
 
 // ── Fetch functions ────────────────────────────────────────────────────────────
 
-export type { DailyRow, HourlyRow, ProductDailyRow, MLUserCacheRow };
+export type { DailyRow, HourlyRow, ProductDailyRow, MLUserCacheRow, StateDailyRow };
 
 export async function fetchDailyCache(
   userId: string,
@@ -92,6 +92,40 @@ export async function fetchProductDailyCache(
     thumbnail: r.thumbnail,
     qty_sold: Number(r.qty_sold || 0),
     revenue: Number(r.revenue || 0),
+    ml_user_id: r.ml_user_id,
+  }));
+}
+
+export async function fetchStateDailyCache(
+  userId: string,
+  mlUserIds: string[],
+  dateFrom: string,
+  dateTo: string,
+  selectedStore: string,
+): Promise<StateDailyRow[]> {
+  let query = (supabase as any)
+    .from("ml_state_daily_cache")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("date", dateFrom)
+    .lte("date", dateTo)
+    .order("date", { ascending: false })
+    .limit(5000);
+
+  if (selectedStore !== "all") {
+    query = query.eq("ml_user_id", selectedStore);
+  } else {
+    query = query.in("ml_user_id", mlUserIds);
+  }
+
+  const { data } = await query;
+  return ((data as any[]) || []).map((r: any) => ({
+    date: r.date,
+    uf: r.uf,
+    state_name: r.state_name || "",
+    qty_orders: Number(r.qty_orders || 0),
+    revenue: Number(r.revenue || 0),
+    approved_revenue: Number(r.approved_revenue || 0),
     ml_user_id: r.ml_user_id,
   }));
 }

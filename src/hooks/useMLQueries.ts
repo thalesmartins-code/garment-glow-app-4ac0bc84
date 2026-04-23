@@ -7,9 +7,9 @@ import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMLStore } from "@/contexts/MLStoreContext";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchDailyCache, fetchHourlyCache, fetchUserCache } from "@/services/mlCacheService";
+import { fetchDailyCache, fetchHourlyCache, fetchUserCache, fetchStateDailyCache } from "@/services/mlCacheService";
 import { mapDailyRow, mapHourlyRow } from "@/types/mlCache";
-import type { DailyBreakdown, HourlyBreakdown, MLUser } from "@/types/mlCache";
+import type { DailyBreakdown, HourlyBreakdown, MLUser, StateDailyRow } from "@/types/mlCache";
 import type { ProductSalesRow } from "@/components/mercadolivre/TopSellingProducts";
 
 export type { DailyBreakdown, HourlyBreakdown, MLUser };
@@ -25,6 +25,8 @@ export const mlKeys = {
     ["ml", "products", userId, mlIds, from, to, store] as const,
   userInfo: (userId: string, mlIds: string[], store: string) =>
     ["ml", "userInfo", userId, mlIds, store] as const,
+  state: (userId: string, mlIds: string[], from: string, to: string, store: string) =>
+    ["ml", "state", userId, mlIds, from, to, store] as const,
 };
 
 // ── useMLDailyQuery ─────────────────────────────────────────────────────────
@@ -150,6 +152,24 @@ export function useMLMonthlyDailyQuery() {
     },
     enabled: !!userId && resolvedMLUserIds.length > 0,
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
+  });
+}
+
+// ── useMLStateQuery ─────────────────────────────────────────────────────────
+
+export function useMLStateQuery(dateFrom: string, dateTo: string) {
+  const { user } = useAuth();
+  const { selectedStore, resolvedMLUserIds } = useMLStore();
+  const userId = user?.id ?? "";
+
+  return useQuery({
+    queryKey: mlKeys.state(userId, resolvedMLUserIds, dateFrom, dateTo, selectedStore),
+    queryFn: async (): Promise<StateDailyRow[]> => {
+      return fetchStateDailyCache(userId, resolvedMLUserIds, dateFrom, dateTo, selectedStore);
+    },
+    enabled: !!userId && resolvedMLUserIds.length > 0 && !!dateFrom && !!dateTo,
+    staleTime: 3 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
 }

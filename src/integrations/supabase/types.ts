@@ -392,6 +392,48 @@ export type Database = {
           },
         ]
       }
+      ml_state_daily_cache: {
+        Row: {
+          approved_revenue: number
+          date: string
+          id: string
+          ml_user_id: string
+          qty_orders: number
+          revenue: number
+          seller_id: string | null
+          state_name: string
+          synced_at: string
+          uf: string
+          user_id: string
+        }
+        Insert: {
+          approved_revenue?: number
+          date: string
+          id?: string
+          ml_user_id?: string
+          qty_orders?: number
+          revenue?: number
+          seller_id?: string | null
+          state_name?: string
+          synced_at?: string
+          uf: string
+          user_id: string
+        }
+        Update: {
+          approved_revenue?: number
+          date?: string
+          id?: string
+          ml_user_id?: string
+          qty_orders?: number
+          revenue?: number
+          seller_id?: string | null
+          state_name?: string
+          synced_at?: string
+          uf?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ml_sync_log: {
         Row: {
           date_from: string

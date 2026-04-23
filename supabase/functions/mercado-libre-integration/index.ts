@@ -315,6 +315,10 @@ serve(async (req) => {
       string,
       { item_id: string; date: string; title: string; thumbnail: string | null; qty_sold: number; revenue: number }
     > = {};
+    const stateSales: Record<
+      string,
+      { date: string; uf: string; state_name: string; qty_orders: number; revenue: number; approved_revenue: number }
+    > = {};
 
     for (const order of orders) {
       const amount = Number(order.total_amount || 0);
@@ -403,6 +407,39 @@ serve(async (req) => {
           }
           productSales[prodKey].qty_sold += itemQty;
           productSales[prodKey].revenue += itemRevenue;
+        }
+      }
+
+      // Aggregate state-level sales per day (from shipping address)
+      if (date && date >= brtDateFrom && date <= brtDateTo) {
+        const stateObj = order.shipping?.receiver_address?.state;
+        const rawId: string | undefined = stateObj?.id;
+        const stateName: string = stateObj?.name || "";
+        let uf: string | null = null;
+        if (rawId && typeof rawId === "string") {
+          uf = rawId.includes("-") ? rawId.split("-")[1] : rawId;
+          if (uf) uf = uf.trim().toUpperCase().slice(0, 2);
+        }
+        if (uf && uf.length === 2) {
+          const stateKey = `${date}::${uf}`;
+          if (!stateSales[stateKey]) {
+            stateSales[stateKey] = {
+              date,
+              uf,
+              state_name: stateName,
+              qty_orders: 0,
+              revenue: 0,
+              approved_revenue: 0,
+            };
+          }
+          stateSales[stateKey].qty_orders += 1;
+          stateSales[stateKey].revenue += amount;
+          if (status === "paid" || status === "confirmed") {
+            stateSales[stateKey].approved_revenue += amount;
+          }
+          if (stateName && !stateSales[stateKey].state_name) {
+            stateSales[stateKey].state_name = stateName;
+          }
         }
       }
     }
@@ -566,6 +603,42 @@ serve(async (req) => {
               console.log(`Product cache: ${productRows.length} rows saved`);
             } catch (e) {
               console.error("Product cache async error:", e);
+            }
+          })();
+        }
+
+        // Upsert state daily cache (fire-and-forget, batches of 200)
+        const stateRows = Object.values(stateSales).map((s) => ({
+          user_id,
+          ml_user_id: mlUserIdStr,
+          date: s.date,
+          uf: s.uf,
+          state_name: s.state_name,
+          qty_orders: s.qty_orders,
+          revenue: s.revenue,
+          approved_revenue: s.approved_revenue,
+          synced_at: syncedAt,
+          ...(seller_id ? { seller_id } : {}),
+        }));
+
+        if (stateRows.length > 0) {
+          (async () => {
+            try {
+              const stateBatches: typeof stateRows[] = [];
+              for (let i = 0; i < stateRows.length; i += 200) {
+                stateBatches.push(stateRows.slice(i, i + 200));
+              }
+              await Promise.all(
+                stateBatches.map((batch) =>
+                  supabaseAdmin
+                    .from("ml_state_daily_cache")
+                    .upsert(batch, { onConflict: "user_id,ml_user_id,date,uf" })
+                    .then(({ error }) => { if (error) console.error("State cache upsert error:", error); }),
+                ),
+              );
+              console.log(`State cache: ${stateRows.length} rows saved`);
+            } catch (e) {
+              console.error("State cache async error:", e);
             }
           })();
         }
