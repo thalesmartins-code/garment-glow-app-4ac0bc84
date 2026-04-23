@@ -125,7 +125,7 @@ export function useMLCoverage(
         coverage_class = "sem_giro";
       } else {
         coverage_days = Math.floor(item.available_quantity / avg_daily_sales);
-        coverage_class = classifyDays(coverage_days, period);
+        coverage_class = classifyDays(coverage_days, effectiveThresholds);
       }
 
       map.set(item.id, { avg_daily_sales, coverage_days, coverage_class, total_sold });
