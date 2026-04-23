@@ -2,9 +2,10 @@ import { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock3, MapPin, CreditCard, TrendingUp, GitMerge, Info, ShoppingCart, DollarSign, Eye, Users, Percent, Tag } from "lucide-react";
+import { Clock3, MapPin, TrendingUp, GitMerge, Info, ShoppingCart, DollarSign, Eye, Users, Percent, Tag } from "lucide-react";
 import { BrazilHeatMap } from "@/components/mercadolivre/BrazilHeatMap";
 import { useMLStore } from "@/contexts/MLStoreContext";
+import { useMLStateQuery } from "@/hooks/useMLQueries";
 import { KPICard } from "@/components/dashboard/KPICard";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
