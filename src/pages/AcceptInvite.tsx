@@ -19,7 +19,7 @@ export default function AcceptInvite() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState<"loading" | "needs-password" | "needs-login" | "ready" | "done" | "error">("loading");
+  const [step, setStep] = useState<"loading" | "needs-password" | "needs-login" | "ready" | "wrong-user" | "done" | "error">("loading");
   const [invite, setInvite] = useState<{ email: string; orgName: string; role: string } | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [password, setPassword] = useState("");
@@ -44,11 +44,18 @@ export default function AcceptInvite() {
       setInvite({ email: data.email, orgName: data.organization_name, role: data.role });
       if (!user) {
         setStep(data.user_exists ? "needs-login" : "needs-password");
+      } else if (user.email?.toLowerCase() !== data.email.toLowerCase()) {
+        setStep("wrong-user");
       } else {
         setStep("ready");
       }
     })();
   }, [token, authLoading, user]);
+
+  const handleSwitchAccount = async () => {
+    await supabase.auth.signOut();
+    // After sign-out the effect re-runs; user becomes null and we re-enter needs-password / needs-login.
+  };
 
   const handleAccept = async () => {
     setSubmitting(true);
@@ -120,6 +127,23 @@ export default function AcceptInvite() {
   if (step === "needs-login") {
     // Redirect to login carrying the token forward
     return <Navigate to={`/login?invite=${encodeURIComponent(token)}`} replace />;
+  }
+
+  if (step === "wrong-user") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="max-w-sm w-full text-center space-y-4">
+          <AlertCircle className="w-12 h-12 text-amber-500 mx-auto" />
+          <h1 className="text-xl font-semibold">Conta diferente</h1>
+          <p className="text-sm text-muted-foreground">
+            Este convite é para <span className="font-medium text-foreground">{invite?.email}</span>, mas você está logado como <span className="font-medium text-foreground">{user?.email}</span>.
+          </p>
+          <p className="text-xs text-muted-foreground">Saia da conta atual para criar uma nova ou entrar com o email convidado.</p>
+          <Button className="w-full" onClick={handleSwitchAccount}>Sair e continuar</Button>
+          <Button variant="ghost" className="w-full" onClick={() => navigate("/api")}>Cancelar</Button>
+        </div>
+      </div>
+    );
   }
 
   return (
