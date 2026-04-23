@@ -1151,7 +1151,7 @@ export default function MLEstoque() {
                 <Select value={brandFilter} onValueChange={setBrandFilter}>
                   <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas as marcas</SelectItem>
+                    <SelectItem value="all">Marcas</SelectItem>
                     {brands.map((b) => (
                       <SelectItem key={b} value={b}>{b}</SelectItem>
                     ))}
@@ -1160,7 +1160,7 @@ export default function MLEstoque() {
                 <Select value={coverageFilter} onValueChange={setCoverageFilter}>
                   <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas coberturas</SelectItem>
+                    <SelectItem value="all">Coberturas</SelectItem>
                     {(Object.keys(COVERAGE_CLASS_LABELS) as CoverageClass[]).map((cls) => {
                       const Icon = COVERAGE_CLASS_ICONS[cls];
                       const color = COVERAGE_COLORS[cls];
