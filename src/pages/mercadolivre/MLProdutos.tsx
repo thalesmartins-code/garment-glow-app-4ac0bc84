@@ -652,17 +652,16 @@ export default function MLProdutos() {
       });
   }, [items, search, statusFilter, stockFilter, sortBy, brandFilter, hideOutOfStock, logisticFilter, onlyDiscount, columnView, dealPriceCache]);
 
-  // Lazy-fetch de preço real para itens com deal_ids (promoções de canal) — depende de `filtered`
-  const dealItemKey = useMemo(
-    () => filtered.filter(i => i.deal_ids.length > 0).map(i => i.id).sort().join(','),
+  // Lazy-fetch de preço real (current_price via suggestions API) para todos os itens
+  // visíveis ao entrar na view "Preço" — cobre deal_ids E promoções do vendedor
+  const filteredItemKey = useMemo(
+    () => filtered.map(i => i.id).sort().join(','),
     [filtered],
   );
 
   useEffect(() => {
-    if (columnView !== "preco" || !dealItemKey) return;
-    const toFetch = filtered.filter(
-      i => i.deal_ids.length > 0 && !dealPriceCache.has(i.id),
-    );
+    if (columnView !== "preco" || !filteredItemKey) return;
+    const toFetch = filtered.filter(i => !dealPriceCache.has(i.id));
     if (toFetch.length === 0) return;
     toFetch.forEach(async (item) => {
       const result = await fetchItemSuggestion(item.id, item._ml_user_id);
@@ -672,7 +671,7 @@ export default function MLProdutos() {
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnView, dealItemKey]);
+  }, [columnView, filteredItemKey]);
 
   // KPI stats derived from filtered items so cards react to active filters
   const filteredKPIs = useMemo(() => {
@@ -1135,10 +1134,10 @@ export default function MLProdutos() {
                               );
                             })() : (() => {
                               const cachedPrice = dealPriceCache.get(item.id);
-                              const hasDeal = item.deal_ids.length > 0;
-                              const priceSale = hasDeal && cachedPrice != null ? cachedPrice : item.price;
-                              const hasDiscount = hasDeal && cachedPrice != null && cachedPrice < item.price;
-                              const loadingPrice = hasDeal && cachedPrice == null;
+                
+                              const priceSale = cachedPrice ?? item.price;
+                              const hasDiscount = cachedPrice != null && cachedPrice < item.price;
+                              const loadingPrice = cachedPrice == null;
                               return (
                                 <>
                                   <TableCell className="text-right">
