@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -24,6 +24,7 @@ interface Member {
   joined_at: string;
   full_name: string | null;
   email: string | null;
+  avatar_url: string | null;
 }
 
 const ROLE_OPTIONS: OrgRole[] = ["admin", "member", "viewer"];
@@ -55,12 +56,25 @@ export function OrgMembersTab({ orgId, myRole }: { orgId: string; myRole: OrgRol
     }
     const ids = (rows ?? []).map((r: any) => r.user_id);
     let nameMap = new Map<string, string | null>();
+    let avatarMap = new Map<string, string | null>();
     if (ids.length) {
       const { data: profs } = await supabase
         .from("profiles")
-        .select("id, full_name")
+        .select("id, full_name, avatar_url")
         .in("id", ids);
       nameMap = new Map((profs ?? []).map((p: any) => [p.id, p.full_name ?? null]));
+      await Promise.all(
+        (profs ?? []).map(async (p: any) => {
+          let url: string | null = p.avatar_url ?? null;
+          if (url && !url.startsWith("http")) {
+            const { data: signed } = await supabase.storage
+              .from("avatars")
+              .createSignedUrl(url, 3600);
+            url = signed?.signedUrl ?? null;
+          }
+          avatarMap.set(p.id, url);
+        })
+      );
     }
     const list: Member[] = (rows ?? []).map((m: any) => ({
       id: m.id,
@@ -69,6 +83,7 @@ export function OrgMembersTab({ orgId, myRole }: { orgId: string; myRole: OrgRol
       joined_at: m.joined_at,
       full_name: nameMap.get(m.user_id) ?? null,
       email: null,
+      avatar_url: avatarMap.get(m.user_id) ?? null,
     }));
     setMembers(list);
     setLoading(false);
@@ -183,6 +198,7 @@ export function OrgMembersTab({ orgId, myRole }: { orgId: string; myRole: OrgRol
               return (
                 <div key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card">
                   <Avatar className="h-9 w-9">
+                    <AvatarImage src={m.avatar_url ?? undefined} />
                     <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
