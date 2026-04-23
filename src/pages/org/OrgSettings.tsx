@@ -5,11 +5,19 @@ import { OrgGeneralTab } from "@/components/org/OrgGeneralTab";
 import { OrgMembersTab } from "@/components/org/OrgMembersTab";
 import { OrgInvitesTab } from "@/components/org/OrgInvitesTab";
 import { OrgAuditTab } from "@/components/org/OrgAuditTab";
-import { Building2 } from "lucide-react";
+import { Building2, Loader2 } from "lucide-react";
 
 export default function OrgSettings() {
-  const { currentOrg, orgRole } = useOrganization();
+  const { currentOrg, orgRole, loading } = useOrganization();
   const [tab, setTab] = useState("geral");
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (!currentOrg) {
     return (
