@@ -35,28 +35,40 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
 
   const loadOrgs = useCallback(async (uid: string) => {
     setLoading(true);
-    const { data: members } = await supabase
-      .from("organization_members")
-      .select("role, organization_id, organizations(id, name, slug, owner_id)")
-      .eq("user_id", uid);
+    try {
+      const { data: members, error } = await supabase
+        .from("organization_members")
+        .select("role, organization_id, organizations(id, name, slug, owner_id)")
+        .eq("user_id", uid);
 
-    const list: Organization[] = (members ?? [])
-      .filter((m: any) => m.organizations)
-      .map((m: any) => ({
-        id: m.organizations.id,
-        name: m.organizations.name,
-        slug: m.organizations.slug,
-        owner_id: m.organizations.owner_id,
-        role: m.role as OrgRole,
-      }));
+      if (error) {
+        setOrgs([]);
+        setCurrentOrg(null);
+        return;
+      }
 
-    setOrgs(list);
+      const list: Organization[] = (members ?? [])
+        .filter((m: any) => m.organizations)
+        .map((m: any) => ({
+          id: m.organizations.id,
+          name: m.organizations.name,
+          slug: m.organizations.slug,
+          owner_id: m.organizations.owner_id,
+          role: m.role as OrgRole,
+        }));
 
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const found = list.find((o) => o.id === stored) ?? list[0] ?? null;
-    setCurrentOrg(found);
-    if (found) localStorage.setItem(STORAGE_KEY, found.id);
-    setLoading(false);
+      setOrgs(list);
+
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const found = list.find((o) => o.id === stored) ?? list[0] ?? null;
+      setCurrentOrg(found);
+      if (found) localStorage.setItem(STORAGE_KEY, found.id);
+    } catch {
+      setOrgs([]);
+      setCurrentOrg(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const loadViewerPermissions = useCallback(async (uid: string, orgId: string) => {
