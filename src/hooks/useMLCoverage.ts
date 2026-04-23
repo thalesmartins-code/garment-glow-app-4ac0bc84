@@ -7,6 +7,18 @@ import { format, subDays } from "date-fns";
 export type CoveragePeriod = 7 | 15 | 30;
 export type CoverageClass = "ruptura" | "critico" | "alerta" | "ok" | "sem_giro";
 
+export interface CoverageThresholds {
+  /** Coverage strictly less than this value is classified as `critico`. */
+  criticoMax: number;
+  /** Coverage strictly less than this value (and ≥ criticoMax) is classified as `alerta`. */
+  alertaMax: number;
+}
+
+/** Default thresholds derived from the lookback period (preserves legacy behavior). */
+export function defaultThresholds(period: CoveragePeriod): CoverageThresholds {
+  return { criticoMax: Math.ceil(period * 0.25), alertaMax: period };
+}
+
 export interface CoverageData {
   avg_daily_sales: number;
   coverage_days: number | null; // null = sem giro
@@ -42,18 +54,22 @@ export const COVERAGE_CLASS_LABELS: Record<CoverageClass, string> = {
 };
 
 /**
- * Thresholds are relative to the chosen period N:
- *   critico  → 0 < coverage < N × 0.25   (less than 25% of horizon covered)
- *   alerta   → N × 0.25 ≤ coverage < N   (partially covered)
- *   ok       → coverage ≥ N              (full horizon covered)
+ * Classification based on user-configurable absolute day thresholds.
+ *   critico  → coverage_days < criticoMax
+ *   alerta   → criticoMax ≤ coverage_days < alertaMax
+ *   ok       → coverage_days ≥ alertaMax
  */
-function classifyDays(coverage_days: number, period: CoveragePeriod): CoverageClass {
-  if (coverage_days < Math.ceil(period * 0.25)) return "critico";
-  if (coverage_days < period) return "alerta";
+function classifyDays(coverage_days: number, thresholds: CoverageThresholds): CoverageClass {
+  if (coverage_days < thresholds.criticoMax) return "critico";
+  if (coverage_days < thresholds.alertaMax) return "alerta";
   return "ok";
 }
 
-export function useMLCoverage(items: InventoryItem[], period: CoveragePeriod) {
+export function useMLCoverage(
+  items: InventoryItem[],
+  period: CoveragePeriod,
+  thresholds?: CoverageThresholds,
+) {
   const { user } = useAuth();
   const [rawData, setRawData] = useState<{ item_id: string; date: string; qty_sold: number }[]>([]);
   const [fetching, setFetching] = useState(false);
