@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSeller } from "@/contexts/SellerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
@@ -136,6 +136,7 @@ export function Header({ title, subtitle, showSellerSwitcher = true, showMarketp
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="gap-2 md:gap-3 rounded-xl pl-2 pr-2 md:pr-4 hover:bg-secondary/50 hover:text-foreground">
               <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.avatar_url ?? undefined} alt={displayName} />
                 <AvatarFallback className="bg-accent text-sm font-medium text-accent-foreground">
                   {initials}
                 </AvatarFallback>
