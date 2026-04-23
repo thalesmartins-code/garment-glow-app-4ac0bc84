@@ -243,14 +243,15 @@ export default function UserManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 pt-4 pb-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Gestão de Usuários</h1>
-          <p className="text-[11px] text-muted-foreground/60 mt-0.5">
-            {users.length} {users.length === 1 ? "usuário" : "usuários"}
-          </p>
-        </div>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+      <div className="sticky -top-4 md:-top-6 lg:-top-8 z-20 -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pb-4 pt-4 bg-background/95 backdrop-blur-sm border-b border-border/40">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">Gestão de Usuários</h1>
+            <p className="text-[11px] text-muted-foreground/60 mt-0.5">
+              {users.length} {users.length === 1 ? "usuário" : "usuários"}
+            </p>
+          </div>
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="h-8 text-sm">
               <Plus className="h-4 w-4 mr-1.5" />
@@ -300,7 +301,8 @@ export default function UserManagement() {
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       <Card>
