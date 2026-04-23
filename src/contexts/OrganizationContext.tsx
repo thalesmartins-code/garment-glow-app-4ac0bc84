@@ -92,6 +92,10 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (user) {
+      // Mark loading synchronously so ProtectedRoute won't see
+      // a transient { user: truthy, currentOrg: null, loading: false }
+      // state and incorrectly sign the user out.
+      setLoading(true);
       loadOrgs(user.id);
     } else {
       setOrgs([]);
