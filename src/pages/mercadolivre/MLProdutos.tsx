@@ -424,11 +424,13 @@ function PriceDetailSheet({
                           <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Preço</th>
                           <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Vendas</th>
                           <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">vs Seu Preço</th>
+                          <th className="px-4 py-2.5" />
                         </tr>
                       </thead>
                       <tbody>
                         {graphData.map((entry, i) => {
                           const diff = ((entry.preco - suggestion.current_price) / suggestion.current_price) * 100;
+                          const mlSearchUrl = `https://www.mercadolivre.com.br/busca?q=${encodeURIComponent(entry.title)}`;
                           return (
                             <tr key={i} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
                               <td className="px-4 py-2.5"><p className="text-xs line-clamp-1">{entry.title}</p></td>
@@ -438,6 +440,17 @@ function PriceDetailSheet({
                                 <span className={`text-xs font-medium tabular-nums ${diff < 0 ? "text-emerald-600" : diff > 0 ? "text-destructive" : "text-muted-foreground"}`}>
                                   {diff > 0 ? "+" : ""}{diff.toFixed(1)}%
                                 </span>
+                              </td>
+                              <td className="px-4 py-2.5 text-center">
+                                <a
+                                  href={mlSearchUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="Buscar no Mercado Livre"
+                                  className="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
                               </td>
                             </tr>
                           );
