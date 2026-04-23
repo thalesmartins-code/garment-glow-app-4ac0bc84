@@ -248,12 +248,10 @@ export default function MercadoLivre() {
     return m;
   }, [effectiveDaily]);
 
-  const effectivePreviousDaily = useMemo(() => {
-    if (connected) return aggregateDailyRows(previousDaily);
-    if (isAll) return mockDaily.filter(d => d.date >= prevFrom && d.date <= prevTo);
-    if (isML) return previousDaily;
-    return mockDaily.filter(d => d.date >= prevFrom && d.date <= prevTo);
-  }, [connected, isAll, isML, previousDaily, mockDaily, prevFrom, prevTo]);
+  const effectivePreviousDaily = useMemo(
+    () => aggregateDailyRows(previousDaily),
+    [previousDaily]
+  );
 
   const previousMetrics = useMemo(() => {
     if (effectivePreviousDaily.length === 0) return null;
@@ -329,7 +327,7 @@ export default function MercadoLivre() {
   }, [isAll, perMarketplaceHourly]);
 
   // ── Not connected state ──
-  const onlyMLSelected = mlStores.length > 0 && nonMlStores.length === 0;
+  const onlyMLSelected = mlStores.length > 0;
   if (onlyMLSelected && !loading && !connected) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
