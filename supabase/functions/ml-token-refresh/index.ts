@@ -13,6 +13,18 @@ serve(async (req) => {
   }
 
   try {
+    // ─── Require shared cron secret ─────────────────────────────────────────
+    // This endpoint is invoked by pg_cron / scheduled jobs only. Require a
+    // shared secret in the X-Cron-Secret header to prevent public abuse.
+    const expectedSecret = Deno.env.get("CRON_SECRET");
+    const providedSecret = req.headers.get("x-cron-secret");
+    if (!expectedSecret || providedSecret !== expectedSecret) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const ML_APP_ID = Deno.env.get("ML_APP_ID");
     const ML_CLIENT_SECRET = Deno.env.get("ML_CLIENT_SECRET");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");

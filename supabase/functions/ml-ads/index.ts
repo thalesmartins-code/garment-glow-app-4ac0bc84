@@ -348,6 +348,18 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase   = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
 
+    // ─── Authenticate caller (Supabase JWT) ─────────────────────────────────
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+    const jwt = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(jwt);
+    if (claimsError || !claimsData?.claims?.sub) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+    const callerId = claimsData.claims.sub as string;
+
     const url       = new URL(req.url);
 
     const QuerySchema = z.object({
@@ -390,6 +402,20 @@ serve(async (req) => {
     const userId      = tokenRow.user_id      as string;
     const orgId       = (tokenRow.organization_id as string | null) ?? null;
     const tokenSellerId = (tokenRow.seller_id as string | null) ?? null;
+
+    // ─── Verify caller is a member of the token's organization ──────────────
+    if (orgId) {
+      const { data: isMember } = await supabase.rpc("is_org_member", {
+        _user_id: callerId,
+        _org_id: orgId,
+      });
+      if (!isMember) {
+        return jsonResponse({ error: "Forbidden" }, 403);
+      }
+    } else if (callerId !== userId) {
+      // Legacy tokens with no org: only the owner of the token may access.
+      return jsonResponse({ error: "Forbidden" }, 403);
+    }
 
     if (!forceSync) {
       const [cachedDaily, cachedCampaigns, cachedProducts] = await Promise.all([
