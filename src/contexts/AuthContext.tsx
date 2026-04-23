@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -10,7 +10,7 @@ interface AuthContextType {
   loading: boolean;
   role: AppRole | null;
   profile: { full_name: string | null; avatar_url: string | null } | null;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string, options?: { allowWithoutOrganization?: boolean }) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -106,14 +106,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
-  };
+  const signIn = useCallback(async (email: string, password: string, options?: { allowWithoutOrganization?: boolean }) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  const signOut = async () => {
+    if (error) {
+      return { error: error as Error | null };
+    }
+
+    if (!options?.allowWithoutOrganization && data.user) {
+      const { data: memberships, error: membershipError } = await supabase
+        .from("organization_members")
+        .select("id")
+        .eq("user_id", data.user.id)
+        .limit(1);
+
+      if (membershipError || !memberships?.length) {
+        await supabase.auth.signOut().catch(() => {});
+        return {
+          error: new Error(
+            membershipError?.message ?? "Seu acesso foi removido. Entre em contato com um administrador."
+          ),
+        };
+      }
+    }
+
+    return { error: error as Error | null };
+  }, []);
+
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut();
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, session, loading, role, profile, signIn, signOut }}>

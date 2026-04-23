@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -107,6 +107,7 @@ const kpiItem = {
 export default function Login() {
   const { user, loading, signIn } = useAuth();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -114,6 +115,7 @@ export default function Login() {
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
+  const inviteToken = searchParams.get("invite");
 
   if (loading) {
     return (
@@ -123,16 +125,20 @@ export default function Login() {
     );
   }
 
-  if (user) return <Navigate to="/" replace />;
+  if (user) {
+    return <Navigate to={inviteToken ? `/aceitar-convite?token=${encodeURIComponent(inviteToken)}` : "/"} replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(email, password, {
+      allowWithoutOrganization: Boolean(inviteToken),
+    });
     if (error) {
       toast({
         title: "Erro ao entrar",
-        description: "Email ou senha incorretos.",
+        description: error.message || "Email ou senha incorretos.",
         variant: "destructive",
       });
     }

@@ -59,13 +59,23 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
 
       setOrgs(list);
 
+      if (list.length === 0) {
+        setCurrentOrg(null);
+        setViewerPermissions(new Set());
+        localStorage.removeItem(STORAGE_KEY);
+        return;
+      }
+
       const stored = localStorage.getItem(STORAGE_KEY);
       const found = list.find((o) => o.id === stored) ?? list[0] ?? null;
       setCurrentOrg(found);
       if (found) localStorage.setItem(STORAGE_KEY, found.id);
+      else localStorage.removeItem(STORAGE_KEY);
     } catch {
       setOrgs([]);
       setCurrentOrg(null);
+      setViewerPermissions(new Set());
+      localStorage.removeItem(STORAGE_KEY);
     } finally {
       setLoading(false);
     }
