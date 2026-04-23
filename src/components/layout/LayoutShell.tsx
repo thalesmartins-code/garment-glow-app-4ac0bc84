@@ -13,8 +13,8 @@ interface LayoutShellProps {
   showSellerMarketplaceBar?: boolean;
 }
 
-const HIDE_SELLER_SWITCHER_ROUTES = ["/api/sellers"];
-const HIDE_STORES_ROUTES = ["/api/integracoes"];
+const HIDE_SELLER_SWITCHER_ROUTES = ["/api/sellers", "/api/integracoes"];
+const HIDE_STORES_ROUTES: string[] = [];
 
 export function LayoutShell({ sidebar, mobileSidebar, showSellerSwitcher = true, showMarketplaceSwitcher = false, showSellerMarketplaceBar = false }: LayoutShellProps) {
   const location = useLocation();
