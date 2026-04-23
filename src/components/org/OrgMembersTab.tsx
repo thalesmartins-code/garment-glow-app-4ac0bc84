@@ -9,7 +9,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Trash2, Crown, SlidersHorizontal } from "lucide-react";
+import { Loader2, Trash2, Crown, SlidersHorizontal, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,6 +58,18 @@ export function OrgMembersTab({ orgId, myRole }: { orgId: string; myRole: OrgRol
 
   useEffect(() => { load(); }, [orgId]);
 
+  // Refresh when tab/window regains focus (catches newly-accepted invites)
+  useEffect(() => {
+    const onFocus = () => load();
+    const onVisible = () => { if (document.visibilityState === "visible") load(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [orgId]);
+
   const handleRoleChange = async (memberUserId: string, newRole: OrgRole) => {
     setBusyId(memberUserId);
     const { error } = await supabase.functions.invoke("org-member-update-role", {
@@ -102,8 +114,11 @@ export function OrgMembersTab({ orgId, myRole }: { orgId: string; myRole: OrgRol
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base font-medium">Membros ({members.length})</CardTitle>
+        <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={load} disabled={loading}>
+          <RefreshCw className={`w-3.5 h-3.5 mr-1 ${loading ? "animate-spin" : ""}`} /> Atualizar
+        </Button>
       </CardHeader>
       <CardContent>
         {loading ? (
