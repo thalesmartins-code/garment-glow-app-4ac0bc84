@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ApiLayout } from "@/components/layout/ApiLayout";
 import { SellerProvider } from "@/contexts/SellerContext";
 import { MLInventoryProvider } from "@/contexts/MLInventoryContext";
@@ -72,10 +72,6 @@ const App = () => (
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/aceitar-convite" element={<AcceptInvite />} />
                   <Route element={<ProtectedRoute />}>
-                    {/* Root redirects to API environment */}
-                    <Route path="/" element={<Navigate to="/" replace />} />
-                    <Route path="/perfil" element={<Navigate to="/perfil" replace />} />
-
                     {/* Modo TV — acesso autenticado, sem sidebar/header */}
                     <Route path="/tv" element={<TVRoleGuard><ErrorBoundary fallbackTitle="Erro no Modo TV"><TVModeVendas /></ErrorBoundary></TVRoleGuard>} />
 
