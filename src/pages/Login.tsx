@@ -256,7 +256,7 @@ export default function Login() {
 
           {/* Bottom: Social proof */}
           <motion.p className="text-xs text-white/30" variants={fadeUp}>
-            Integração com Mercado Livre, Shopee e mais.
+            Integração nativa com o Mercado Livre.
           </motion.p>
         </motion.div>
       </div>
